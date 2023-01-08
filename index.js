@@ -20,8 +20,8 @@ class App {
         this._scene = scene;                                // 씬 객체를 필드화해서 다른 곳에서도 참조할 수 있도록 함
         this._scene.background = new THREE.Color("white");
 
-        const rgbeLoader = new RGBELoader();
-        rgbeLoader.load("data/hdri/blue_clouds.hdr", (texture) => {
+        const rgbeLoader = new RGBELoader()
+        .load("data/hdri/blue_clouds.hdr", (texture) => {
             texture.mapping = THREE.EquirectangularReflectionMapping;
             this._scene.background = texture; // 3차원 배경으로 사용
             this._scene.environment = texture; // 광원으로 사용
