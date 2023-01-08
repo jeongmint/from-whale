@@ -69,6 +69,7 @@ class App {
         const url03 = "data/moby/Moby.gltf";
         const url04 = "data/luke/Luke.gltf";
         const url05 = "data/orca_army/Orca_Army.gltf";
+        const url06 = "data/bottle/Bottle.gltf";
 
         gltfLoader.load(
             url01, // Finn
@@ -105,9 +106,17 @@ class App {
         gltfLoader.load(
             url05, // Orca Army
             (gltf) => {
-                const root04 = gltf.scene;
-                root04.position.set(1.0, 0.0, 20.0);
-                this._scene.add(root04);
+                const root05 = gltf.scene;
+                root05.position.set(1.0, 0.0, 20.0);
+                this._scene.add(root05);
+            }
+        );
+        gltfLoader.load(
+            url06, // Orca Army
+            (gltf) => {
+                const root06 = gltf.scene;
+                root06.position.set(1.0, 0.0, -20.0);
+                this._scene.add(root06);
             }
         );
     }
