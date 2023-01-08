@@ -1,0 +1,16 @@
+* {
+    outline : none;
+    margin : 0;
+}
+
+body {
+    overflow : hidden; /*전체 화면이 보일 수 있도록 설정*/
+}
+
+#webgl-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
