@@ -21,13 +21,6 @@ class App {
         this._scene.background = new THREE.Color("white");
 
         const rgbeLoader = new RGBELoader();
-
-        if (isIOS) {
-            rgbeLoader.setDataType(THREE.HalfFloatType); // Fixes bug on iOS
-        } else {
-            rgbeLoader.setDataType(THREE.FloatType);  // this is the default
-        }
-
         rgbeLoader.load("data/hdri/blue_clouds.hdr", (texture) => {
             texture.mapping = THREE.EquirectangularReflectionMapping;
             this._scene.background = texture; // 3차원 배경으로 사용
