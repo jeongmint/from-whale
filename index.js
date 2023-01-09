@@ -42,12 +42,14 @@ class App {
 
     _setupCamera(){ // 3차원 그래픽 출력할 가로, 세로
         const camera = new THREE.PerspectiveCamera(
-            75,
+            50,
             window.innerWidth / window.innerHeight,
             0.1,
             100
         );
-        camera.position.z = 2;
+        camera.position.x = -13;
+        camera.position.y = 3;
+        camera.position.z = -10;
         this._camera = camera;
 
         this._scene.add(this._camera);
