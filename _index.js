@@ -1,5 +1,7 @@
-import * as THREE from "../build/three.module.js";
+import * as THREE from 'three';
 import { OrbitControls } from "../examples/jsm/controls/OrbitControls.js";
+import { GLTFLoader } from "../examples/jsm/loaders/GLTFLoader.js";
+import { RGBELoader } from "../examples/jsm/loaders/RGBELoader.js"
 
 class App {
 
@@ -16,6 +18,16 @@ class App {
     
         const scene = new THREE.Scene();                    // 씬 객체 생성
         this._scene = scene;                                // 씬 객체를 필드화해서 다른 곳에서도 참조할 수 있도록 함
+        this._scene.background = new THREE.Color("white");
+
+        const rgbeLoader = new RGBELoader()
+        .load("data/hdri/blue_clouds.hdr", (texture) => {
+            texture.mapping = THREE.EquirectangularReflectionMapping;
+            this._scene.background = texture; // 3차원 배경으로 사용
+            this._scene.environment = texture; // 광원으로 사용
+            //texture.dispose();
+        }
+    );
 
         this._setupCamera();                                // 따로 객체 선언해줘야 함
         this._setupLight();
@@ -29,65 +41,90 @@ class App {
     }
 
     _setupCamera(){ // 3차원 그래픽 출력할 가로, 세로
-        const width = this._divContainer.clientWidth;
-        const height = this._divContainer.clientHeight;
         const camera = new THREE.PerspectiveCamera(
-            75,
-            width / height,
+            50,
+            window.innerWidth / window.innerHeight,
             0.1,
             100
         );
-        camera.position.z = 2;
+        camera.position.x = -13;
+        camera.position.y = 3;
+        camera.position.z = -10;
         this._camera = camera;
+
+        this._scene.add(this._camera);
     }
 
     _setupLight(){
         const color = 0xffffff;
-        const intensity = 1;
-        const light = new THREE.DirectionalLight(color, intensity);
-        light.position.set(-1, 2, 4);
-        this._scene.add(light); // 씬 객체의 구성요소로 추가
+        const intensity = 0.85;
+        const directLight = new THREE.DirectionalLight(color, intensity);
+        directLight.position.set(8, 4, 2);
+        // this._scene.add(light); // 씬 객체의 구성요소로 추가
+        this._camera.add(directLight);
     }
 
     _setupModel(){
-        const geometry = new THREE.TorusKnotGeometry(0.6, 0.1, 32, 16, 3, 8); // 원판의 크기, 분할할 수
-        const fillMaterial = new THREE.MeshPhongMaterial({color: 0x48372f});
-        const cube = new THREE.Mesh(geometry, fillMaterial);
+        const gltfLoader = new GLTFLoader();
+        const url01 = "data/finn/Finn.gltf";
+        const url02 = "data/hazel/Hazel.gltf";
+        const url03 = "data/moby/Moby.gltf";
+        const url04 = "data/luke/Luke.gltf";
+        const url05 = "data/orca_army/Orca_Army.gltf";
+        const url06 = "data/bottle/Bottle.gltf";
 
-        const lineMaterial = new THREE.LineBasicMaterial({color: 0xf230f6});
-        const line = new THREE.LineSegments(
-            new THREE.WireframeGeometry(geometry), lineMaterial); // 여기서 Wireframe 삭제하면 cube 윤곽선은 사라짐
-    
-        const group = new THREE.Group()
-        group.add(cube);
-        group.add(line);
-
-        this._scene.add(group);
-        this._cube = group; // 아래에서 업데이트 메서드를 통해 큐브가 업데이트 됨
+        gltfLoader.load(
+            url01, // Finn
+            (gltf) => {
+                const root01 = gltf.scene;
+                root01.position.set(1.0, 0.0, 10.0);
+                this._scene.add(root01);
+            }
+        );
+        gltfLoader.load(
+            url02, // Hazel
+            (gltf) => {
+                const root02 = gltf.scene;
+                root02.position.set(1.0, 0.0, 0.0);
+                this._scene.add(root02);
+            }
+        );
+        gltfLoader.load(
+            url03, // Moby
+            (gltf) => {
+                const root03 = gltf.scene;
+                root03.position.set(1.0, 0.0, 30.0);
+                this._scene.add(root03);
+            }
+        );
+        gltfLoader.load(
+            url04, // Luke
+            (gltf) => {
+                const root04 = gltf.scene;
+                root04.position.set(1.0, 0.0, -10.0);
+                this._scene.add(root04);
+            }
+        );
+        gltfLoader.load(
+            url05, // Orca Army
+            (gltf) => {
+                const root05 = gltf.scene;
+                root05.position.set(1.0, 0.0, 20.0);
+                this._scene.add(root05);
+            }
+        );
+        gltfLoader.load(
+            url06, // Orca Army
+            (gltf) => {
+                const root06 = gltf.scene;
+                root06.position.set(1.0, 0.0, -20.0);
+                this._scene.add(root06);
+            }
+        );
     }
-
-    // _setupModel(){
-    //     const shape = new THREE.Shape();
-    //     const x = -2.5, y = 5;
-    //     // 이런 식으로 해서
-    //     shape.moveTo();
-    //     shape.bezierCurveTo();
-    //     // 이런 함수들을 사용해서 선을 그려 낼 수 있음
-
-    //     const geometry = new THREE.BufferGeometry();
-    //     const points = shape.getPoints();
-    //     geometry.setFromPoints(points);
-
-    //     const material = new THREE.LineBasicMaterial({color:0xfff458});
-    //     const line = new THREE.Line(geometry, material);
- 
-    //     this._scene.add(line);
-    // }
-
 
     _setupControls(){
         new OrbitControls(this._camera, this._divContainer);
-
     }
 
     resize(){
