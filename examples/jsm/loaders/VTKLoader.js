@@ -780,7 +780,7 @@ class VTKLoader extends Loader {
 
 					for ( let i = 0; i < dataOffsets.length - 1; i ++ ) {
 
-						const data = fflate.unzlibSync( byteData.slice( dataOffsets[ i ], dataOffsets[ i + 1 ] ) ); // eslint-disable-line no-undef
+						const data = fflate.unzlibSync( byteData.slice( dataOffsets[ i ], dataOffsets[ i + 1 ] ) );
 						content = data.buffer;
 
 						if ( ele.attributes.type === 'Float32' ) {
@@ -910,7 +910,7 @@ class VTKLoader extends Loader {
 
 						let arr;
 
-						if ( Object.prototype.toString.call( section.DataArray ) === '[object Array]' ) {
+						if ( Array.isArray( section.DataArray ) ) {
 
 							arr = section.DataArray;
 

@@ -1,6 +1,10 @@
 import TextureNode from './TextureNode.js';
 import UniformNode from '../core/UniformNode.js';
-import ReflectNode from './ReflectNode.js';
+import ReflectVectorNode from './ReflectVectorNode.js';
+
+import { negate, vec3, nodeObject } from '../shadernode/ShaderNodeBaseElements.js';
+
+let defaultUV;
 
 class CubeTextureNode extends TextureNode {
 
@@ -18,29 +22,11 @@ class CubeTextureNode extends TextureNode {
 
 	}
 
-	getConstructHash( builder ) {
+	getDefaultUV() {
 
-		return `${ this.uuid }-${ builder.context.environmentContext?.uuid || '' }`;
+		defaultUV ||= new ReflectVectorNode();
 
-	}
-
-	construct( builder ) {
-
-		const properties = builder.getNodeProperties( this );
-
-		const uvNode = this.uvNode || builder.context.uvNode || new ReflectNode();
-		let levelNode = this.levelNode || builder.context.levelNode;
-
-		if ( levelNode?.isNode === true ) {
-
-			const texture = this.value;
-
-			levelNode = builder.context.levelShaderNode ? builder.context.levelShaderNode.call( { texture, levelNode }, builder ) : levelNode;
-
-		}
-
-		properties.uvNode = uvNode;
-		properties.levelNode = levelNode;
+		return defaultUV;
 
 	}
 
@@ -70,13 +56,21 @@ class CubeTextureNode extends TextureNode {
 
 			const nodeData = builder.getDataFromNode( this );
 
-			let snippet = nodeData.snippet;
+			let propertyName = nodeData.propertyName;
 
-			if ( builder.context.tempRead === false || snippet === undefined ) {
+			if ( propertyName === undefined ) {
 
-				const uvSnippet = uvNode.build( builder, 'vec3' );
+				const uvNodeObject = nodeObject( uvNode );
+				const cubeUV = vec3( negate( uvNodeObject.x ), uvNodeObject.yz );
+				const uvSnippet = cubeUV.build( builder, 'vec3' );
 
-				if ( levelNode ) {
+				const nodeVar = builder.getVarFromNode( this, 'vec4' );
+
+				propertyName = builder.getPropertyName( nodeVar );
+
+				let snippet = null;
+
+				if ( levelNode?.isNode === true) {
 
 					const levelSnippet = levelNode.build( builder, 'float' );
 
@@ -88,11 +82,14 @@ class CubeTextureNode extends TextureNode {
 
 				}
 
+				builder.addFlowCode( `${propertyName} = ${snippet}` );
+
 				nodeData.snippet = snippet;
+				nodeData.propertyName = propertyName;
 
 			}
 
-			return builder.format( snippet, 'vec4', output );
+			return builder.format( propertyName, 'vec4', output );
 
 		}
 

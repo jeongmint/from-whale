@@ -3,19 +3,27 @@ import { NodeUpdateType } from '../core/constants.js';
 
 class MaxMipLevelNode extends UniformNode {
 
-	constructor( texture ) {
+	constructor( textureNode ) {
 
 		super( 0 );
 
-		this.texture = texture;
+		this.textureNode = textureNode;
 
-		this.updateType = NodeUpdateType.Frame;
+		this.updateType = NodeUpdateType.FRAME;
+
+	}
+
+	get texture() {
+
+		return this.textureNode.value;
 
 	}
 
 	update() {
 
-		const image = this.texture.images ? this.texture.images[ 0 ].image || this.texture.images[ 0 ] : this.texture.image;
+		const texture = this.texture;
+		const images = texture.images;
+		const image = ( images && images.length > 0 ) ? ( images[ 0 ]?.image || images[ 0 ] ) : texture.image;
 
 		if ( image?.width !== undefined ) {
 
