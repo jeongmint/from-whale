@@ -1,4 +1,4 @@
-import * as THREE from "../build/three.module.js";
+import * as THREE from 'three';
 import { OrbitControls } from "../examples/jsm/controls/OrbitControls.js";
 import { GLTFLoader } from "../examples/jsm/loaders/GLTFLoader.js";
 import { RGBELoader } from "../examples/jsm/loaders/RGBELoader.js"
