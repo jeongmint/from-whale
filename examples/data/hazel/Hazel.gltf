@@ -1,0 +1,195 @@
+{
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5125,
+      "count": 2328,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 491,
+      "max": [
+        1.00000011920929,
+        0.269759893417358,
+        0.281734049320221
+      ],
+      "min": [
+        -1.0,
+        -0.269759893417358,
+        -0.281734049320221
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 491,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5126,
+      "count": 491,
+      "type": "VEC2"
+    }
+  ],
+  "asset": {
+    "generator": "Substance Painter 2019.3.3",
+    "version": "2.0"
+  },
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 9312,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 5892,
+      "byteOffset": 9312,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 5892,
+      "byteOffset": 15204,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 3928,
+      "byteOffset": 21096,
+      "target": 34962
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 25024,
+      "uri": "Hazel.bin"
+    }
+  ],
+  "images": [
+    {
+      "uri": "Hazel_baseColor.png"
+    },
+    {
+      "uri": "Hazel_occlusionRoughnessMetallic.png"
+    },
+    {
+      "uri": "Hazel_normal.png"
+    },
+    {
+      "uri": "Hazel_emissive.png"
+    }
+  ],
+  "materials": [
+    {
+      "alphaMode": "OPAQUE",
+      "emissiveFactor": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emissiveTexture": {
+        "index": 3
+      },
+      "name": "Hazel",
+      "normalTexture": {
+        "index": 2
+      },
+      "occlusionTexture": {
+        "index": 1
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 0
+        },
+        "metallicRoughnessTexture": {
+          "index": 1
+        }
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "Hazel",
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 2,
+            "POSITION": 1,
+            "TEXCOORD_0": 3
+          },
+          "indices": 0,
+          "material": 0,
+          "mode": 4
+        }
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "children": [
+        1
+      ],
+      "name": "root",
+      "scale": [
+        4.89355373382568,
+        4.89355373382568,
+        4.89355373382568
+      ],
+      "translation": [
+        0.78964900970459,
+        0.0266556739807129,
+        0.0
+      ]
+    },
+    {
+      "children": [
+        2
+      ],
+      "name": "Hazel"
+    },
+    {
+      "mesh": 0,
+      "name": "Hazel"
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9985,
+      "wrapS": 10497,
+      "wrapT": 10497
+    }
+  ],
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "sampler": 0,
+      "source": 2
+    },
+    {
+      "sampler": 0,
+      "source": 3
+    }
+  ]
+}

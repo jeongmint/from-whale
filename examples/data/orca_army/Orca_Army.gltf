@@ -1,0 +1,195 @@
+{
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5125,
+      "count": 2664,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 578,
+      "max": [
+        1.00000011920929,
+        0.535075426101685,
+        0.352913916110992
+      ],
+      "min": [
+        -1.0,
+        -0.535075426101685,
+        -0.352913916110992
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 578,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5126,
+      "count": 578,
+      "type": "VEC2"
+    }
+  ],
+  "asset": {
+    "generator": "Substance Painter 2019.3.3",
+    "version": "2.0"
+  },
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 10656,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 6936,
+      "byteOffset": 10656,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 6936,
+      "byteOffset": 17592,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 4624,
+      "byteOffset": 24528,
+      "target": 34962
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 29152,
+      "uri": "Orca_Army.bin"
+    }
+  ],
+  "images": [
+    {
+      "uri": "OrcaArmy_baseColor.png"
+    },
+    {
+      "uri": "OrcaArmy_occlusionRoughnessMetallic.png"
+    },
+    {
+      "uri": "OrcaArmy_normal.png"
+    },
+    {
+      "uri": "OrcaArmy_emissive.png"
+    }
+  ],
+  "materials": [
+    {
+      "alphaMode": "OPAQUE",
+      "emissiveFactor": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emissiveTexture": {
+        "index": 3
+      },
+      "name": "OrcaArmy",
+      "normalTexture": {
+        "index": 2
+      },
+      "occlusionTexture": {
+        "index": 1
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 0
+        },
+        "metallicRoughnessTexture": {
+          "index": 1
+        }
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "pCube1",
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 2,
+            "POSITION": 1,
+            "TEXCOORD_0": 3
+          },
+          "indices": 0,
+          "material": 0,
+          "mode": 4
+        }
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "children": [
+        1
+      ],
+      "name": "orca_low.obj",
+      "scale": [
+        4.662428855896,
+        4.662428855896,
+        4.662428855896
+      ],
+      "translation": [
+        -0.0593571662902832,
+        2.05849599838257,
+        0.0
+      ]
+    },
+    {
+      "children": [
+        2
+      ],
+      "name": "g pCube1"
+    },
+    {
+      "mesh": 0,
+      "name": "pCube1"
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9985,
+      "wrapS": 10497,
+      "wrapT": 10497
+    }
+  ],
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "sampler": 0,
+      "source": 2
+    },
+    {
+      "sampler": 0,
+      "source": 3
+    }
+  ]
+}
