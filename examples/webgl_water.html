@@ -20,7 +20,8 @@
 		<script type="importmap">
 			{
 				"imports": {
-					"three": "../build/three.module.js"
+					"three": "../build/three.module.js",
+					"three/addons/": "./jsm/"
 				}
 			}
 		</script>
@@ -29,18 +30,18 @@
 
 			import * as THREE from 'three';
 
-			import { GUI } from './jsm/libs/lil-gui.module.min.js';
-			import { OrbitControls } from './jsm/controls/OrbitControls.js';
-			import { Water } from './jsm/objects/Water2.js';
+			import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
+			import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+			import { Water } from 'three/addons/objects/Water2.js';
 
 			let scene, camera, clock, renderer, water;
 
 			let torusKnot;
 
 			const params = {
-				color: '#ffffff',
-				scale: 4,
-				flowX: 1,
+				color: '#bdebff',
+				scale: 16,
+				flowX: -1,
 				flowY: 1
 			};
 
@@ -56,7 +57,7 @@
 				// camera
 
 				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 200 );
-				camera.position.set( - 15, 7, 15 );
+				camera.position.set( 35, 10, -55 );
 				camera.lookAt( scene.position );
 
 				// clock
@@ -65,29 +66,22 @@
 
 				// mesh
 
-				const torusKnotGeometry = new THREE.TorusKnotGeometry( 3, 1, 256, 32 );
-				const torusKnotMaterial = new THREE.MeshNormalMaterial();
-
-				torusKnot = new THREE.Mesh( torusKnotGeometry, torusKnotMaterial );
-				torusKnot.position.y = 4;
-				torusKnot.scale.set( 0.5, 0.5, 0.5 );
-				scene.add( torusKnot );
-
 				// ground
 
-				const groundGeometry = new THREE.PlaneGeometry( 20, 20 );
+				const groundGeometry = new THREE.PlaneGeometry( 4096, 4096 );
 				const groundMaterial = new THREE.MeshStandardMaterial( { roughness: 0.8, metalness: 0.4 } );
 				const ground = new THREE.Mesh( groundGeometry, groundMaterial );
 				ground.rotation.x = Math.PI * - 0.5;
+				ground.position.y = - 4;
 				scene.add( ground );
 
 				const textureLoader = new THREE.TextureLoader();
-				textureLoader.load( 'textures/hardwood2_diffuse.jpg', function ( map ) {
+				textureLoader.load( 'textures/clear_sea.png', function ( map ) {
 
 					map.wrapS = THREE.RepeatWrapping;
 					map.wrapT = THREE.RepeatWrapping;
-					map.anisotropy = 16;
-					map.repeat.set( 4, 4 );
+					map.anisotropy = 1;
+					map.repeat.set( 256, 256 );
 					groundMaterial.map = map;
 					groundMaterial.needsUpdate = true;
 
@@ -95,7 +89,7 @@
 
 				// water
 
-				const waterGeometry = new THREE.PlaneGeometry( 20, 20 );
+				const waterGeometry = new THREE.PlaneGeometry( 4096,4096 );
 
 				water = new Water( waterGeometry, {
 					color: params.color,
@@ -105,7 +99,7 @@
 					textureHeight: 1024
 				} );
 
-				water.position.y = 1;
+				water.position.y = 3;
 				water.rotation.x = Math.PI * - 0.5;
 				scene.add( water );
 
@@ -115,9 +109,9 @@
 				cubeTextureLoader.setPath( 'textures/cube/Park2/' );
 
 				const cubeTexture = cubeTextureLoader.load( [
-					'posx.jpg', 'negx.jpg',
-					'posy.jpg', 'negy.jpg',
-					'posz.jpg', 'negz.jpg'
+					'px.png', 'nx.png',
+					'py.png', 'ny.png',
+					'pz.png', 'nz.png'
 				] );
 
 				scene.background = cubeTexture;
@@ -190,7 +184,6 @@
 			function animate() {
 
 				requestAnimationFrame( animate );
-
 				render();
 
 			}
@@ -198,10 +191,6 @@
 			function render() {
 
 				const delta = clock.getDelta();
-
-				torusKnot.rotation.x += delta;
-				torusKnot.rotation.y += delta * 0.5;
-
 				renderer.render( scene, camera );
 
 			}
