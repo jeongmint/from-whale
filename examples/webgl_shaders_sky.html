@@ -51,29 +51,24 @@
 			function init() {
 
 				// scene
-
 				scene = new THREE.Scene();
 
 				// camera
-
-				camera = new THREE.PerspectiveCamera( 30, window.innerWidth / window.innerHeight, 0.1, 100 );
-				camera.position.set( 40, 20, 0 );
-
+				// camera = new THREE.PerspectiveCamera( 30, window.innerWidth / window.innerHeight, 0.1, 100 );
+				// camera.position.set( 40, 20, 0 );
+				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 200 );
+				camera.position.set( 35, 10, -55 );
 				camera.lookAt( scene.position );
-
+				
 				// clock
-
 				clock = new THREE.Clock();
 
-				// mesh
-
 				// ground
-
 				const groundGeometry = new THREE.PlaneGeometry( 4096, 4096 );
 				const groundMaterial = new THREE.MeshStandardMaterial( { roughness: 0.8, metalness: 0.4 } );
 				const ground = new THREE.Mesh( groundGeometry, groundMaterial );
 				ground.rotation.x = Math.PI * - 0.5;
-				ground.position.y = - 4;
+				ground.position.y = -3;
 				scene.add( ground );
 
 				const textureLoader = new THREE.TextureLoader();
@@ -89,7 +84,6 @@
 				} );
 
 				// water
-
 				const waterGeometry = new THREE.PlaneGeometry( 4096,4096 );
 
 				water = new Water( waterGeometry, {
@@ -100,12 +94,11 @@
 					textureHeight: 1024
 				} );
 
-				water.position.y = 3;
+				water.position.y = -2.5;
 				water.rotation.x = Math.PI * - 0.5;
 				scene.add( water );
 
 				// skybox
-
 				const cubeTextureLoader = new THREE.CubeTextureLoader();
 				cubeTextureLoader.setPath( 'textures/cube/Park2/' );
 
@@ -119,7 +112,6 @@
 				scene.rotation.set(0.0, 0.0, 0.0);
 
 				// light
-
 				const ambientLight = new THREE.AmbientLight( 0xcccccc, 0.6 );
 				scene.add( ambientLight );
 
@@ -128,11 +120,10 @@
 				scene.add( directionalLight );
 
 				// gltf
-
 				const loader = new GLTFLoader();
 				loader.load( 'data/hazel/Hazel.glb', function ( gltf ) {
 					// Hazel
-					gltf.scene.position.set(0.0, 4.0, 0.0);
+					gltf.scene.position.set(0.0, 4.7, 0.0);
 					gltf.scene.rotation.set(0.0, 0.0, 0.0);
 					scene.add( gltf.scene );
 					render();
@@ -141,7 +132,7 @@
 
 				loader.load( 'data/luke/Luke.glb', function ( gltf ) {
 
-					gltf.scene.position.set(0.0, 4.0, 10.0);
+					gltf.scene.position.set(0.0, 4.7, 10.0);
 					gltf.scene.rotation.set(0.0, 0.0, 0.0);
 					scene.add( gltf.scene );
 					render();
@@ -150,7 +141,7 @@
 
 				loader.load( 'data/orca_army/Orca_Army.glb', function ( gltf ) {
 					
-					gltf.scene.position.set(0.0, 4.0, -20.0);
+					gltf.scene.position.set(0.0, 4.7, -20.0);
 					gltf.scene.rotation.set(0.0, 0.0, 0.0);
 					scene.add( gltf.scene );
 					render();
@@ -159,7 +150,7 @@
 
 				loader.load( 'data/finn/Finn.glb', function ( gltf ) {
 
-					gltf.scene.position.set(0.0, 4.0, -10.0);
+					gltf.scene.position.set(0.0, 4.7, -10.0);
 					gltf.scene.rotation.set(0.0, 0.0, 0.0);
 					scene.add( gltf.scene );
 					render();
@@ -168,17 +159,16 @@
 
 				loader.load( 'data/moby/Moby.glb', function ( gltf ) {
 
-					gltf.scene.position.set(0.0, 4.0, 20.0);
+					gltf.scene.position.set(0.0, 4.7, 20.0);
 					gltf.scene.rotation.set(0.0, 0.0, 0.0);
 					scene.add( gltf.scene );
 					render();
 
 				} );
 
-				
 				loader.load( 'data/bottle/Bottle.glb', function ( gltf ) {
 
-					gltf.scene.position.set(0.0, 4.0, -30.0);
+					gltf.scene.position.set(0.0, 4.7, -30.0);
 					gltf.scene.rotation.set(0.0, 0.0, 0.0);
 					scene.add( gltf.scene );
 					render();
@@ -186,12 +176,10 @@
 				} );
 
 				// renderer
-
 				renderer = new THREE.WebGLRenderer( { antialias: true } );
 				renderer.setSize( window.innerWidth, window.innerHeight );
 				renderer.setPixelRatio( window.devicePixelRatio );
 				document.body.appendChild( renderer.domElement );
-
 				//
 
 				const controls = new OrbitControls( camera, renderer.domElement );
@@ -199,7 +187,6 @@
 				controls.maxDistance = 50;
 
 				//
-
 				window.addEventListener( 'resize', onWindowResize );
 
 			}
@@ -225,8 +212,6 @@
 				renderer.render( scene, camera );
 
 			}
-
 		</script>
-
-</body>
+	</body>
 </html>

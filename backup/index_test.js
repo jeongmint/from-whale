@@ -1,12 +1,14 @@
 import * as THREE from 'three';
-import { OrbitControls } from "./examples/jsm/controls/OrbitControls.js";
-import { GLTFLoader } from "./examples/jsm/loaders/GLTFLoader.js";
-import { RGBELoader } from "./examples/jsm/loaders/RGBELoader.js"
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { RGBELoader } from "three/addons/loaders/RGBELoader.js"
+import { Water } from 'three/addons/objects/Water2.js';
 
 class App {
 
     // 밑줄로 시작하는 것들은 외부에서 호출하면 안됨
     constructor() {
+
         const divContainer = document.querySelector("#webgl-container");
         this._divContainer = divContainer;  // 다른 method 에서 참조
 
@@ -33,6 +35,7 @@ class App {
         this._setupLight();
         this._setupModel();
         this._setupControls();
+        this._setupWater();
 
         window.onresize = this.resize.bind(this);           // 윈도우를 리사이즈 해주고
         this.resize();                                      // 나머지 객체들인 renderer, camera 를 창 크기에 맞게 설정
@@ -121,6 +124,30 @@ class App {
                 this._scene.add(root06);
             }
         );
+    }
+
+    _setupWater(){
+
+        const params = {
+            color: '#bdebff',
+            scale: 16,
+            flowX: -1,
+            flowY: 1
+        };
+
+        const waterGeometry = new THREE.PlaneGeometry( 4096, 4096 );
+
+        const water = new Water( waterGeometry, {
+            color: params.color,
+            scale: params.scale,
+            flowDirection: new THREE.Vector2( params.flowX, params.flowY ),
+            textureWidth: 1024,
+            textureHeight: 1024
+        } );
+
+        water.position.y = 3;
+        water.rotation.x = Math.PI * - 0.5;
+        this._scene.add( water );
     }
 
     _setupControls(){

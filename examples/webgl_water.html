@@ -118,10 +118,10 @@
 
 				// light
 
-				const ambientLight = new THREE.AmbientLight( 0xcccccc, 0.4 );
-				scene.add( ambientLight );
+				// const ambientLight = new THREE.AmbientLight( 0xcccccc, 1.0 );
+				// scene.add( ambientLight );
 
-				const directionalLight = new THREE.DirectionalLight( 0xffffff, 0.6 );
+				const directionalLight = new THREE.DirectionalLight( 0xffffff, 1.0 );
 				directionalLight.position.set( - 1, 1, 1 );
 				scene.add( directionalLight );
 
@@ -130,6 +130,7 @@
 				renderer = new THREE.WebGLRenderer( { antialias: true } );
 				renderer.setSize( window.innerWidth, window.innerHeight );
 				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.toneMapping = THREE.ACESFilmicToneMapping;
 				document.body.appendChild( renderer.domElement );
 
 				// gui

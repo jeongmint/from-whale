@@ -1,15 +1,11 @@
 
-
 import * as THREE from 'three';
 
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { Water } from 'three/addons/objects/Water2.js';
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
-
 let scene, camera, clock, renderer, water;
-
-let torusKnot;
 
 const params = {
     color: '#bdebff',
@@ -23,159 +19,147 @@ animate();
 
 function init() {
 
-    // scene
+        // scene
+        scene = new THREE.Scene();
 
-    scene = new THREE.Scene();
+        // camera
+        // camera = new THREE.PerspectiveCamera( 30, window.innerWidth / window.innerHeight, 0.1, 100 );
+        // camera.position.set( 40, 20, 0 );
+        camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 200 );
+        camera.position.set( 35, 10, -55 );
+        camera.lookAt( scene.position );
 
-    // camera
+        // clock
+        clock = new THREE.Clock();
+        
+        // ground
+        const groundGeometry = new THREE.PlaneGeometry( 4096, 4096 );
+        const groundMaterial = new THREE.MeshStandardMaterial( { roughness: 0.8, metalness: 0.4 } );
+        const ground = new THREE.Mesh( groundGeometry, groundMaterial );
+        ground.rotation.x = Math.PI * - 0.5;
+        ground.position.y = - 4;
+        scene.add( ground );
 
-    camera = new THREE.PerspectiveCamera( 30, window.innerWidth / window.innerHeight, 0.1, 100 );
-    camera.position.set( 40, 20, 0 );
+        const textureLoader = new THREE.TextureLoader();
+        textureLoader.load( 'examples/textures/clear_sea.png', function ( map ) {
 
-    camera.lookAt( scene.position );
+            map.wrapS = THREE.RepeatWrapping;
+            map.wrapT = THREE.RepeatWrapping;
+            map.anisotropy = 1;
+            map.repeat.set( 256, 256 );
+            groundMaterial.map = map;
+            groundMaterial.needsUpdate = true;
 
-    // clock
+        } );
 
-    clock = new THREE.Clock();
+        // water 2
+        const waterGeometry = new THREE.PlaneGeometry( 4096, 4096 );
 
-    // mesh
+        water = new Water( waterGeometry, {
+            color: params.color,
+            scale: params.scale,
+            flowDirection: new THREE.Vector2( params.flowX, params.flowY ),
+            textureWidth: 1024,
+            textureHeight: 1024
+        } );
 
-    // ground
+        water.position.y = -2.5;
+        water.rotation.x = Math.PI * - 0.5;
+        scene.add( water );
 
-    const groundGeometry = new THREE.PlaneGeometry( 4096, 4096 );
-    const groundMaterial = new THREE.MeshStandardMaterial( { roughness: 0.8, metalness: 0.4 } );
-    const ground = new THREE.Mesh( groundGeometry, groundMaterial );
-    ground.rotation.x = Math.PI * - 0.5;
-    ground.position.y = - 4;
-    scene.add( ground );
+        // skybox
+        const cubeTextureLoader = new THREE.CubeTextureLoader();
+        cubeTextureLoader.setPath( 'data/cube/' );
 
-    const textureLoader = new THREE.TextureLoader();
-    textureLoader.load( 'examples/textures/clear_sea.png', function ( map ) {
+        const cubeTexture = cubeTextureLoader.load( [
+            'px.png', 'nx.png',
+            'py.png', 'ny.png',
+            'pz.png', 'nz.png'
+        ] );
+        
 
-    map.wrapS = THREE.RepeatWrapping;
-    map.wrapT = THREE.RepeatWrapping;
-    map.anisotropy = 1;
-    map.repeat.set( 256, 256 );
-    groundMaterial.map = map;
-    groundMaterial.needsUpdate = true;
+        scene.background = cubeTexture;
+        scene.position.set(0.0, 0.0, 0.0);
+        scene.rotation.set(0.0, 0.0, 0.0);
 
-} );
+        // light
+        const ambientLight = new THREE.AmbientLight( 0xcccccc, 0.6 );
+        scene.add( ambientLight );
 
-// water
+        const directionalLight = new THREE.DirectionalLight( 0xffffff, 0.82 );
+        directionalLight.position.set( - 1, 1, 1 );
+        scene.add( directionalLight );
 
-const waterGeometry = new THREE.PlaneGeometry( 4096,4096 );
+        // gltf
+        const loader = new GLTFLoader();
+        loader.load( 'data/hazel/Hazel.glb', function ( gltf ) {
+            // Hazel
+            gltf.scene.position.set(0.0, 0.0, 0.0);
+            gltf.scene.rotation.set(0.0, 0.0, 0.0);
+            scene.add( gltf.scene );
+            render();
 
-water = new Water( waterGeometry, {
-    color: params.color,
-    scale: params.scale,
-    flowDirection: new THREE.Vector2( params.flowX, params.flowY ),
-    textureWidth: 1024,
-    textureHeight: 1024
-} );
+        } );
 
-water.position.y = 3;
-water.rotation.x = Math.PI * - 0.5;
-scene.add( water );
+        loader.load( 'data/luke/Luke.glb', function ( gltf ) {
 
-// skybox
+            gltf.scene.position.set(0.0, 0.0, 10.0);
+            gltf.scene.rotation.set(0.0, 0.0, 0.0);
+            scene.add( gltf.scene );
+            render();
 
-const cubeTextureLoader = new THREE.CubeTextureLoader();
-cubeTextureLoader.setPath( 'examples/textures/cube/Park2/' );
+        } );
 
-const cubeTexture = cubeTextureLoader.load( [
-    'px.png', 'nx.png',
-    'py.png', 'ny.png',
-    'pz.png', 'nz.png'
-] );
+        loader.load( 'data/orca_army/Orca_Army.glb', function ( gltf ) {
 
-scene.background = cubeTexture;
-scene.rotation.set(0.0, 0.0, 0.0);
+            gltf.scene.position.set(0.0, 0.0, -20.0);
+            gltf.scene.rotation.set(0.0, 0.0, 0.0);
+            scene.add( gltf.scene );
+            render();
 
-// light
+        } );
 
-const ambientLight = new THREE.AmbientLight( 0xcccccc, 0.6 );
-scene.add( ambientLight );
+        loader.load( 'data/finn/Finn.glb', function ( gltf ) {
 
-const directionalLight = new THREE.DirectionalLight( 0xffffff, 0.82 );
-directionalLight.position.set( - 1, 1, 1 );
-scene.add( directionalLight );
+            gltf.scene.position.set(0.0, 0.0, -10.0);
+            gltf.scene.rotation.set(0.0, 0.0, 0.0);
+            scene.add( gltf.scene );
+            render();
 
-// gltf
+        } );
 
-const loader = new GLTFLoader();
-loader.load( 'data/hazel/Hazel.glb', function ( gltf ) {
-// Hazel
-gltf.scene.position.set(0.0, 4.0, 0.0);
-gltf.scene.rotation.set(0.0, 0.0, 0.0);
-scene.add( gltf.scene );
-render();
+        loader.load( 'data/moby/Moby.glb', function ( gltf ) {
 
-} );
+            gltf.scene.position.set(0.0, 0.0, 20.0);
+            gltf.scene.rotation.set(0.0, 0.0, 0.0);
+            scene.add( gltf.scene );
+            render();
 
-loader.load( 'data/luke/Luke.glb', function ( gltf ) {
-
-gltf.scene.position.set(0.0, 4.0, 10.0);
-gltf.scene.rotation.set(0.0, 0.0, 0.0);
-scene.add( gltf.scene );
-render();
-
-} );
-
-loader.load( 'data/orca_army/Orca_Army.glb', function ( gltf ) {
-
-gltf.scene.position.set(0.0, 4.0, -20.0);
-gltf.scene.rotation.set(0.0, 0.0, 0.0);
-scene.add( gltf.scene );
-render();
-
-} );
-
-loader.load( 'data/finn/Finn.glb', function ( gltf ) {
-
-gltf.scene.position.set(0.0, 4.0, -10.0);
-gltf.scene.rotation.set(0.0, 0.0, 0.0);
-scene.add( gltf.scene );
-render();
-
-} );
-
-loader.load( 'data/moby/Moby.glb', function ( gltf ) {
-
-gltf.scene.position.set(0.0, 4.0, 20.0);
-gltf.scene.rotation.set(0.0, 0.0, 0.0);
-scene.add( gltf.scene );
-render();
-
-} );
+        } );
 
 
-loader.load( 'data/bottle/Bottle.glb', function ( gltf ) {
+        loader.load( 'data/bottle/Bottle.glb', function ( gltf ) {
 
-gltf.scene.position.set(0.0, 4.0, -30.0);
-gltf.scene.rotation.set(0.0, 0.0, 0.0);
-scene.add( gltf.scene );
-render();
+            gltf.scene.position.set(0.0, 0.0, -30.0);
+            gltf.scene.rotation.set(0.0, 0.0, 0.0);
+            scene.add( gltf.scene );
+            render();
 
-} );
+        } );
 
-// renderer
+        // renderer
+        renderer = new THREE.WebGLRenderer( { antialias: true } );
+        renderer.setSize( window.innerWidth, window.innerHeight );
+        renderer.setPixelRatio( window.devicePixelRatio );
+        //renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        document.body.appendChild( renderer.domElement );
 
-renderer = new THREE.WebGLRenderer( { antialias: true } );
-renderer.setSize( window.innerWidth, window.innerHeight );
-renderer.setPixelRatio( window.devicePixelRatio );
-document.body.appendChild( renderer.domElement );
+        const controls = new OrbitControls( camera, renderer.domElement );
+        controls.minDistance = 5;
+        controls.maxDistance = 50;
 
-//
-
-const controls = new OrbitControls( camera, renderer.domElement );
-controls.minDistance = 5;
-controls.maxDistance = 50;
-
-//
-
-window.addEventListener( 'resize', onWindowResize );
-
-}
+        window.addEventListener( 'resize', onWindowResize );
+    }
 
 function onWindowResize() {
 
