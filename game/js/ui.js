@@ -115,8 +115,8 @@ export class UI {
 
 		const label = $( 'obj-chapter' );
 		label.textContent = chapter;
-		// 좁은 자리(세로 폰)에서 쓰는 짧은 이름: 'CHAPTER 01 · 등대지기' → 'CH.01'
-		label.dataset.short = chapter.split( ' · ' )[ 0 ].replace( /^CHAPTER\s*/i, 'CH.' );
+		// 좁은 자리(세로 폰)에서는 거리 앞에 짧은 이름만: 'CHAPTER 01 · 등대지기' → 'CH.01'
+		$( 'obj-dist' ).dataset.chapter = chapter.split( ' · ' )[ 0 ].replace( /^CHAPTER\s*/i, 'CH.' );
 		$( 'obj-text' ).textContent = this.dev( text );
 		const box = $( 'hud-objective' );
 		box.classList.remove( 'pulse' );

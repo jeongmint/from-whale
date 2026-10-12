@@ -493,21 +493,20 @@ body.touch .key-only, body:not(.touch) .touch-only { display: none !important; }
 	/* 그림은 작아져도 손가락이 닿는 범위는 넉넉하게 */
 	body.touch #stick::before { content: ''; position: absolute; inset: -14px; border-radius: 50%; }
 	body.touch #stick-knob { width: 44px; height: 44px; margin: -22px 0 0 -22px; }
-	/* 목표: HAZEL·POD 창 아래 작은 한 줄 띠 (아래쪽은 엄지에 가려서 읽기 어렵다) */
+	/* 목표: HAZEL 창 바로 아래, 같은 폭. HAZEL + 목표 = POD 높이 (아래쪽은 엄지에 가려서 읽기 어렵다) */
+	body.touch #hud-status .win-body { padding: 6px 10px; }
+	body.touch #hearts { margin-bottom: 4px; }
 	body.touch #hud-objective {
-		top: 134px; bottom: auto; left: 8px; right: 8px; height: 24px;
+		top: 88px; bottom: auto; left: 8px; right: auto; width: 160px; height: 37px;
 		transform: none; min-width: 0; max-width: none;
-		display: flex; align-items: stretch;
 		text-align: left;
 	}
-	body.touch #hud-objective .win-bar { flex: none; padding: 0 6px; }
-	body.touch #hud-objective .win-bar i { display: none; }
-	body.touch #obj-chapter[data-short] { font-size: 0; }
-	body.touch #obj-chapter[data-short]::after { content: attr(data-short); font-size: 10px; }
-	body.touch #hud-objective .win-body { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; padding: 0 8px; }
-	body.touch #obj-text { flex: 1; min-width: 0; font-size: 12px; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-	body.touch #obj-dist { flex: none; margin: 0; font-size: 10px; }
-	body.touch #toasts { top: 166px; }
+	body.touch #hud-objective .win-bar { display: none; }
+	body.touch #hud-objective .win-body { height: 100%; padding: 4px 8px; display: flex; flex-direction: column; justify-content: center; gap: 3px; }
+	body.touch #obj-text { font-size: 12px; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+	body.touch #obj-dist { margin: 0; font-size: 10px; line-height: 1; white-space: nowrap; }
+	body.touch #obj-dist::before { content: attr(data-chapter) '  '; color: var(--ink-dim); white-space: pre; }
+	body.touch #toasts { top: 133px; }
 }
 
 /* 가로로 든 폰: 버튼을 소나 왼쪽에 한 줄로 */
