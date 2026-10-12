@@ -30,13 +30,31 @@ export const PLACES = {
 	moby: { x: 180, z: 770 }
 };
 
+// 1·3번은 이야기 길 위(시작 → 등대, 미역 2 → 3), 2·4·6번은 길에서 조금 벗어난 곳, 5번만 연합군 근처에 숨겨 둔다
 export const BOTTLES = [
-	{ id: 1, x: - 160, z: - 90 },
-	{ id: 2, x: - 270, z: - 430 },
-	{ id: 3, x: 150, z: - 230 },
-	{ id: 4, x: 620, z: - 520 },
+	{ id: 1, x: - 26, z: - 200 },
+	{ id: 2, x: - 200, z: - 410 },
+	{ id: 3, x: 310, z: - 472 },
+	{ id: 4, x: 560, z: - 480 },
 	{ id: 5, x: 560, z: 190 },
 	{ id: 6, x: - 120, z: - 380 }
+];
+
+// 스텔라와 듀엣: 12마디 블루스 한 바퀴. [ 박, 줄('S' 노래 · 'J' 점프), 음(MIDI) ]. 2/3박은 셔플의 엇박
+const T3 = 2 / 3;
+export const DUET_CHART = [
+	// 1~2마디 Am
+	[ 0, 'S', 69 ], [ 1, 'S', 72 ], [ 2, 'S', 74 ], [ 3, 'S', 72 ], [ 4, 'S', 69 ], [ 6, 'J' ],
+	// 3~4마디 Dm → Am
+	[ 8, 'S', 74 ], [ 9, 'S', 76 ], [ 9 + T3, 'S', 74 ], [ 10, 'S', 72 ], [ 12, 'J' ], [ 14, 'S', 69 ], [ 15, 'S', 67 ],
+	// 5~6마디 Dm
+	[ 16, 'S', 74 ], [ 16 + T3, 'S', 76 ], [ 17, 'S', 77 ], [ 18, 'S', 76 ], [ 19, 'S', 74 ], [ 20, 'S', 72 ], [ 21, 'J' ], [ 22 + T3, 'S', 69 ], [ 23, 'S', 72 ],
+	// 7~8마디 Am
+	[ 24, 'J' ], [ 25, 'S', 76 ], [ 26, 'S', 79 ], [ 26 + T3, 'S', 76 ], [ 28, 'J' ], [ 29, 'S', 74 ], [ 30, 'S', 72 ], [ 31, 'S', 69 ],
+	// 9~10마디 F7 → E7
+	[ 32, 'S', 72 ], [ 33, 'S', 75 ], [ 34, 'S', 77 ], [ 35, 'S', 75 ], [ 36, 'S', 76 ], [ 36 + T3, 'S', 74 ], [ 37, 'S', 71 ], [ 38, 'J' ],
+	// 11~12마디 Am → E7
+	[ 40, 'S', 69 ], [ 41, 'S', 72 ], [ 42, 'J' ], [ 44, 'S', 76 ], [ 45, 'S', 79 ], [ 46, 'S', 81 ], [ 47, 'J' ]
 ];
 
 // 작은 미역 숲: 근처에서 노래하면 하트가 가득 찬다
@@ -297,13 +315,16 @@ async function ending( G ) {
 // 유리병 편지를 모두 모으면 또 하나의 52Hz, 스텔라가 떠오른다
 async function meetStella( G ) {
 
-	const T = lang().story.ending;
-	await card( G, T.subCard );
+	const T = () => lang().story.ending;
+	await card( G, T().subCard );
 	G.stellaRise();
 	G.camFocus( G.actors.stella, { side: 1, dist: 140, height: 40 } );
 	G.audio.whaleCall( null, 'stella' );
 	await G.wait( 3 );
-	await G.say( lines( T.stella ) );
+	await G.say( lines( T().stella ) );
+	// 또 하나의 52Hz와 함께 부르는 듀엣 (리듬 게임). 실패는 없고 등급에 따라 스텔라의 반응이 달라진다
+	const rank = await G.duet( DUET_CHART );
+	await G.say( lines( [ ...T().duetEnd[ rank ], ...T().outro ] ) );
 	G.flags.subEnding = true;
 
 }

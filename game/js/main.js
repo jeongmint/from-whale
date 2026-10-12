@@ -547,6 +547,12 @@ Object.assign( G, {
 
 	},
 
+	duet( chart ) {
+
+		return duet( chart );
+
+	},
+
 	songPuzzle( actor, patterns ) {
 
 		return songPuzzle( actor, patterns );
@@ -577,8 +583,9 @@ Object.assign( G, {
 		$( 'ending-stats' ).innerHTML = [
 			`PLAY TIME ${minutes}:${String( seconds ).padStart( 2, '0' )}`,
 			`LETTERS ${G.bottleCount()}/${BOTTLES.length}`,
+			G.flags.duetRank ? `DUET ${G.flags.duetRank}` : '',
 			G.flags.subEnding ? t( 'ending.sub' ) : t( 'ending.hint' )
-		].join( '<br>' );
+		].filter( Boolean ).join( '<br>' );
 		const left = ! G.flags.subEnding && G.bottleCount() < BOTTLES.length;
 		$( 'btn-search' ).classList.toggle( 'hidden', ! left );
 		if ( left ) $( 'btn-search' ).textContent = t( 'ending.search', { n: G.bottleCount(), total: BOTTLES.length } );
@@ -1091,6 +1098,172 @@ function songPuzzle( actor, patterns ) {
 
 }
 
+// ---------------------------------------------------------------
+// 스텔라와 듀엣: 음악 박자에 맞춰 ♪(노래)·⤴(점프) 노트를 맞히는 리듬 게임. 실패는 없고 등급만 매긴다
+// 시계는 오디오 시계에서 출력 지연을 뺀 값이라, 귀에 들리는 박자와 노트가 맞는다
+// ---------------------------------------------------------------
+const DUET_PERFECT = 0.09, DUET_GOOD = 0.2; // 초
+const DUET_SPEED = 150; // 노트가 흘러오는 속도 (px/초)
+
+function duet( chart ) {
+
+	return new Promise( ( resolve ) => {
+
+		const track = $( 'duet-track' ), judgeEl = $( 'duet-judge' ), comboEl = $( 'duet-combo' );
+		const lanes = { S: track.querySelector( '[data-lane="S"]' ), J: track.querySelector( '[data-lane="J"]' ) };
+		const ctx = audio.ctx;
+		const lat = ctx ? ( ctx.outputLatency || ctx.baseLatency || 0 ) : 0;
+		const clock = () => ( ctx && audio.ctx === ctx ) ? ctx.currentTime - lat : performance.now() / 1000;
+		const beat = 60 / 92;
+		const bar0 = ( ctx && audio.restartForm() ) || clock() + 0.6; // 첫 마디는 스텔라의 카운트
+		const t0 = bar0 + beat * 4;
+		const notes = chart.map( ( [ b, lane, midi ] ) => {
+
+			const el = document.createElement( 'div' );
+			el.className = `duet-note ${lane}`;
+			el.textContent = lane === 'S' ? '♪' : '⤴';
+			track.appendChild( el );
+			return { t: t0 + b * beat, lane, midi, el, done: false };
+
+		} );
+		const end = notes[ notes.length - 1 ].t + 1.2;
+		const prev = { melody: audio.mix.melody, sax: audio.mix.sax };
+		let score = 0, combo = 0;
+		const flashT = {};
+
+		$( 'duet-title' ).textContent = t( 'duet.title' );
+		$( 'duet-help' ).textContent = G.ui.dev( t( 'duet.help' ) );
+		judgeEl.textContent = t( 'duet.ready' );
+		judgeEl.className = '';
+		comboEl.textContent = '';
+		document.body.classList.add( 'singing' );
+		G.ui.show( 'duet' );
+		audio.setMix( { melody: 0, sax: 0 }, 0.8 );
+		for ( const [ lane, el ] of Object.entries( lanes ) ) el.onpointerdown = ( e ) => {
+
+			e.stopPropagation();
+			hit( lane );
+
+		};
+
+		// 스텔라의 카운트 (첫 마디 네 박)
+		if ( ctx ) for ( let i = 0; i < 4; i ++ ) audio.voice( bar0 + i * beat, [ [ 0, i === 3 ? 330 : 220 ], [ 0.25, i === 3 ? 330 : 220 ] ], { vel: 0.1, reverb: 0.9 } );
+
+		const show = ( kind ) => {
+
+			judgeEl.textContent = t( `duet.${kind}` );
+			judgeEl.className = kind;
+			comboEl.textContent = combo > 1 ? t( 'duet.combo', { n: combo } ) : '';
+
+		};
+
+		function hit( lane, at = clock() ) {
+
+			const flash = lanes[ lane ];
+			flash.classList.add( 'flash' );
+			clearTimeout( flashT[ lane ] );
+			flashT[ lane ] = setTimeout( () => flash.classList.remove( 'flash' ), 120 );
+			let note = null, closest = DUET_GOOD;
+			for ( const n of notes ) {
+
+				const d = Math.abs( at - n.t );
+				if ( ! n.done && n.lane === lane && d <= closest ) {
+
+					note = n;
+					closest = d;
+
+				}
+
+			}
+
+			if ( ! note ) return; // 빈 박자에 누른 건 벌하지 않는다
+			note.done = true;
+			note.el.classList.add( 'hit' );
+			const perfect = closest <= DUET_PERFECT;
+			score += perfect ? 2 : 1;
+			combo ++;
+			show( perfect ? 'perfect' : 'good' );
+			if ( lane === 'S' ) {
+
+				// 헤이즐이 멜로디, 스텔라가 한 옥타브 아래로 같이 부른다
+				if ( ctx ) {
+
+					const f = 440 * Math.pow( 2, ( note.midi - 69 ) / 12 );
+					const now = ctx.currentTime;
+					audio.voice( now, [ [ 0, f * 0.97 ], [ 0.05, f ], [ 0.42, f ] ], { vel: 0.13, vibrato: 6, reverb: 0.7 } );
+					audio.voice( now + 0.02, [ [ 0, f * 0.485 ], [ 0.06, f / 2 ], [ 0.5, f / 2 ] ], { vel: 0.08, vibrato: 4.5, reverb: 1 } );
+
+				}
+
+				const h = G.actors.hazel;
+				G.world.ring( h.pos.x, h.pos.z, { color: 0x7fe9ff, to: 12, life: 0.5, width: 0.3 } );
+
+			} else {
+
+				jump();
+				const s = G.actors.stella;
+				G.world.ring( s.pos.x, s.pos.z, { color: 0xffd36b, to: 60, life: 1, width: 0.25 } );
+
+			}
+
+		}
+
+		function frame() {
+
+			const now = clock();
+			const w = track.clientWidth;
+			for ( const n of notes ) {
+
+				if ( ! n.done && now > n.t + DUET_GOOD ) {
+
+					n.done = true;
+					n.el.classList.add( 'miss' );
+					combo = 0;
+					show( 'miss' );
+
+				}
+
+				const x = 45 + ( n.t - now ) * DUET_SPEED;
+				n.el.style.display = x < - 20 || x > w + 20 ? 'none' : '';
+				n.el.style.transform = `translateX(${x.toFixed( 1 )}px)`;
+
+			}
+
+			if ( now > end ) return finish();
+			requestAnimationFrame( frame );
+
+		}
+
+		function finish() {
+
+			G.duetPlay = null;
+			const ratio = score / ( notes.length * 2 );
+			const rank = ratio >= 0.85 ? 'S' : ratio >= 0.6 ? 'A' : 'B';
+			G.flags.duetRank = rank;
+			judgeEl.textContent = t( 'duet.rank', { r: rank } );
+			judgeEl.className = 'perfect';
+			comboEl.textContent = `${Math.round( ratio * 100 )}%`;
+			audio.play( rank === 'B' ? 'heal' : 'join' );
+			setTimeout( () => {
+
+				G.ui.show( 'duet', false );
+				document.body.classList.remove( 'singing' );
+				for ( const n of notes ) n.el.remove();
+				for ( const el of Object.values( lanes ) ) el.onpointerdown = null;
+				audio.setMix( prev, 1.5 );
+				resolve( rank );
+
+			}, 1800 );
+
+		}
+
+		G.duetPlay = { hit, notes, clock };
+		requestAnimationFrame( frame );
+
+	} );
+
+}
+
 function startBoss( resolve, chapterLabel ) {
 
 	const arena = makeSurfaceDecal( { color: 0x3a7dff, inner: 0.99, outer: 1, opacity: 0.3 } );
@@ -1397,6 +1570,8 @@ function onAction( code ) {
 	if ( code === 'Escape' ) return setPaused( true );
 	if ( code === 'KeyM' ) return G.ui.setMuted( audio.toggleMute() );
 	if ( G.puzzle && [ 'KeyE', 'Space', 'Enter' ].includes( code ) ) return G.puzzle.tap();
+	if ( G.duetPlay && ( code === 'KeyE' || code === 'Enter' ) ) return G.duetPlay.hit( 'S' );
+	if ( G.duetPlay && code === 'Space' ) return G.duetPlay.hit( 'J' );
 	if ( ui.dialogOpen ) {
 
 		if ( [ 'Space', 'Enter', 'KeyE' ].includes( code ) ) ui.advance();

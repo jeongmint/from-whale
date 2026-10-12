@@ -316,6 +316,41 @@ input { touch-action: manipulation; }
 #song.turn #song-hint { color: var(--cyan); font-weight: 700; }
 body.singing #stick, body.singing #minimap-wrap { opacity: 0; pointer-events: none; }
 
+/* ---------- 스텔라와 듀엣 (리듬 게임) ---------- */
+#duet {
+	position: fixed; left: 50%; bottom: 22px;
+	transform: translateX(-50%);
+	width: min(560px, calc(100vw - 24px));
+	z-index: 5;
+}
+#duet-track { position: relative; height: 76px; overflow: hidden; background: rgba(0, 0, 0, 0.28); border: 1px solid rgba(95, 168, 255, 0.35); }
+.duet-lane { position: absolute; left: 0; right: 0; height: 38px; display: flex; align-items: center; padding-left: 8px; cursor: pointer; }
+.duet-lane[data-lane="S"] { top: 0; border-bottom: 1px dashed rgba(95, 168, 255, 0.25); }
+.duet-lane[data-lane="J"] { top: 38px; }
+.duet-lane b { width: 24px; text-align: center; font: 18px var(--mono); color: var(--ink-dim); }
+.duet-lane.flash { background: rgba(127, 233, 255, 0.12); }
+.duet-lane.flash b { color: #fff; text-shadow: 0 0 10px var(--cyan); }
+#duet-line { position: absolute; top: 0; bottom: 0; left: 44px; width: 3px; background: var(--cyan); box-shadow: 0 0 10px var(--cyan); pointer-events: none; }
+.duet-note {
+	position: absolute; left: 0;
+	width: 24px; height: 24px; margin: -12px 0 0 -12px;
+	border-radius: 50%;
+	display: grid; place-items: center;
+	font: 14px/1 var(--mono); color: #04102e;
+	will-change: transform;
+	pointer-events: none;
+}
+.duet-note.S { top: 19px; background: var(--cyan); box-shadow: 0 0 10px var(--cyan); }
+.duet-note.J { top: 57px; background: var(--gold); box-shadow: 0 0 10px var(--gold); }
+.duet-note.hit { visibility: hidden; }
+.duet-note.miss { background: #3b4a78; box-shadow: none; opacity: 0.6; }
+#duet-info { display: flex; justify-content: space-between; margin-top: 6px; font: 700 13px var(--mono); min-height: 16px; }
+#duet-judge.perfect { color: var(--gold); }
+#duet-judge.good { color: var(--cyan); }
+#duet-judge.miss { color: var(--warn); }
+#duet-combo { color: var(--ink-dim); }
+#duet-help { margin: 4px 0 0; font-size: 12px; color: var(--ink-dim); text-align: center; }
+
 /* ---------- 챕터 카드 ---------- */
 #card {
 	position: fixed; inset: 0; z-index: 8;
@@ -554,7 +589,7 @@ body.talking #stick { opacity: 0; pointer-events: none; }
 	#touch-buttons button { width: 58px; height: 58px; }
 	#stick { left: 16px; bottom: 16px; width: 120px; height: 120px; }
 	body.talking #touch-buttons { opacity: 0; pointer-events: none; }
-	#song { bottom: 84px; }
+	#song, #duet { bottom: 84px; }
 	#dialog { width: min(620px, calc(100vw - 32px)); }
 	#dialog .win-body { min-height: 84px; padding: 8px 10px; }
 	#toasts { top: 96px; }

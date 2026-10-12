@@ -340,6 +340,12 @@ export class AudioEngine {
 
 				this.stepIndex = 0;
 				this.bar ++;
+				if ( this.resetForm ) {
+
+					this.bar = 0;
+					this.resetForm = false;
+
+				}
 
 			}
 
@@ -406,6 +412,22 @@ export class AudioEngine {
 
 		// 가끔 들려오는 고래 울음
 		if ( s === 0 && this.bar % 8 === 4 && Math.random() < 0.6 ) this.whaleCall( t + Math.random() * BEAT, 'far' );
+
+	}
+
+	// 다음 마디 첫 박부터 12마디 블루스를 처음(Am)부터 다시 시작한다. 그 마디가 시작하는 시각(오디오 시계)을 돌려준다
+	restartForm() {
+
+		if ( ! this.ctx ) return null;
+		if ( this.stepIndex === 0 ) {
+
+			this.bar = 0;
+			return this.nextTime;
+
+		}
+
+		this.resetForm = true;
+		return this.nextTime + ( 12 - this.stepIndex ) * STEP;
 
 	}
 
