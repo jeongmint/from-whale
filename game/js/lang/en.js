@@ -78,7 +78,7 @@ export default {
 		luke: 'Luke · Lighthouse keeper',
 		finn: 'Finn · The compass',
 		moby: 'Moby Dick',
-		shaman: 'Alliance Shaman · Fin whale',
+		shaman: 'Alliance Leader · Shaman',
 		stella: 'Stella',
 		orca: 'Alliance orca',
 		kelp: 'Written on the kelp'

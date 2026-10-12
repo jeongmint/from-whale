@@ -78,7 +78,7 @@ export default {
 		luke: 'ルーク · 灯台守',
 		finn: 'フィン · 羅針盤',
 		moby: 'モビー・ディック',
-		shaman: '連合軍のシャーマン · ナガスクジラ',
+		shaman: '連合軍の大将 · シャーマン',
 		stella: 'ステラ',
 		orca: '連合軍のシャチ',
 		kelp: '海藻に書かれた文字'
