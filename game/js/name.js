@@ -1,8 +1,9 @@
-// 플레이어 닉네임. 비워 두면 '헤이즐'.
+// 플레이어 닉네임. 비워 두면 언어별 기본 이름 (헤이즐 / Hazel / ヘイゼル).
 // 대본에는 {N}, {N을}, {N이}처럼 쓰고, 화면에 보일 때 이름과 알맞은 조사로 바꾼다.
+// (조사가 바뀌는 건 한국어뿐이라 영어·일본어 대본은 {N}만 쓴다)
 
-export const DEFAULT_NAME = '헤이즐';
 const KEY = 'fromwhale.name';
+const OLD_DEFAULT = '헤이즐';
 
 export function cleanName( raw ) {
 
@@ -10,15 +11,17 @@ export function cleanName( raw ) {
 
 }
 
+// 직접 정한 이름만 돌려준다. 없으면 ''
 export function loadName() {
 
 	try {
 
-		return cleanName( localStorage.getItem( KEY ) ) || DEFAULT_NAME;
+		const name = cleanName( localStorage.getItem( KEY ) );
+		return name === OLD_DEFAULT ? '' : name;
 
 	} catch ( e ) {
 
-		return DEFAULT_NAME;
+		return '';
 
 	}
 
@@ -28,7 +31,7 @@ export function saveName( name ) {
 
 	try {
 
-		if ( name === DEFAULT_NAME ) localStorage.removeItem( KEY );
+		if ( ! name ) localStorage.removeItem( KEY );
 		else localStorage.setItem( KEY, name );
 
 	} catch ( e ) { /* 저장 불가 */ }

@@ -1,5 +1,6 @@
 import { SPEAKERS } from './story.js';
 import { fillName } from './name.js';
+import { lang, t } from './i18n.js';
 
 const $ = ( id ) => document.getElementById( id );
 
@@ -31,7 +32,8 @@ export class UI {
 
 		s = fillName( s, this.game.playerName );
 		if ( ! this.game.touch || ! s ) return s;
-		return s.replace( /W A S D \/ 방향키/g, '왼쪽 조이스틱' )
+		for ( const [ keys, touch ] of lang().ui.touchKeys ) s = s.split( keys ).join( touch );
+		return s
 			.replace( /\[E\]/g, '[♪]' ).replace( /\[Space\]/g, '[⤴]' ).replace( /\[L\]/g, '[✉]' )
 			.replace( /<kbd>E<\/kbd>/g, '<kbd>♪</kbd>' );
 
@@ -244,7 +246,7 @@ export class UI {
 		if ( line.who === 'narrator' ) d.classList.add( 'narrator' );
 		if ( line.who === 'hazel' ) d.classList.add( 'hertz' );
 		const name = $( 'dialog-name' );
-		name.textContent = this.dev( line.name ?? ( sp.name || 'NARRATION' ) );
+		name.textContent = this.dev( line.name ?? ( lang().speakers[ line.who ] || 'NARRATION' ) );
 		$( 'dialog' ).querySelector( '.win-bar' ).style.background = sp.bar ?? '';
 		const img = this.portraits[ sp.portrait ];
 		$( 'dialog-portrait' ).style.backgroundImage = img ? `url(${img})` : '';
@@ -315,7 +317,7 @@ export class UI {
 		const items = entries.map( ( e ) => e.read
 			? `<li><b>${e.head}</b><p>${e.body}</p><p style="text-align:right;color:var(--cyan)">${e.from}</p></li>`
 			: `<li class="unread"><b>${e.head}</b><p>${e.scrambled}</p></li>` );
-		for ( let i = entries.length; i < total; i ++ ) items.push( '<li class="empty">· · · 아직 찾지 못한 편지 · · ·</li>' );
+		for ( let i = entries.length; i < total; i ++ ) items.push( `<li class="empty">${t( 'journal.empty' )}</li>` );
 		list.innerHTML = items.join( '' );
 		this.show( 'journal' );
 		this.overlay = 'journal';

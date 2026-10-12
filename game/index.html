@@ -27,7 +27,7 @@
 			<section id="hud-status" class="win">
 				<header class="win-bar"><span id="hud-name">HAZEL.52HZ</span><i></i></header>
 				<div class="win-body">
-					<div id="hearts" aria-label="체력"></div>
+					<div id="hearts" data-i18n-aria="hud.hearts"></div>
 					<div class="meter-row">
 						<span class="mono tiny">STAMINA</span>
 						<div id="stamina" class="meter"><div></div></div>
@@ -48,15 +48,15 @@
 				<div class="win-body">
 					<div id="party"></div>
 					<div class="party-meta">
-						<button id="btn-journal" class="chip" title="편지함 (L)">✉ <b id="bottle-count">0/6</b></button>
-						<button id="btn-mute" class="chip" title="소리 (M)">♪</button>
-						<button id="btn-pause" class="chip" title="일시정지 (Esc)">❚❚</button>
+						<button id="btn-journal" class="chip" data-i18n-title="hud.journal">✉ <b id="bottle-count">0/6</b></button>
+						<button id="btn-mute" class="chip" data-i18n-title="hud.mute">♪</button>
+						<button id="btn-pause" class="chip" data-i18n-title="hud.pause">❚❚</button>
 					</div>
 				</div>
 			</section>
 
 			<section id="hud-boss" class="win hidden">
-				<header class="win-bar"><span>MOBY DICK · 마음</span><i></i></header>
+				<header class="win-bar"><span data-i18n="hud.boss">MOBY DICK</span><i></i></header>
 				<div class="win-body"><div id="boss-gauge"></div><div id="boss-hint" class="mono tiny"></div></div>
 			</section>
 
@@ -99,7 +99,7 @@
 				<div class="win-body">
 					<div id="letter-body"></div>
 					<div id="letter-from"></div>
-					<button class="btn" data-close>닫기 <span class="mono tiny">[E]</span></button>
+					<button class="btn" data-close data-i18n="letter.close"></button>
 				</div>
 			</div>
 		</div>
@@ -107,10 +107,10 @@
 		<!-- 편지함 -->
 		<div id="journal" class="overlay hidden">
 			<div class="win">
-				<header class="win-bar"><span>MAILBOX — 유리병 편지함</span><i></i></header>
+				<header class="win-bar"><span data-i18n="journal.title">MAILBOX</span><i></i></header>
 				<div class="win-body">
 					<ul id="journal-list"></ul>
-					<button class="btn" data-close>닫기 <span class="mono tiny">[L]</span></button>
+					<button class="btn" data-close data-i18n="journal.close"></button>
 				</div>
 			</div>
 		</div>
@@ -120,27 +120,15 @@
 			<div class="win">
 				<header class="win-bar"><span>PAUSE</span><i></i></header>
 				<div class="win-body">
-					<div class="help touch-only">
-						<div><kbd>조이스틱</kbd> 헤엄치기 — 많이 밀수록 빠르게</div>
-						<div><kbd>»</kbd> 누르고 있으면 빠르게 (스태미나)</div>
-						<div><kbd>⤴</kbd> 점프 — 공중에선 무적</div>
-						<div><kbd>♪</kbd> 52Hz 노래 · 말 걸기 · 소나 · 대화 넘기기</div>
-						<div><kbd>화면 드래그</kbd> 시점 &nbsp; <kbd>✉</kbd> 편지함</div>
-					</div>
-					<div class="help key-only">
-						<div><kbd>W A S D</kbd> / <kbd>방향키</kbd> 헤엄치기</div>
-						<div><kbd>Shift</kbd> 빠르게 (스태미나)</div>
-						<div><kbd>Space</kbd> 점프 — 공중에선 무적</div>
-						<div><kbd>E</kbd> 52Hz 노래 · 말 걸기 · 소나</div>
-						<div><kbd>L</kbd> 편지함 &nbsp; <kbd>M</kbd> 소리 &nbsp; <kbd>드래그</kbd> 시점</div>
-					</div>
+					<div class="help touch-only" data-i18n="pause.helpTouch"></div>
+					<div class="help key-only" data-i18n="pause.helpKeys"></div>
 					<label class="name-field" for="nickname-pause">
 						<span class="mono tiny">NICKNAME</span>
-						<input id="nickname-pause" type="text" maxlength="10" placeholder="헤이즐" autocomplete="off" spellcheck="false">
+						<input id="nickname-pause" type="text" maxlength="10" data-name-placeholder autocomplete="off" spellcheck="false">
 					</label>
 					<div class="row">
-						<button class="btn" id="btn-resume">계속하기</button>
-						<button class="btn ghost" id="btn-restart">처음부터</button>
+						<button class="btn" id="btn-resume" data-i18n="pause.resume"></button>
+						<button class="btn ghost" id="btn-restart" data-i18n="pause.restart"></button>
 					</div>
 				</div>
 			</div>
@@ -148,22 +136,28 @@
 
 		<!-- 타이틀 -->
 		<div id="title" class="overlay">
+			<a class="home-link" href="../">◀ FROM. WHALE</a>
 			<div class="title-inner">
 				<svg id="logo-whale" viewBox="40 40 400 300" aria-hidden="true"><path id="logo-path"/></svg>
 				<h1 class="logo">From<span>.</span> Whale</h1>
-				<p class="tagline">이세계의 2066년, 소수의 인간만이 살아남은 바다.<br>아무도 듣지 못하는 52Hz로 노래하는 고래가 있었다.</p>
+				<p class="tagline" data-i18n="title.tagline"></p>
 				<div id="loading" class="mono tiny">LOADING <span id="load-pct">0%</span><div class="meter"><div id="load-bar"></div></div></div>
 				<div id="title-buttons" class="hidden">
+					<div class="lang-switch" role="group" aria-label="Language">
+						<button type="button" data-lang="ko" lang="ko">한국어</button>
+						<button type="button" data-lang="en" lang="en">English</button>
+						<button type="button" data-lang="ja" lang="ja">日本語</button>
+					</div>
 					<label class="name-field" for="nickname">
 						<span class="mono tiny">NICKNAME</span>
-						<input id="nickname" type="text" maxlength="10" placeholder="헤이즐" autocomplete="off" spellcheck="false" enterkeyhint="go">
+						<input id="nickname" type="text" maxlength="10" data-name-placeholder autocomplete="off" spellcheck="false" enterkeyhint="go">
 					</label>
 					<div class="title-row">
-						<button class="btn big" id="btn-start">▶ 모험 시작</button>
-						<button class="btn ghost hidden" id="btn-continue">이어하기</button>
+						<button class="btn big" id="btn-start" data-i18n="title.start"></button>
+						<button class="btn ghost hidden" id="btn-continue" data-i18n="title.continue"></button>
 					</div>
 				</div>
-				<p class="quote">“ 무언가를 한다는 생각 자체부터<br>모험은 시작된다 ”</p>
+				<p class="quote" data-i18n="title.quote"></p>
 				<p class="controls mono tiny key-only">WASD MOVE · SHIFT BOOST · SPACE JUMP · E SING 52HZ</p>
 				<p class="controls mono tiny touch-only">STICK MOVE · » BOOST · ⤴ JUMP · ♪ SING 52HZ</p>
 			</div>
@@ -177,7 +171,7 @@
 					<p class="quote big" id="ending-quote"></p>
 					<div id="ending-stats" class="mono tiny"></div>
 					<div class="row">
-						<button class="btn" id="btn-again">다시 하기</button>
+						<button class="btn" id="btn-again" data-i18n="ending.again"></button>
 					</div>
 				</div>
 			</div>
