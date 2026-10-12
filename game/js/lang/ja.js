@@ -13,7 +13,7 @@ export default {
 			continueAt: 'つづきから · {ch}',
 			quote: '「 何かをしようと思った、その瞬間から<br>冒険は始まる 」'
 		},
-		hud: { hearts: '体力', journal: '手紙 (L)', mute: 'サウンド (M)', pause: 'ポーズ (Esc)', boss: 'MOBY DICK · こころ' },
+		hud: { hearts: '体力', journal: '手紙 (L)', mute: 'サウンド (M)', pause: 'ポーズ (Esc)', home: 'ホームへ', boss: 'MOBY DICK · こころ' },
 		letter: { close: '閉じる <span class="mono tiny">[E]</span>' },
 		journal: {
 			title: 'MAILBOX — ボトルレター',

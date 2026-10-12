@@ -13,7 +13,7 @@ export default {
 			continueAt: 'Continue · {ch}',
 			quote: '“ Adventure begins<br>with the very thought of doing something ”'
 		},
-		hud: { hearts: 'Health', journal: 'Letters (L)', mute: 'Sound (M)', pause: 'Pause (Esc)', boss: 'MOBY DICK · HEART' },
+		hud: { hearts: 'Health', journal: 'Letters (L)', mute: 'Sound (M)', pause: 'Pause (Esc)', home: 'Back to home', boss: 'MOBY DICK · HEART' },
 		letter: { close: 'Close <span class="mono tiny">[E]</span>' },
 		journal: {
 			title: 'MAILBOX — Bottle letters',

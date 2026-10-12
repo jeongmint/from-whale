@@ -13,7 +13,7 @@ export default {
 			continueAt: '이어하기 · {ch}',
 			quote: '“ 무언가를 한다는 생각 자체부터<br>모험은 시작된다 ”'
 		},
-		hud: { hearts: '체력', journal: '편지함 (L)', mute: '소리 (M)', pause: '일시정지 (Esc)', boss: 'MOBY DICK · 마음' },
+		hud: { hearts: '체력', journal: '편지함 (L)', mute: '소리 (M)', pause: '일시정지 (Esc)', home: '첫 화면으로', boss: 'MOBY DICK · 마음' },
 		letter: { close: '닫기 <span class="mono tiny">[E]</span>' },
 		journal: {
 			title: 'MAILBOX — 유리병 편지함',
