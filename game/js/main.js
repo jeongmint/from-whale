@@ -10,7 +10,7 @@ import { loadModels, Whale, followSlot, idleCircle, steerTo, updateSwimTime, mak
 import { UI } from './ui.js';
 import { AudioEngine } from './audio.js';
 import { cleanName, loadName, saveName } from './name.js';
-import { CHAPTERS, PLACES, BOTTLES, ORCA_PACKS, KELP_GROVES, scramble } from './story.js';
+import { CHAPTERS, PLACES, BOTTLES, ORCA_PACKS, KELP_GROVES, scramble, epilogue } from './story.js';
 import { lang, t, setLang, applyStatic } from './i18n.js';
 
 const BASE = window.FW_ASSET_BASE ?? '../';
@@ -24,7 +24,9 @@ const TURN_RATE = 1.9;
 const MAX_HEARTS = 3;
 const DETECT = 56;
 const DASH_SPEED = 50;
+const STUN_TIME = 1.1;
 const SAVE_KEY = 'fromwhale.save.v1';
+const EPILOGUE = CHAPTERS.length; // 엔딩 뒤 남은 편지 찾기 (이어하기 번호)
 
 const $ = ( id ) => document.getElementById( id );
 
@@ -154,6 +156,7 @@ const G = {
 	hearts: MAX_HEARTS,
 	stamina: 1,
 	invuln: 0,
+	stun: 0,
 	singCooldown: 0,
 	jumpCooldown: 0,
 	knock: new THREE.Vector3(),
@@ -568,6 +571,9 @@ Object.assign( G, {
 			`LETTERS ${G.bottleCount()}/${BOTTLES.length}`,
 			G.flags.subEnding ? t( 'ending.sub' ) : t( 'ending.hint' )
 		].join( '<br>' );
+		const left = ! G.flags.subEnding && G.bottleCount() < BOTTLES.length;
+		$( 'btn-search' ).classList.toggle( 'hidden', ! left );
+		if ( left ) $( 'btn-search' ).textContent = t( 'ending.search', { n: G.bottleCount(), total: BOTTLES.length } );
 		await G.ui.fade( 0.6, 2 );
 		G.ui.show( 'hud', false );
 		G.ui.show( 'ending' );
@@ -780,12 +786,68 @@ function collectShard( s ) {
 // ---------------------------------------------------------------
 // 피해 / 기절
 // ---------------------------------------------------------------
-function damage( n, from ) {
+
+// 기절했을 때 머리 위를 도는 별 세 개
+let stunStars = null;
+
+function updateStunStars( h, on ) {
+
+	if ( ! stunStars ) {
+
+		if ( ! on ) return;
+		const c = document.createElement( 'canvas' );
+		c.width = c.height = 64;
+		const ctx = c.getContext( '2d' );
+		ctx.fillStyle = '#fff';
+		ctx.beginPath();
+		for ( let i = 0; i < 10; i ++ ) {
+
+			const a = - Math.PI / 2 + i * Math.PI / 5;
+			const r = i % 2 ? 11 : 30;
+			ctx.lineTo( 32 + Math.cos( a ) * r, 32 + Math.sin( a ) * r );
+
+		}
+
+		ctx.fill();
+		const mat = new THREE.SpriteMaterial( { map: new THREE.CanvasTexture( c ), color: new THREE.Color( 2.2, 1.8, 0.6 ), transparent: true, depthWrite: false, fog: false } );
+		stunStars = new THREE.Group();
+		for ( let i = 0; i < 3; i ++ ) {
+
+			const s = new THREE.Sprite( mat );
+			s.scale.setScalar( 1.3 );
+			stunStars.add( s );
+
+		}
+
+		scene.add( stunStars );
+
+	}
+
+	stunStars.visible = on;
+	if ( ! on ) return;
+	stunStars.position.set( h.pos.x, h.root.position.y + 3, h.pos.z );
+	stunStars.children.forEach( ( s, i ) => {
+
+		const a = G.time * 5 + i * Math.PI * 2 / 3;
+		s.position.set( Math.cos( a ) * 2, Math.sin( a * 2 ) * 0.25, Math.sin( a ) * 2 );
+
+	} );
+
+}
+// stun: 그 시간 동안 헤엄·노래·점프를 못 하고 비틀거린다 (머리 위로 별이 돈다)
+function damage( n, from, { stun = 0 } = {} ) {
 
 	const h = G.actors.hazel;
 	if ( G.invuln > 0 || h.airborne || G.cutsceneOn || G.fainting || G.dash > 0 ) return false;
 	G.hearts -= n;
 	G.invuln = 2.4;
+	if ( stun > 0 ) {
+
+		G.stun = stun;
+		h.speed = 0;
+
+	}
+
 	G.audio.play( 'hit' );
 	finalPass.uniforms.uHurt.value = 1;
 	G.shake = 0.8;
@@ -838,6 +900,7 @@ async function faint() {
 	G.hearts = MAX_HEARTS;
 	G.stamina = 1;
 	G.invuln = 3;
+	G.stun = 0;
 	G.knock.set( 0, 0, 0 );
 	G.ui.setHearts( G.hearts, MAX_HEARTS );
 	await G.wait( 0.3 );
@@ -1104,10 +1167,10 @@ function updateMeteors( dt, frozen ) {
 
 			const h = sampleOcean( m.x, m.z );
 			G.world.splash( m.x, h, m.z, { count: 70, power: 12, color: 0xffd6a0 } );
-			G.world.ring( m.x, m.z, { color: 0xffb060, to: 18, life: 0.8, width: 0.3 } );
+			G.world.ring( m.x, m.z, { color: 0xffb060, to: 10, life: 0.8, width: 0.3 } );
 			G.audio.play( 'boom' );
 			G.shake = Math.max( G.shake, 0.35 );
-			if ( G.distTo( m ) < 7.5 ) damage( 1, m );
+			if ( G.distTo( m ) < 7.5 ) damage( 1, m, { stun: STUN_TIME } );
 			removeMeteor( i );
 
 		}
@@ -1328,7 +1391,7 @@ window.addEventListener( 'pointerup', () => drag = null );
 // ---------------------------------------------------------------
 function sing() {
 
-	if ( G.singCooldown > 0 ) return;
+	if ( G.singCooldown > 0 || G.stun > 0 ) return;
 	const h = G.actors.hazel;
 	G.singCooldown = 1.3;
 	audio.play( 'sing' );
@@ -1385,11 +1448,10 @@ function nearestKelp( range ) {
 function rechargeAtKelp() {
 
 	const k = nearestKelp( 34 );
-	if ( ! k ) return false;
-	G.stamina = 1;
+	if ( ! k || G.hearts >= MAX_HEARTS ) return false;
 	k.glow = 1.5;
 	G.world.ring( k.x, k.z, { color: 0x6dffe0, to: 30, life: 1.2, delay: 0.3 } );
-	setTimeout( () => audio.play( 'heal' ), 300 );
+	setTimeout( () => heal( true ), 300 );
 	G.ui.toast( t( 'toast.recharge' ) );
 	return true;
 
@@ -1421,7 +1483,7 @@ async function doReadKelp( key ) {
 function jump() {
 
 	const h = G.actors.hazel;
-	if ( G.jumpCooldown > 0 || h.airborne ) return;
+	if ( G.jumpCooldown > 0 || h.airborne || G.stun > 0 ) return;
 	if ( h.breach( 12 + Math.min( h.speed, BOOST_SPEED ) * 0.12 ) ) {
 
 		G.jumpCooldown = 0.35;
@@ -1572,7 +1634,7 @@ async function boot() {
 
 		if ( G.save.chapter <= 0 || debugChapter !== null ) return;
 		continueBtn.classList.remove( 'hidden' );
-		continueBtn.textContent = t( 'title.continueAt', { ch: [ 'PROLOGUE', 'CH.01', 'CH.02', 'CH.03', 'CH.04', 'ENDING' ][ G.save.chapter ] } );
+		continueBtn.textContent = t( 'title.continueAt', { ch: [ 'PROLOGUE', 'CH.01', 'CH.02', 'CH.03', 'CH.04', 'ENDING', 'EPILOGUE' ][ G.save.chapter ] } );
 
 	};
 
@@ -1645,6 +1707,7 @@ async function boot() {
 	};
 
 	$( 'btn-again' ).onclick = () => location.reload();
+	$( 'btn-search' ).onclick = () => searchAfterEnding();
 	$( 'btn-journal' ).onclick = () => ! G.cutsceneOn && ! G.ui.dialogOpen && openJournal();
 	$( 'btn-mute' ).onclick = () => G.ui.setMuted( audio.toggleMute() );
 	$( 'btn-pause' ).onclick = () => setPaused( true );
@@ -1730,6 +1793,22 @@ function setupChapter( n ) {
 
 }
 
+// 엔딩 화면에서 '남은 편지 찾으러 가기': 엔딩 바다에서 계속 헤엄친다
+async function searchAfterEnding() {
+
+	const h = G.actors.hazel;
+	G.ui.show( 'ending', false );
+	G.ended = false;
+	G.save.chapter = EPILOGUE;
+	persist();
+	G.camRelease();
+	setCheckpoint( h.pos.x, h.pos.z );
+	G.ui.show( 'hud' );
+	await G.ui.fade( 0, 1.2 );
+	await epilogue( G );
+
+}
+
 async function start( chapter ) {
 
 	if ( G.started || ! G.ready ) return;
@@ -1744,6 +1823,15 @@ async function start( chapter ) {
 	if ( G.touch ) $( 'touch' ).classList.remove( 'hidden' );
 	if ( G.touch && innerWidth < innerHeight ) G.ui.toast( t( 'toast.rotate' ) );
 	G.stats.time = 0;
+
+	if ( chapter >= EPILOGUE ) {
+
+		G.save.chapter = EPILOGUE;
+		persist();
+		await epilogue( G );
+		return;
+
+	}
 
 	for ( let i = chapter; i < CHAPTERS.length; i ++ ) {
 
@@ -1766,9 +1854,11 @@ function updatePlayer( dt ) {
 
 	const h = G.actors.hazel;
 	const control = G.started && ! G.cutsceneOn && ! G.ui.dialogOpen && ! G.ended;
+	if ( control ) G.stun = Math.max( 0, G.stun - dt );
+	const stunned = G.stun > 0;
 
 	let throttle = 0, turn = 0, boost = false;
-	if ( control ) {
+	if ( control && ! stunned ) {
 
 		if ( keys.has( 'KeyW' ) || keys.has( 'ArrowUp' ) ) throttle = 1;
 		if ( keys.has( 'KeyS' ) || keys.has( 'ArrowDown' ) ) throttle = - 0.35;
@@ -1820,6 +1910,8 @@ function updatePlayer( dt ) {
 	const turnRate = TURN_RATE * ( 0.6 + 0.4 * ( 1 - Math.min( Math.abs( h.speed ) / BOOST_SPEED, 1 ) ) );
 	h.yaw += turn * turnRate * dt;
 	h.bank = - turn * Math.min( 1, Math.abs( h.speed ) / MAX_SPEED ) * 0.45;
+	if ( stunned ) h.bank = Math.sin( G.time * 16 ) * 0.35 * Math.min( 1, G.stun / 0.4 );
+	updateStunStars( h, stunned );
 
 	const f = h.forward;
 	h.pos.x += f.x * h.speed * dt + G.knock.x * dt;
@@ -1982,7 +2074,7 @@ function updateBottlesAndKelp( dt ) {
 
 		if ( G.pendingKelp && G.distTo( G.kelps[ G.pendingKelp ] ) < 34 ) prompt = t( 'prompt.kelp' );
 		else if ( G.boss?.active && G.boss.phase === 'listen' && G.distTo( G.actors.moby.pos ) < 50 ) prompt = t( 'prompt.moby' );
-		else if ( G.stamina < 0.9 && nearestKelp( 34 ) ) prompt = t( 'prompt.recharge' );
+		else if ( G.hearts < MAX_HEARTS && nearestKelp( 34 ) ) prompt = t( 'prompt.recharge' );
 
 	}
 

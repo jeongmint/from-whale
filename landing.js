@@ -46,7 +46,7 @@ const TEXT = {
 			<p>모든 악기가 같은 박자 위에서 돌아서, 중간에 들어와도 박이 어긋나지 않아요. 그리고 누군가 떠나면, 그 악기도 함께 사라져요.</p>
 			<a class="play" href="game/">▶ PLAY</a>`,
 		contact: '함께 이야기하고 싶다면 언제든 연락 주세요.<br>버그 제보나 의견은 어떤 방법이든 환영해요. 메일로 보내 주셔도 돼요!',
-		bugs: '✉ 버그 제보나 의견은 어떤 방법이든 환영해요.',
+		bugs: '✉ 아직 만들고 있는 게임이에요. 버그 제보나 의견은 어떤 방법이든 환영해요.',
 		sound: '♪ 소리를 켜고 플레이하면 더 재밌어요',
 		copy: '주소 복사',
 		copied: '복사했어요!',
@@ -97,7 +97,7 @@ const TEXT = {
 			<p>Every instrument runs on the same beat grid, so whoever joins comes in right on time. And when someone leaves, their instrument leaves too.</p>
 			<a class="play" href="game/">▶ PLAY</a>`,
 		contact: 'If you\'d like to talk, feel free to reach out anytime.<br>Bug reports and feedback are welcome in any form. An email is perfectly fine!',
-		bugs: '✉ Bug reports and feedback are welcome in any form.',
+		bugs: '✉ The game is still in development. Bug reports and feedback are welcome in any form.',
 		sound: '♪ It\'s more fun with the sound on',
 		copy: 'Copy address',
 		copied: 'Copied!',
@@ -148,7 +148,7 @@ const TEXT = {
 			<p>すべての楽器が同じ拍の上で動いているので、途中から加わってもリズムがずれません。そして誰かが去ると、その楽器も一緒に消えていきます。</p>
 			<a class="play" href="game/">▶ PLAY</a>`,
 		contact: 'お話ししたいことがあれば、いつでもご連絡ください。<br>バグ報告やご意見は、どんな方法でも大歓迎です。メールでもお気軽にどうぞ!',
-		bugs: '✉ バグ報告やご意見は、どんな方法でも大歓迎です。',
+		bugs: '✉ まだ開発中のゲームです。バグ報告やご意見は、どんな方法でも大歓迎です。',
 		sound: '♪ サウンドをオンにすると、もっと楽しく遊べます',
 		copy: 'アドレスをコピー',
 		copied: 'コピーしました!',
