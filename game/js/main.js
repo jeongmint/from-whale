@@ -1456,6 +1456,7 @@ async function boot() {
 
 	G.ui = new UI( G );
 	G.ui.setMuted( audio.muted );
+	audio.onNeedsTap = () => G.started && G.ui.toast( '♪ 화면을 한 번 터치하면 음악이 다시 나와요' );
 
 	fetch( BASE + 'data/res/logo/fromwhale_logo.svg' ).then( ( r ) => r.text() ).then( ( svg ) => {
 
