@@ -46,7 +46,7 @@ WebGL Three.js Project about Blue and Whale
 | `Space` | `⤴` | 점프 (공중 무적) |
 | `E` | `♪` | 노래 · 말 걸기 · 소나 · 대화 넘기기 |
 | `L` / `M` / `Esc` | 오른쪽 위 버튼 | 편지함 / 소리 / 일시정지 |
-| POD 창 고래 칩 | 위 가운데 고래 버튼 | 첫 화면 |
+| POD 창 고래 칩 | POD 창 고래 칩 | 첫 화면 |
 
 ### 첫 화면
 
