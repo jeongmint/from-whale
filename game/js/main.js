@@ -46,7 +46,7 @@ function showError( msg ) {
 const renderer = new THREE.WebGLRenderer( { antialias: false, powerPreference: 'high-performance' } );
 const pixelRatio = Math.min( window.devicePixelRatio, LOW ? 1 : 1.5 );
 renderer.setPixelRatio( pixelRatio );
-renderer.setSize( innerWidth, innerHeight );
+renderer.setSize( innerWidth, innerHeight, false );
 renderer.outputEncoding = THREE.sRGBEncoding;
 $( 'app' ).appendChild( renderer.domElement );
 
@@ -115,23 +115,25 @@ composer.addPass( bloom );
 const finalPass = new ShaderPass( FinalShader );
 composer.addPass( finalPass );
 
-function fitCamera() {
+// 화면 크기: 캔버스는 CSS로 늘 화면을 꽉 채우고, 실제 보이는 크기가 바뀌면(폰 회전 등) 매 프레임 확인해서 맞춘다.
+// iOS는 회전 직후의 resize 이벤트에서 아직 예전 크기를 알려 주는 경우가 있어서 이벤트만 믿지 않는다.
+const view = { w: 0, h: 0 };
+function syncSize() {
 
-	camera.fov = innerWidth < innerHeight ? 74 : 55;
-	camera.aspect = innerWidth / innerHeight;
+	const el = renderer.domElement;
+	const w = el.clientWidth || innerWidth, h = el.clientHeight || innerHeight;
+	if ( w === view.w && h === view.h ) return;
+	view.w = w;
+	view.h = h;
+	camera.fov = w < h ? 74 : 55;
+	camera.aspect = w / h;
 	camera.updateProjectionMatrix();
+	renderer.setSize( w, h, false );
+	composer.setSize( w, h );
 
 }
 
-fitCamera();
-window.addEventListener( 'resize', () => {
-
-	fitCamera();
-	camera.updateProjectionMatrix();
-	renderer.setSize( innerWidth, innerHeight );
-	composer.setSize( innerWidth, innerHeight );
-
-} );
+syncSize();
 
 // ---------------------------------------------------------------
 // 게임 상태
@@ -139,7 +141,7 @@ window.addEventListener( 'resize', () => {
 const audio = new AudioEngine();
 
 const G = {
-	scene, camera, audio, PLACES,
+	scene, camera, audio, PLACES, view,
 	ui: null, world: null, ocean: null, sky: null,
 	actors: {},
 	orcas: [],
@@ -1821,7 +1823,7 @@ async function start( chapter ) {
 	G.ui.show( 'title', false );
 	G.ui.show( 'hud' );
 	if ( G.touch ) $( 'touch' ).classList.remove( 'hidden' );
-	if ( G.touch && innerWidth < innerHeight ) G.ui.toast( t( 'toast.rotate' ) );
+	if ( G.touch && view.w < view.h ) G.ui.toast( t( 'toast.rotate' ) );
 	G.stats.time = 0;
 
 	if ( chapter >= EPILOGUE ) {
@@ -2151,7 +2153,7 @@ function updateHud() {
 		_v.set( t.x, y, t.z ).project( camera );
 		const behind = _v.z > 1;
 		const onScreen = ! behind && Math.abs( _v.x ) < 0.95 && Math.abs( _v.y ) < 0.92;
-		const screen = { x: ( _v.x * 0.5 + 0.5 ) * innerWidth, y: ( - _v.y * 0.5 + 0.5 ) * innerHeight, onScreen, behind };
+		const screen = { x: ( _v.x * 0.5 + 0.5 ) * view.w, y: ( - _v.y * 0.5 + 0.5 ) * view.h, onScreen, behind };
 		const d = G.distTo( t );
 		G.ui.updateMarker( screen, d, d > 12 );
 		G.ui.setDistance( d );
@@ -2251,6 +2253,7 @@ function loop() {
 	const dt = Math.min( clock.getDelta(), DT_MAX );
 	G.fps = G.fps ? G.fps * 0.95 + ( 1 / Math.max( dt, 1e-3 ) ) * 0.05 : 30;
 	if ( G.ready && ! G.menuPaused && ! G.ui.overlay ) update( dt );
+	syncSize();
 	if ( G.ready ) composer.render( dt );
 
 }

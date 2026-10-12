@@ -444,6 +444,9 @@ input { touch-action: manipulation; }
 /* ---------- 모바일 ---------- */
 body.touch .key-only, body:not(.touch) .touch-only { display: none !important; }
 #touch { position: fixed; inset: 0; pointer-events: none; z-index: 4; }
+/* 대화 중엔 못 움직이니 조이스틱은 잠깐 숨긴다 (대화창에 가려지지 않게) */
+#stick, #touch-buttons { transition: opacity 0.2s; }
+body.talking #stick { opacity: 0; pointer-events: none; }
 #stick {
 	position: absolute; left: 24px; bottom: 24px;
 	width: 130px; height: 130px; border-radius: 50%;
@@ -526,6 +529,7 @@ body.touch .key-only, body:not(.touch) .touch-only { display: none !important; }
 	#touch-buttons { grid-auto-flow: column; right: 132px; bottom: 12px; }
 	#touch-buttons button { width: 58px; height: 58px; }
 	#stick { left: 16px; bottom: 16px; width: 120px; height: 120px; }
+	body.talking #touch-buttons { opacity: 0; pointer-events: none; }
 	#dialog { width: min(620px, calc(100vw - 32px)); }
 	#dialog .win-body { min-height: 84px; padding: 8px 10px; }
 	#toasts { top: 96px; }
