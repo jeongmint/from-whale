@@ -27,7 +27,7 @@ const TEXT = {
 			<p>우주와 바다가 만나는 밤, 빛나는 해저와 고리 행성, 레트로한 파란 UI. 음악은 음원 파일 없이 브라우저에서 합성해요. 셔플 리듬에 52Hz 허밍을 섞었고, 동료가 생길 때마다 악기가 늘어나요.</p>
 			<blockquote>무언가를 한다는 생각 자체부터<br>모험은 시작된다</blockquote>`,
 		contact: '함께 이야기하고 싶다면 언제든 연락 주세요.<br>버그 제보나 의견은 어떤 방법이든 환영해요. 메일로 보내 주셔도 돼요!',
-		bugs: '✉ 버그 제보나 의견은 어떤 방법이든 환영해요. 메일도 좋아요!',
+		bugs: '✉ 버그 제보나 의견은 어떤 방법이든 환영해요.',
 		sound: '♪ 소리를 켜고 플레이하면 더 재밌어요',
 		copy: '주소 복사',
 		copied: '복사했어요!',
@@ -59,7 +59,7 @@ const TEXT = {
 			<p>A night where space meets the sea: a glowing seabed, a ringed planet, a retro blue interface. The music is synthesized in the browser with no audio files, a shuffle rhythm mixed with a 52Hz hum, and it gains an instrument with every companion.</p>
 			<blockquote>Adventure begins<br>with the very thought of doing something</blockquote>`,
 		contact: 'If you\'d like to talk, feel free to reach out anytime.<br>Bug reports and feedback are welcome in any form. An email is perfectly fine!',
-		bugs: '✉ Bug reports and feedback are welcome in any form, email included!',
+		bugs: '✉ Bug reports and feedback are welcome in any form.',
 		sound: '♪ It\'s more fun with the sound on',
 		copy: 'Copy address',
 		copied: 'Copied!',
@@ -91,7 +91,7 @@ const TEXT = {
 			<p>宇宙と海が出会う夜、光る海底と環のある惑星、レトロな青いUI。音楽は音源ファイルなしでブラウザが合成します。シャッフルのリズムに52Hzのハミングを重ね、仲間が増えるたびに楽器が増えていきます。</p>
 			<blockquote>何かをしようと思った、その瞬間から<br>冒険は始まる</blockquote>`,
 		contact: 'お話ししたいことがあれば、いつでもご連絡ください。<br>バグ報告やご意見は、どんな方法でも大歓迎です。メールでもお気軽にどうぞ!',
-		bugs: '✉ バグ報告やご意見は、どんな方法でも大歓迎です。メールでもどうぞ!',
+		bugs: '✉ バグ報告やご意見は、どんな方法でも大歓迎です。',
 		sound: '♪ サウンドをオンにすると、もっと楽しく遊べます',
 		copy: 'アドレスをコピー',
 		copied: 'コピーしました!',
@@ -147,16 +147,61 @@ document.querySelectorAll( '[data-lang]' ).forEach( ( btn ) => btn.addEventListe
 
 } ) );
 
-// ABOUT / CONTACT 창
+// ABOUT / CONTACT 창. ABOUT 안에는 PITCH | CONCEPT 탭이 있다
 const panels = [ ...document.querySelectorAll( '.panel' ) ];
+const tabs = [ ...document.querySelectorAll( '[data-tab]' ) ];
+const TAB_IDS = tabs.map( ( t ) => t.dataset.tab );
 
-function open( id, focus = true ) {
+function selectTab( id, focusTab = false ) {
 
-	for ( const p of panels ) p.hidden = p.id !== id;
-	const panel = document.getElementById( id );
-	if ( panel && focus ) panel.querySelector( '.close' ).focus( { preventScroll: true } );
+	for ( const t of tabs ) {
+
+		const on = t.dataset.tab === id;
+		t.setAttribute( 'aria-selected', on );
+		t.tabIndex = on ? 0 : - 1;
+		document.getElementById( t.dataset.tab ).hidden = ! on;
+		if ( on && focusTab ) t.focus();
+
+	}
+
+	document.getElementById( id ).scrollTop = 0;
 
 }
+
+// id: 'pitch' | 'concept' | 'contact'
+function open( id, focus = true ) {
+
+	const tab = TAB_IDS.includes( id ) ? id : null;
+	const panelId = tab ? 'about' : id;
+	for ( const p of panels ) p.hidden = p.id !== panelId;
+	if ( tab ) selectTab( tab );
+	const panel = document.getElementById( panelId );
+	if ( ! panel || ! focus ) return;
+	( tab ? panel.querySelector( `[data-tab="${tab}"]` ) : panel.querySelector( '.close' ) ).focus( { preventScroll: true } );
+
+}
+
+tabs.forEach( ( t ) => {
+
+	t.addEventListener( 'click', () => {
+
+		history.replaceState( null, '', '#' + t.dataset.tab );
+		selectTab( t.dataset.tab );
+
+	} );
+	// ←/→ 로 탭 이동
+	t.addEventListener( 'keydown', ( e ) => {
+
+		if ( e.key !== 'ArrowLeft' && e.key !== 'ArrowRight' ) return;
+		e.preventDefault();
+		const i = TAB_IDS.indexOf( t.dataset.tab );
+		const next = TAB_IDS[ ( i + ( e.key === 'ArrowRight' ? 1 : TAB_IDS.length - 1 ) ) % TAB_IDS.length ];
+		history.replaceState( null, '', '#' + next );
+		selectTab( next, true );
+
+	} );
+
+} );
 
 function closeAll() {
 
@@ -211,4 +256,4 @@ copyBtn.addEventListener( 'click', async () => {
 
 // 주소에 #pitch 처럼 붙어 오면 그 창을 연다
 const fromHash = location.hash.slice( 1 );
-if ( panels.some( ( p ) => p.id === fromHash ) ) open( fromHash, false );
+if ( TAB_IDS.includes( fromHash ) || fromHash === 'contact' ) open( fromHash, false );
