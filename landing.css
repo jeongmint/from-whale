@@ -216,6 +216,21 @@ a:focus-visible, button:focus-visible { outline: 3px solid var(--sky); outline-o
 .contacts dt { font: 14px var(--pixel); letter-spacing: 0.06em; color: var(--sky); padding-top: 2px; }
 .contacts dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
 .contacts a { border-bottom: 2px solid rgba(255, 255, 255, 0.5); user-select: text; }
+.mail { font-weight: 700; user-select: all; -webkit-user-select: all; }
+.mail-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.contacts .chip-btn {
+	font: 13px var(--sans);
+	font-weight: 700;
+	color: var(--blue);
+	background: var(--ink);
+	border: 0;
+	border-bottom: 0;
+	padding: 6px 12px;
+	box-shadow: 3px 3px 0 var(--navy);
+	cursor: pointer;
+}
+.contacts .chip-btn:hover { background: var(--sky); color: var(--navy); }
+.contacts .chip-btn.done { background: var(--sky); color: var(--navy); }
 .contacts a:hover { color: var(--sky); border-bottom-color: currentColor; }
 
 /* ---------- 휴대폰 ---------- */

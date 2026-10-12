@@ -40,7 +40,7 @@
 					<li class="item">
 						<a class="big" href="#contact" data-open="contact">CONTACT</a>
 						<div class="subs">
-							<a href="mailto:jmin.mild@gmail.com">email</a>
+							<a href="#contact" data-open="contact">email</a>
 							<a href="https://github.com/jeongmint" target="_blank" rel="noopener">github</a>
 							<a href="https://www.linkedin.com/in/jeong-min-choi-72555423b/" target="_blank" rel="noopener">linkedin</a>
 						</div>
@@ -73,7 +73,14 @@
 			<div class="panel-body">
 				<p data-t="contact"></p>
 				<dl class="contacts">
-					<dt>EMAIL</dt><dd><a href="mailto:jmin.mild@gmail.com">jmin.mild@gmail.com</a></dd>
+					<dt>EMAIL</dt>
+					<dd>
+						<span class="mail" id="mail-address">jmin.mild@gmail.com</span>
+						<span class="mail-actions">
+							<button type="button" class="chip-btn" id="copy-mail" data-t="copy"></button>
+							<a class="chip-btn" href="mailto:jmin.mild@gmail.com" data-t="mailApp"></a>
+						</span>
+					</dd>
 					<dt>GITHUB</dt><dd><a href="https://github.com/jeongmint" target="_blank" rel="noopener">github.com/jeongmint</a></dd>
 					<dt>LINKEDIN</dt><dd><a href="https://www.linkedin.com/in/jeong-min-choi-72555423b/" target="_blank" rel="noopener">linkedin.com/in/jeong-min-choi</a></dd>
 				</dl>
