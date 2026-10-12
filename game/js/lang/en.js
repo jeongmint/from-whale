@@ -14,6 +14,7 @@ export default {
 			quote: '“ Adventure begins<br>with the very thought of doing something ”'
 		},
 		hud: { hearts: 'Health', journal: 'Letters (L)', mute: 'Sound (M)', pause: 'Pause (Esc)', home: 'Back to home', boss: 'MOBY DICK · HEART' },
+		song: { title: '52HZ ↔ FINN', listen: 'Listen… the rhythm of Finn\'s sobs', turn: 'Now! Sing back the same rhythm [E]', miss: 'Not quite… listen again', help: 'Luke counts the beat for you', good: 'The sobbing eases a little', done: 'The crying stops' },
 		letter: { close: 'Close <span class="mono tiny">[E]</span>' },
 		journal: {
 			title: 'MAILBOX — Bottle letters',
@@ -198,7 +199,12 @@ export default {
 				[ 'finn', '......This handwriting.' ],
 				[ 'finn', 'It\'s Moby Dick\'s. He said that on the day the stars fall, he would finish the humans.' ],
 				[ 'luke', 'Hey. Are you crying right now?' ],
-				[ 'finn', '...I cry easily. Don\'t mind it.' ],
+				[ 'finn', '...I cry easily. Don\'t mind it.\n*sniff*... *sob*...' ],
+				[ 'luke', '...It\'s not stopping. {N}, hear the rhythm of those sobs?\nSing it back to him, beat for beat. That\'s how whales comfort each other.' ]
+			],
+			calm: [
+				[ 'finn', '......' ],
+				[ 'finn', 'That\'s strange. They say nobody can hear 52 hertz.\n...But I heard you.' ],
 				[ 'finn', 'I know the way. The currents, and the Alliance patrol routes.\n...I need to see him one more time, too.' ],
 				[ 'luke', 'Travel with a crybaby orca? ...Well, we do need a guide.' ]
 			],

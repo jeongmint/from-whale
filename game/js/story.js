@@ -157,6 +157,9 @@ async function chapter1( G ) {
 // ---------------------------------------------------------------
 // 2장 나침반
 // ---------------------------------------------------------------
+// 핀의 울음 리듬 (박 단위). 갈수록 조금씩 길어진다
+const FINN_SOBS = [ [ 0, 1, 2 ], [ 0, 0.5, 1.5, 2 ], [ 0, 1, 1.5, 2, 3 ] ];
+
 async function chapter2( G ) {
 
 	const T = () => lang().story.ch2;
@@ -176,6 +179,9 @@ async function chapter2( G ) {
 	G.camFocus( G.actors.finn, { side: - 1 } );
 	G.audio.whaleCall( null, 'finn' );
 	await G.say( lines( T().meet ) );
+	// 울음을 안 그치는 핀에게, 같은 박자로 노래해 대답한다
+	await G.songPuzzle( G.actors.finn, FINN_SOBS );
+	await G.say( lines( T().calm ) );
 
 	G.join( 'finn', T().ability );
 	await G.wait( 1.2 );

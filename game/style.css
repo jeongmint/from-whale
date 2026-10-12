@@ -292,6 +292,30 @@ input { touch-action: manipulation; }
 #dialog.hertz #dialog-text { color: var(--cyan); }
 #dialog-next { position: absolute; right: 12px; bottom: 6px; font-size: 12px; color: var(--cyan); animation: blink 0.9s steps(2) infinite; }
 
+/* ---------- 따라 부르기: 상대 리듬을 듣고 같은 박자로 대답 ---------- */
+#song {
+	position: fixed; left: 50%; bottom: 22px;
+	transform: translateX(-50%);
+	width: min(420px, calc(100vw - 24px));
+	z-index: 5;
+	text-align: center;
+	cursor: pointer;
+}
+#song-beats { display: flex; justify-content: center; gap: 16px; margin: 8px 0 10px; }
+#song-beats span {
+	width: 20px; height: 20px;
+	border: 2px solid var(--line);
+	background: rgba(0, 0, 0, 0.3);
+	transform: rotate(45deg);
+	transition: background 0.08s, box-shadow 0.08s;
+}
+#song-beats span.them { background: var(--cyan); box-shadow: 0 0 14px var(--cyan); }
+#song-beats span.ok { background: var(--gold); box-shadow: 0 0 14px var(--gold); }
+#song-beats span.bad { background: var(--warn); }
+#song-hint { margin: 0; font-size: 15px; color: var(--ink-dim); }
+#song.turn #song-hint { color: var(--cyan); font-weight: 700; }
+body.singing #stick, body.singing #minimap-wrap { opacity: 0; pointer-events: none; }
+
 /* ---------- 챕터 카드 ---------- */
 #card {
 	position: fixed; inset: 0; z-index: 8;
@@ -530,6 +554,7 @@ body.talking #stick { opacity: 0; pointer-events: none; }
 	#touch-buttons button { width: 58px; height: 58px; }
 	#stick { left: 16px; bottom: 16px; width: 120px; height: 120px; }
 	body.talking #touch-buttons { opacity: 0; pointer-events: none; }
+	#song { bottom: 84px; }
 	#dialog { width: min(620px, calc(100vw - 32px)); }
 	#dialog .win-body { min-height: 84px; padding: 8px 10px; }
 	#toasts { top: 96px; }
