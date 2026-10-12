@@ -235,7 +235,8 @@ export class World {
 				uniform float uOn;
 				varying float vT;
 				void main() {
-					float a = pow( vT, 2.2 ) * 0.5 * uOn;
+					// 안티에일리어싱 때문에 가장자리에서 vT가 0보다 살짝 작아질 수 있다. 음수에 pow()를 쓰면 NaN이 나와 점선 고리가 보이므로 먼저 자른다
+					float a = pow( clamp( vT, 0.0, 1.0 ), 2.2 ) * 0.5 * uOn;
 					gl_FragColor = vec4( vec3( 1.0, 0.93, 0.75 ) * a, 1.0 );
 				}
 			`
@@ -388,7 +389,7 @@ export class World {
 				uniform float uTime;
 				varying float vT;
 				void main() {
-					float a = pow( 1.0 - vT, 1.6 ) * ( 0.35 + uBoost * 0.9 ) * ( 0.8 + 0.2 * sin( uTime * 4.0 + vT * 12.0 ) );
+					float a = pow( clamp( 1.0 - vT, 0.0, 1.0 ), 1.6 ) * ( 0.35 + uBoost * 0.9 ) * ( 0.8 + 0.2 * sin( uTime * 4.0 + vT * 12.0 ) );
 					gl_FragColor = vec4( vec3( 0.4, 0.9, 1.4 ) * a, 1.0 );
 				}
 			`

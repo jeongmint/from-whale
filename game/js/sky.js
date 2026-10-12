@@ -92,7 +92,8 @@ export class Sky {
 					if ( h < 0.0 ) col = mix( uHorizon, uHorizon * 0.25, clamp( - h * 5.0, 0.0, 1.0 ) );
 					// 은하수
 					vec3 bandN = normalize( vec3( 0.35, 0.55, 0.75 ) );
-					float band = exp( - pow( dot( d, bandN ) * 4.2, 2.0 ) );
+					float bandX = dot( d, bandN ) * 4.2;
+					float band = exp( - bandX * bandX );
 					float n = fbm( d * 5.0 );
 					float dust = fbm( d * 14.0 + 3.0 );
 					col += vec3( 0.06, 0.1, 0.26 ) * band * smoothstep( 0.25, 0.85, n ) * 1.6;
