@@ -89,3 +89,23 @@ a, button, input, select {
 	margin-top: 20px;
 	padding: 10px;
 }
+
+#play-link {
+	position: fixed;
+	left: 50%;
+	bottom: 28px;
+	transform: translateX(-50%);
+	z-index: 3;
+	padding: 12px 22px;
+	font-size: 15px;
+	font-weight: bold;
+	color: #fff;
+	background: #1d4fd8;
+	border: 2px solid #cfe6ff;
+	box-shadow: 4px 4px 0 rgba(0, 4, 20, 0.55);
+}
+
+#play-link:hover {
+	background: #3aa0ff;
+	text-decoration: none;
+}

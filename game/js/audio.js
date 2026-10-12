@@ -1,0 +1,536 @@
+// 모든 소리는 WebAudio로 합성한다 (음원 파일 없음)
+// 음악: 셔플 리듬의 마이너 블루스 + 일렉 피아노 + 베이스 기타 + 브러시 드럼 + 52Hz 고래 허밍
+
+const BPM = 92;
+const BEAT = 60 / BPM;
+const STEP = BEAT / 3; // 셋잇단(셔플) 격자, 한 마디 = 12 스텝
+
+const CHORDS = {
+	Am: { bass: 33, voicing: [ 60, 64, 67, 71 ], scale: [ 0, 7, 10, 7 ] },
+	Dm: { bass: 38, voicing: [ 53, 57, 60, 64 ], scale: [ 0, 7, 10, 7 ] },
+	F7: { bass: 41, voicing: [ 57, 63, 67, 72 ], scale: [ 0, 7, 10, 7 ] },
+	E7: { bass: 40, voicing: [ 56, 62, 65, 71 ], scale: [ 0, 4, 7, 10 ] }
+};
+const PROGRESSION = [ 'Am', 'Am', 'Dm', 'Am', 'Dm', 'Dm', 'Am', 'Am', 'F7', 'E7', 'Am', 'E7' ];
+const MELODY_SCALE = [ 69, 72, 74, 75, 76, 79, 81, 84, 86 ];
+const COMP_PATTERNS = [
+	[ [ 3, 0.5 ], [ 9, 0.5 ], [ 11, 0.25 ] ],
+	[ [ 2, 0.4 ], [ 5, 0.6 ], [ 9, 0.5 ] ],
+	[ [ 0, 1.6 ], [ 8, 1.2 ] ]
+];
+
+const mtof = ( m ) => 440 * Math.pow( 2, ( m - 69 ) / 12 );
+
+export class AudioEngine {
+
+	constructor() {
+
+		this.ctx = null;
+		this.muted = false;
+		try {
+
+			this.muted = localStorage.getItem( 'fromwhale.muted' ) === '1';
+
+		} catch ( e ) { /* 저장소 없음 */ }
+
+		this.mix = { piano: 1, melody: 1, bass: 0, drums: 0, hum: 1, tension: 0 };
+		this.bar = 0;
+		this.stepIndex = 0;
+		this.melodyIdx = 3;
+
+	}
+
+	init() {
+
+		if ( this.ctx ) {
+
+			if ( this.ctx.state === 'suspended' ) this.ctx.resume();
+			return;
+
+		}
+
+		const AC = window.AudioContext || window.webkitAudioContext;
+		if ( ! AC ) return;
+		const ctx = this.ctx = new AC();
+
+		this.master = ctx.createGain();
+		this.master.gain.value = this.muted ? 0 : 0.85;
+		const comp = ctx.createDynamicsCompressor();
+		comp.threshold.value = - 16;
+		comp.ratio.value = 3.5;
+		this.master.connect( comp ).connect( ctx.destination );
+
+		this.reverb = ctx.createConvolver();
+		this.reverb.buffer = this.makeImpulse( 3.2, 2.6 );
+		const revGain = ctx.createGain();
+		revGain.gain.value = 0.55;
+		this.reverb.connect( revGain ).connect( this.master );
+
+		this.music = ctx.createGain();
+		this.music.gain.value = 0.5;
+		this.music.connect( this.master );
+		this.sfx = ctx.createGain();
+		this.sfx.gain.value = 0.9;
+		this.sfx.connect( this.master );
+
+		this.buses = {};
+		for ( const k of Object.keys( this.mix ) ) {
+
+			const g = ctx.createGain();
+			g.gain.value = this.mix[ k ];
+			g.connect( this.music );
+			this.buses[ k ] = g;
+
+		}
+
+		this.noise = this.makeNoise();
+		this.startHum();
+		this.startTension();
+
+		this.nextTime = ctx.currentTime + 0.1;
+		this.timer = setInterval( () => this.schedule(), 25 );
+
+	}
+
+	makeImpulse( seconds, decay ) {
+
+		const ctx = this.ctx;
+		const len = Math.floor( ctx.sampleRate * seconds );
+		const buf = ctx.createBuffer( 2, len, ctx.sampleRate );
+		for ( let c = 0; c < 2; c ++ ) {
+
+			const d = buf.getChannelData( c );
+			for ( let i = 0; i < len; i ++ ) d[ i ] = ( Math.random() * 2 - 1 ) * Math.pow( 1 - i / len, decay );
+
+		}
+
+		return buf;
+
+	}
+
+	makeNoise() {
+
+		const ctx = this.ctx;
+		const buf = ctx.createBuffer( 1, ctx.sampleRate * 2, ctx.sampleRate );
+		const d = buf.getChannelData( 0 );
+		for ( let i = 0; i < d.length; i ++ ) d[ i ] = Math.random() * 2 - 1;
+		return buf;
+
+	}
+
+	// 52Hz: 대부분의 스피커에서 들리도록 배음을 살짝 섞는다
+	startHum() {
+
+		const ctx = this.ctx;
+		const out = ctx.createGain();
+		out.gain.value = 0;
+		const lfo = ctx.createOscillator();
+		lfo.frequency.value = 1 / 11;
+		const lfoGain = ctx.createGain();
+		lfoGain.gain.value = 0.11;
+		lfo.connect( lfoGain ).connect( out.gain );
+		out.gain.setValueAtTime( 0.14, ctx.currentTime );
+		[ [ 52, 1 ], [ 104, 0.45 ], [ 156, 0.18 ], [ 208, 0.06 ] ].forEach( ( [ f, g ] ) => {
+
+			const o = ctx.createOscillator();
+			o.frequency.value = f;
+			const gg = ctx.createGain();
+			gg.gain.value = g;
+			o.connect( gg ).connect( out );
+			o.start();
+
+		} );
+		lfo.start();
+		out.connect( this.buses.hum );
+		const send = ctx.createGain();
+		send.gain.value = 0.3;
+		out.connect( send ).connect( this.reverb );
+
+	}
+
+	startTension() {
+
+		const ctx = this.ctx;
+		const out = ctx.createGain();
+		out.gain.value = 0.12;
+		const filter = ctx.createBiquadFilter();
+		filter.type = 'lowpass';
+		filter.frequency.value = 420;
+		[ 45, 45.4, 52 ].forEach( ( m ) => {
+
+			const o = ctx.createOscillator();
+			o.type = 'sawtooth';
+			o.frequency.value = mtof( m ) / 2;
+			o.connect( filter );
+			o.start();
+
+		} );
+		filter.connect( out ).connect( this.buses.tension );
+
+	}
+
+	setMix( partial, seconds = 2.5 ) {
+
+		Object.assign( this.mix, partial );
+		if ( ! this.ctx ) return;
+		const t = this.ctx.currentTime;
+		for ( const [ k, v ] of Object.entries( partial ) ) {
+
+			const g = this.buses[ k ].gain;
+			g.cancelScheduledValues( t );
+			g.setValueAtTime( g.value, t );
+			g.linearRampToValueAtTime( v, t + seconds );
+
+		}
+
+	}
+
+	toggleMute() {
+
+		this.muted = ! this.muted;
+		try {
+
+			localStorage.setItem( 'fromwhale.muted', this.muted ? '1' : '0' );
+
+		} catch ( e ) { /* 저장소 없음 */ }
+
+		if ( this.ctx ) this.master.gain.setTargetAtTime( this.muted ? 0 : 0.85, this.ctx.currentTime, 0.1 );
+		return this.muted;
+
+	}
+
+	// --- 시퀀서 ---
+
+	schedule() {
+
+		const ctx = this.ctx;
+		while ( this.nextTime < ctx.currentTime + 0.12 ) {
+
+			this.playStep( this.stepIndex, this.nextTime );
+			this.nextTime += STEP;
+			this.stepIndex ++;
+			if ( this.stepIndex >= 12 ) {
+
+				this.stepIndex = 0;
+				this.bar ++;
+
+			}
+
+		}
+
+	}
+
+	playStep( s, t ) {
+
+		const chord = CHORDS[ PROGRESSION[ this.bar % 12 ] ];
+		const next = CHORDS[ PROGRESSION[ ( this.bar + 1 ) % 12 ] ];
+		const groove = this.mix.drums > 0.05 || this.mix.bass > 0.05;
+
+		// 피아노 컴핑
+		const pattern = groove ? COMP_PATTERNS[ ( this.bar % 4 === 3 ) ? 1 : 0 ] : COMP_PATTERNS[ 2 ];
+		for ( const [ step, len ] of pattern ) {
+
+			if ( step === s ) chord.voicing.forEach( ( m, i ) => this.ep( t + i * 0.008, m, 0.16, len * BEAT, this.buses.piano ) );
+
+		}
+
+		// 즉흥 멜로디 (펜타토닉 랜덤 워크)
+		if ( s === 0 ) this.melodyPlan = this.planMelody();
+		if ( this.melodyPlan && this.melodyPlan.includes( s ) ) {
+
+			this.melodyIdx = Math.max( 0, Math.min( MELODY_SCALE.length - 1, this.melodyIdx + Math.floor( Math.random() * 5 ) - 2 ) );
+			this.ep( t, MELODY_SCALE[ this.melodyIdx ], 0.2, BEAT * 0.9, this.buses.melody, 0.45 );
+
+		}
+
+		// 베이스 기타
+		if ( s % 3 === 0 ) {
+
+			const beat = s / 3;
+			this.bass( t, chord.bass + chord.scale[ beat ], 0.55, BEAT * 0.85 );
+
+		} else if ( s === 11 && Math.random() < 0.7 ) {
+
+			this.bass( t, next.bass - 1, 0.35, STEP * 0.9 );
+
+		}
+
+		// 드럼
+		const boss = this.mix.tension > 0.3;
+		if ( s === 0 || s === 6 || ( boss && s % 3 === 0 ) ) this.kick( t );
+		if ( s === 3 || s === 9 ) this.snare( t );
+		if ( s % 3 !== 1 ) this.hat( t, s % 3 === 0 ? 0.08 : 0.045 );
+
+		// 가끔 들려오는 고래 울음
+		if ( s === 0 && this.bar % 8 === 4 && Math.random() < 0.6 ) this.whaleCall( t + Math.random() * BEAT, 'far' );
+
+	}
+
+	planMelody() {
+
+		const r = Math.random();
+		const busy = this.mix.drums > 0.05 ? 0.35 : 0.55;
+		if ( r < busy ) return null;
+		const motifs = [ [ 0, 2, 3 ], [ 3, 5, 6, 8 ], [ 6, 9, 11 ], [ 2, 3, 5 ], [ 0, 3, 6, 9 ] ];
+		return motifs[ Math.floor( Math.random() * motifs.length ) ];
+
+	}
+
+	// --- 악기 ---
+
+	ep( t, midi, vel, dur, bus, reverb = 0.25 ) {
+
+		const ctx = this.ctx;
+		const f = mtof( midi );
+		const car = ctx.createOscillator();
+		const mod = ctx.createOscillator();
+		const modGain = ctx.createGain();
+		car.frequency.value = f;
+		mod.frequency.value = f;
+		modGain.gain.setValueAtTime( f * 2.2, t );
+		modGain.gain.exponentialRampToValueAtTime( f * 0.25, t + 0.9 );
+		mod.connect( modGain ).connect( car.frequency );
+
+		const amp = ctx.createGain();
+		amp.gain.setValueAtTime( 0.0001, t );
+		amp.gain.exponentialRampToValueAtTime( vel, t + 0.006 );
+		amp.gain.exponentialRampToValueAtTime( vel * 0.35, t + 0.45 );
+		amp.gain.exponentialRampToValueAtTime( 0.0001, t + dur + 0.9 );
+		car.connect( amp ).connect( bus );
+		if ( reverb > 0 ) {
+
+			const send = ctx.createGain();
+			send.gain.value = reverb;
+			amp.connect( send ).connect( this.reverb );
+
+		}
+
+		const end = t + dur + 1;
+		car.start( t ); mod.start( t );
+		car.stop( end ); mod.stop( end );
+
+	}
+
+	bass( t, midi, vel, dur ) {
+
+		if ( this.mix.bass < 0.02 ) return;
+		const ctx = this.ctx;
+		const f = mtof( midi );
+		const o1 = ctx.createOscillator();
+		const o2 = ctx.createOscillator();
+		o1.type = 'sawtooth'; o1.frequency.value = f;
+		o2.type = 'square'; o2.frequency.value = f / 2;
+		const sub = ctx.createGain(); sub.gain.value = 0.35;
+		const filter = ctx.createBiquadFilter();
+		filter.type = 'lowpass';
+		filter.Q.value = 3;
+		filter.frequency.setValueAtTime( 1100, t );
+		filter.frequency.exponentialRampToValueAtTime( 190, t + 0.22 );
+		const amp = ctx.createGain();
+		amp.gain.setValueAtTime( 0.0001, t );
+		amp.gain.exponentialRampToValueAtTime( vel, t + 0.008 );
+		amp.gain.exponentialRampToValueAtTime( vel * 0.5, t + 0.12 );
+		amp.gain.exponentialRampToValueAtTime( 0.0001, t + dur );
+		o1.connect( filter );
+		o2.connect( sub ).connect( filter );
+		filter.connect( amp ).connect( this.buses.bass );
+		o1.start( t ); o2.start( t );
+		o1.stop( t + dur + 0.05 ); o2.stop( t + dur + 0.05 );
+
+	}
+
+	kick( t ) {
+
+		if ( this.mix.drums < 0.02 ) return;
+		const ctx = this.ctx;
+		const o = ctx.createOscillator();
+		o.frequency.setValueAtTime( 115, t );
+		o.frequency.exponentialRampToValueAtTime( 42, t + 0.13 );
+		const g = ctx.createGain();
+		g.gain.setValueAtTime( 0.7, t );
+		g.gain.exponentialRampToValueAtTime( 0.0001, t + 0.38 );
+		o.connect( g ).connect( this.buses.drums );
+		o.start( t ); o.stop( t + 0.4 );
+
+	}
+
+	noiseHit( t, { type = 'bandpass', freq = 1800, q = 0.7, vel = 0.2, dur = 0.15, bus } ) {
+
+		const ctx = this.ctx;
+		const src = ctx.createBufferSource();
+		src.buffer = this.noise;
+		const f = ctx.createBiquadFilter();
+		f.type = type; f.frequency.value = freq; f.Q.value = q;
+		const g = ctx.createGain();
+		g.gain.setValueAtTime( vel, t );
+		g.gain.exponentialRampToValueAtTime( 0.0001, t + dur );
+		src.connect( f ).connect( g ).connect( bus );
+		src.start( t, Math.random() * 1.5 );
+		src.stop( t + dur + 0.02 );
+		return g;
+
+	}
+
+	snare( t ) {
+
+		if ( this.mix.drums < 0.02 ) return;
+		this.noiseHit( t, { freq: 2200, q: 0.6, vel: 0.16, dur: 0.2, bus: this.buses.drums } );
+
+	}
+
+	hat( t, vel ) {
+
+		if ( this.mix.drums < 0.02 ) return;
+		this.noiseHit( t, { type: 'highpass', freq: 7500, q: 0.5, vel, dur: 0.045, bus: this.buses.drums } );
+
+	}
+
+	// --- 효과음 ---
+
+	voice( t, points, { vel = 0.25, vibrato = 5, depth = 0.012, bus = this.sfx, reverb = 0.8, type = 'sine' } = {} ) {
+
+		const ctx = this.ctx;
+		const o = ctx.createOscillator();
+		o.type = type;
+		o.frequency.setValueAtTime( points[ 0 ][ 1 ], t );
+		for ( const [ dt, f ] of points.slice( 1 ) ) o.frequency.exponentialRampToValueAtTime( f, t + dt );
+		const lfo = ctx.createOscillator();
+		lfo.frequency.value = vibrato;
+		const lg = ctx.createGain();
+		lg.gain.value = points[ 0 ][ 1 ] * depth;
+		lfo.connect( lg ).connect( o.frequency );
+		const dur = points[ points.length - 1 ][ 0 ];
+		const g = ctx.createGain();
+		g.gain.setValueAtTime( 0.0001, t );
+		g.gain.exponentialRampToValueAtTime( vel, t + Math.min( 0.25, dur * 0.3 ) );
+		g.gain.setValueAtTime( vel, t + dur * 0.65 );
+		g.gain.exponentialRampToValueAtTime( 0.0001, t + dur );
+		o.connect( g ).connect( bus );
+		const send = ctx.createGain();
+		send.gain.value = reverb;
+		g.connect( send ).connect( this.reverb );
+		o.start( t ); lfo.start( t );
+		o.stop( t + dur + 0.05 ); lfo.stop( t + dur + 0.05 );
+
+	}
+
+	whaleCall( t, kind ) {
+
+		if ( ! this.ctx ) return;
+		t = t ?? this.ctx.currentTime;
+		switch ( kind ) {
+
+			case 'far':
+				this.voice( t, [ [ 0, 260 ], [ 1.2, 390 ], [ 2.6, 300 ] ], { vel: 0.05, bus: this.buses.hum, reverb: 1.4 } );
+				break;
+			case 'luke':
+				this.voice( t, [ [ 0, 520 ], [ 0.35, 760 ], [ 0.9, 620 ] ], { vel: 0.14, vibrato: 7 } );
+				break;
+			case 'finn':
+				for ( let i = 0; i < 5; i ++ ) this.noiseHit( t + i * 0.07, { freq: 3000, q: 8, vel: 0.12, dur: 0.03, bus: this.sfx } );
+				this.voice( t + 0.4, [ [ 0, 980 ], [ 0.5, 1400 ], [ 1.1, 1100 ] ], { vel: 0.08, vibrato: 9 } );
+				break;
+			case 'moby':
+				this.voice( t, [ [ 0, 70 ], [ 1.5, 95 ], [ 3.2, 58 ] ], { vel: 0.4, type: 'triangle', reverb: 1.2 } );
+				break;
+			case 'stella':
+				this.voice( t, [ [ 0, 104 ], [ 1.2, 156 ], [ 2.4, 208 ], [ 3.6, 156 ] ], { vel: 0.22, reverb: 1.6 } );
+				this.voice( t + 0.6, [ [ 0, 624 ], [ 1.5, 832 ], [ 3, 728 ] ], { vel: 0.06, reverb: 1.6 } );
+				break;
+
+		}
+
+	}
+
+	play( name, opt = {} ) {
+
+		if ( ! this.ctx ) return;
+		const t = this.ctx.currentTime + 0.01;
+		switch ( name ) {
+
+			case 'sing': {
+
+				const ctx = this.ctx;
+				const o = ctx.createOscillator();
+				o.frequency.value = 52;
+				const g = ctx.createGain();
+				g.gain.setValueAtTime( 0.0001, t );
+				g.gain.exponentialRampToValueAtTime( 0.55, t + 0.2 );
+				g.gain.exponentialRampToValueAtTime( 0.0001, t + 1.8 );
+				o.connect( g ).connect( this.sfx );
+				o.start( t ); o.stop( t + 1.9 );
+				this.voice( t, [ [ 0, 312 ], [ 0.5, 468 ], [ 1.6, 364 ] ], { vel: 0.16 } );
+				this.voice( t, [ [ 0, 156 ], [ 0.5, 208 ], [ 1.6, 182 ] ], { vel: 0.1 } );
+				break;
+
+			}
+
+			case 'splash':
+				this.noiseHit( t, { type: 'lowpass', freq: 1800, q: 0.5, vel: opt.vel ?? 0.35, dur: 0.7, bus: this.sfx } );
+				break;
+			case 'pickup':
+				[ 81, 88, 93, 100 ].forEach( ( m, i ) => this.ep( t + i * 0.07, m, 0.18, 0.4, this.sfx, 0.5 ) );
+				break;
+			case 'objective':
+				[ 76, 83, 88 ].forEach( ( m, i ) => this.ep( t + i * 0.11, m, 0.2, 0.8, this.sfx, 0.6 ) );
+				break;
+			case 'join':
+				[ 69, 73, 76, 81, 85, 88 ].forEach( ( m, i ) => this.ep( t + i * 0.09, m, 0.17, 1.2, this.sfx, 0.7 ) );
+				break;
+			case 'hit': {
+
+				const ctx = this.ctx;
+				const o = ctx.createOscillator();
+				o.frequency.setValueAtTime( 140, t );
+				o.frequency.exponentialRampToValueAtTime( 40, t + 0.25 );
+				const g = ctx.createGain();
+				g.gain.setValueAtTime( 0.6, t );
+				g.gain.exponentialRampToValueAtTime( 0.0001, t + 0.4 );
+				o.connect( g ).connect( this.sfx );
+				o.start( t ); o.stop( t + 0.45 );
+				this.noiseHit( t, { type: 'lowpass', freq: 900, q: 1, vel: 0.4, dur: 0.3, bus: this.sfx } );
+				break;
+
+			}
+
+			case 'blip':
+				this.ep( t, 88, 0.06, 0.05, this.sfx, 0 );
+				break;
+			case 'sonar':
+				this.voice( t, [ [ 0, 1320 ], [ 0.9, 1250 ] ], { vel: 0.06, vibrato: 0.1, reverb: 1.2 } );
+				break;
+			case 'warn':
+				this.voice( t, [ [ 0, 1800 ], [ 1.2, 500 ] ], { vel: 0.05, vibrato: 0.1, reverb: 0.4, type: 'triangle' } );
+				break;
+			case 'boom': {
+
+				const ctx = this.ctx;
+				const o = ctx.createOscillator();
+				o.frequency.setValueAtTime( 90, t );
+				o.frequency.exponentialRampToValueAtTime( 30, t + 0.6 );
+				const g = ctx.createGain();
+				g.gain.setValueAtTime( 0.55, t );
+				g.gain.exponentialRampToValueAtTime( 0.0001, t + 0.9 );
+				o.connect( g ).connect( this.sfx );
+				o.start( t ); o.stop( t + 1 );
+				this.noiseHit( t, { type: 'lowpass', freq: 2400, q: 0.5, vel: 0.35, dur: 1.0, bus: this.sfx } );
+				break;
+
+			}
+
+			case 'dash':
+				this.voice( t, [ [ 0, 420 ], [ 0.35, 1250 ] ], { vel: 0.08, vibrato: 0.1, reverb: 0.6, type: 'triangle' } );
+				[ 76, 81, 88, 93 ].forEach( ( m, i ) => this.ep( t + i * 0.05, m, 0.14, 0.5, this.sfx, 0.6 ) );
+				break;
+			case 'heal':
+				[ 72, 76, 79, 84 ].forEach( ( m, i ) => this.ep( t + i * 0.06, m, 0.12, 0.6, this.sfx, 0.6 ) );
+				break;
+			case 'sad':
+				[ 69, 64, 60, 57 ].forEach( ( m, i ) => this.ep( t + i * 0.5, m, 0.15, 1.5, this.sfx, 0.9 ) );
+				break;
+
+		}
+
+	}
+
+}
