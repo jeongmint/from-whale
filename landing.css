@@ -84,27 +84,47 @@ a:focus-visible, button:focus-visible { outline: 3px solid var(--sky); outline-o
 
 .menu ul { list-style: none; margin: 0; padding: 0; display: grid; gap: clamp(10px, 2.2vh, 26px); }
 
+.stage { --big: clamp(52px, 9.5vw, 136px); }
+
 .big {
+	position: relative;
 	display: inline-block;
-	font: clamp(52px, 9.5vw, 136px) / 0.95 var(--pixel);
+	padding-left: calc(var(--big) * 0.62);
+	font: var(--big) / 0.95 var(--pixel);
 	letter-spacing: 0.02em;
 	color: var(--ink);
 	text-shadow: 4px 4px 0 var(--blue-deep), 8px 8px 0 rgba(15, 42, 120, 0.35);
 	transition: color 0.15s, transform 0.15s, text-shadow 0.15s;
 }
 
-.item.current .big {
-	color: var(--navy);
-	text-shadow: 3px 3px 0 rgba(255, 255, 255, 0.28);
+/* 옛날 게임 메뉴처럼 깜빡이는 ▶ 커서: 기본은 PLAY, 마우스·키보드가 가는 메뉴로 옮겨 간다 */
+.big::before {
+	content: '';
+	position: absolute;
+	left: 0;
+	top: 50%;
+	width: calc(var(--big) * 0.34);
+	height: calc(var(--big) * 0.44);
+	margin-top: calc(var(--big) * -0.24);
+	background: currentColor;
+	clip-path: polygon(0 0, 100% 50%, 0 100%);
+	filter: drop-shadow(3px 3px 0 var(--blue-deep));
+	opacity: 0;
 }
+.item.play .big::before,
+.item:hover .big::before,
+.item:focus-within .big::before { opacity: 1; animation: blink 1s steps(2, jump-none) infinite; }
+.menu:hover .item:not(:hover) .big::before,
+.menu:focus-within .item:not(:focus-within) .big::before { opacity: 0; animation: none; }
+@keyframes blink { 50% { opacity: 0; } }
 
-.big:hover, .big:focus-visible {
+.item:hover .big, .big:focus-visible {
 	color: var(--sky);
 	transform: translate(-2px, -2px);
 	text-shadow: 6px 6px 0 var(--blue-deep), 10px 10px 0 rgba(15, 42, 120, 0.35);
 }
 
-.subs { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 8px; padding-left: 4px; }
+.subs { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 8px; padding-left: calc(var(--big) * 0.62 + 4px); }
 .subs a {
 	font: clamp(14px, 1.4vw, 18px) var(--pixel);
 	letter-spacing: 0.04em;
@@ -113,9 +133,18 @@ a:focus-visible, button:focus-visible { outline: 3px solid var(--sky); outline-o
 }
 .subs a:hover, .subs a:focus-visible { opacity: 1; color: var(--sky); border-bottom-color: currentColor; }
 
+.sound-note {
+	margin: 8px 0 0;
+	padding-left: calc(var(--big) * 0.62 + 4px);
+	font-size: clamp(13px, 1.2vw, 16px);
+	font-weight: 700;
+	color: var(--sky);
+}
+
 .tagline {
 	margin: 0;
-	max-width: 34ch;
+	padding-left: calc(var(--big) * 0.62 + 4px);
+	max-width: calc(36ch + var(--big) * 0.62);
 	font-size: clamp(14px, 1.3vw, 17px);
 	line-height: 1.7;
 	color: rgba(255, 255, 255, 0.85);
@@ -127,7 +156,7 @@ a:focus-visible, button:focus-visible { outline: 3px solid var(--sky); outline-o
 	position: fixed;
 	right: clamp(16px, 4vw, 72px);
 	bottom: calc(clamp(16px, 4vh, 48px) + env(safe-area-inset-bottom, 0px));
-	width: clamp(260px, 38vw, 640px);
+	width: clamp(200px, 28vw, 460px);
 	height: auto;
 	z-index: 1;
 	fill: var(--ink);
@@ -236,21 +265,21 @@ a:focus-visible, button:focus-visible { outline: 3px solid var(--sky); outline-o
 /* ---------- 휴대폰 ---------- */
 @media (max-width: 700px) {
 	.stage { justify-content: flex-start; padding-top: calc(110px + env(safe-area-inset-top, 0px)); }
-	.big { font-size: clamp(44px, 15vw, 72px); }
-	.whale { width: 76vw; right: 4vw; bottom: calc(3vh + env(safe-area-inset-bottom, 0px)); }
+	.stage { --big: clamp(40px, 13.5vw, 68px); }
+	.whale { width: 56vw; right: 6vw; bottom: calc(4vh + env(safe-area-inset-bottom, 0px)); }
 	.panel { top: calc(64px + env(safe-area-inset-top, 0px)); right: 16px; left: 16px; width: auto; }
 }
 
 @media (max-height: 520px) and (orientation: landscape) {
 	.stage { justify-content: center; padding-top: 56px; }
-	.big { font-size: clamp(36px, 11vh, 64px); }
+	.stage { --big: clamp(36px, 11vh, 64px); }
 	.menu ul { gap: 6px; }
 	.subs { margin-top: 2px; }
 	.tagline { display: none; }
-	.whale { width: 36vw; }
+	.whale { width: 26vw; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.whale, .panel { animation: none; }
+	.whale, .panel, .big::before { animation: none; }
 	.big { transition: none; }
 }
