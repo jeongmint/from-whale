@@ -2,7 +2,7 @@
 
 export const SPEAKERS = {
 	narrator: { name: '', portrait: null },
-	hazel: { name: '헤이즐 · 52Hz', portrait: 'hazel', bar: 'linear-gradient(90deg,#0f6e8c,#3fc8ff)' },
+	hazel: { name: '{N} · 52Hz', portrait: 'hazel', bar: 'linear-gradient(90deg,#0f6e8c,#3fc8ff)' },
 	luke: { name: '루크 · 등대지기', portrait: 'luke', bar: 'linear-gradient(90deg,#b5452a,#ff9a6b)' },
 	finn: { name: '핀 · 나침반', portrait: 'finn', bar: 'linear-gradient(90deg,#4b3aa8,#9d8cff)' },
 	moby: { name: '모비 딕', portrait: 'moby', bar: 'linear-gradient(90deg,#3a4a66,#bcd6ff)' },
@@ -111,7 +111,7 @@ const SPECTRUM = `
 		<div class="spec-track">
 			<span class="spec-band" style="left:${hz( 10 )};width:${hz( 15 )}"><b>고래들</b>10–25Hz</span>
 			<span class="spec-band blue" style="left:${hz( 30 )};width:${hz( 8 )}"><b>대왕고래</b>30Hz대</span>
-			<span class="spec-mark" style="left:${hz( 52 )}"><b>헤이즐</b>52Hz</span>
+			<span class="spec-mark" style="left:${hz( 52 )}"><b>{N}</b>52Hz</span>
 		</div>
 		<div class="spec-axis"><span>0</span><span>10</span><span>20</span><span>30</span><span>40</span><span>50</span><span>60Hz</span></div>
 	</div>`;
@@ -136,9 +136,9 @@ async function prologue( G ) {
 		[ 'narrator', '이세계의 2066년.\n바다에는 소수의 인간과, 그보다 훨씬 많은 고래가 살고 있다.' ],
 		[ 'narrator', '고래들은 노래로 이야기한다.\n대부분은 10~25헤르츠의 낮은 소리. 대왕고래는 조금 높은 30헤르츠대.' ],
 		[ 'narrator', '낮은 노래는 수백 킬로미터 떨어진 고래에게까지 건너가\n짝을 찾고, 무리를 지키고, 서로가 거기 있다는 걸 알려 준다.' ],
-		[ 'narrator', '헤이즐의 노래는 52헤르츠다.\n다른 고래들의 귀에는 노래로 들리지 않을 만큼, 혼자 높다.' ],
+		[ 'narrator', '{N의} 노래는 52헤르츠다.\n다른 고래들의 귀에는 노래로 들리지 않을 만큼, 혼자 높다.' ],
 		[ 'narrator', '오래전 인간들의 바다 밑 청음기가 처음 이런 소리를 붙잡았을 때,\n사람들은 그 주인을 ‘세상에서 가장 외로운 고래’라고 불렀다.' ],
-		[ 'narrator', '헤이즐은 52헤르츠로 노래하는 상괭이다.\n그 노래에 대답해 준 고래는, 아직 없다.' ],
+		[ 'narrator', '{N은} 52헤르츠로 노래하는 상괭이다.\n그 노래에 대답해 준 고래는, 아직 없다.' ],
 		[ 'narrator', '등 뒤에 새겨진 빛의 문양 덕분에 인간의 눈에는 보이지 않는다.\n...어쩌면 다른 고래들의 눈에도.' ]
 	] ) );
 
@@ -160,7 +160,7 @@ async function prologue( G ) {
 
 	await G.letter( { ...MOBY_LETTER, body: scramble( MOBY_LETTER.body ), from: scramble( MOBY_LETTER.from ), scrambled: true } );
 	await G.say( lines( [
-		[ 'narrator', '헤르츠로 쓰인 글자들이 웅웅거린다.\n귀가 잘 들리지 않는 헤이즐에게는 읽을 수 없는 편지다.' ],
+		[ 'narrator', '헤르츠로 쓰인 글자들이 웅웅거린다.\n귀가 잘 들리지 않는 {N에게}는 읽을 수 없는 편지다.' ],
 		[ 'hazel', '( ...누군가 읽어 줄 수 있다면. )' ],
 		[ 'narrator', '북쪽 멀리, 등대의 불빛이 돌고 있다.\n등대지기는 바다의 모든 주파수를 듣는다고 했던가.' ]
 	] ) );
@@ -243,7 +243,7 @@ async function chapter2( G ) {
 	G.audio.whaleCall( null, 'finn' );
 	await G.say( lines( [
 		[ 'finn', '...가까이 오지 마. 나한테서 연합군 냄새가 날 거야.' ],
-		[ 'luke', '범고래?! 헤이즐, 뒤로 빠져!' ],
+		[ 'luke', '범고래?! {N}, 뒤로 빠져!' ],
 		[ 'finn', '진정해, 일각고래. 나는 도망쳐 나왔어.\n연합군 샤먼의 교육생이었지만... 더는 못 하겠더라.' ],
 		[ 'finn', '그리고 너. 52헤르츠지?\n연합군이 찾고 있어. 수상한 헤르츠를 내는 고래는 ‘정화’ 대상이거든.' ],
 		[ 'hazel', '( 유리병을 보여 준다 )' ],
@@ -301,19 +301,19 @@ async function chapter3( G ) {
 	G.ambushCharge( ring );
 	await G.wait( 0.9 );
 	G.audio.whaleCall( null, 'luke' );
-	await G.say( lines( [ [ 'luke', '헤이즐!!' ] ] ) );
+	await G.say( lines( [ [ 'luke', '{N}!!' ] ] ) );
 	await G.lukeShield( ring );
 	await G.wait( 0.8 );
 	await G.say( lines( [
 		[ 'luke', '...생각은, 나중에 하는 거야.\n늘 그랬잖아.' ],
-		[ 'luke', '가. 핀, 헤이즐 데리고 가!' ],
+		[ 'luke', '가. 핀, {N} 데리고 가!' ],
 		[ 'luke', '등대 불빛... 꺼뜨리지 말고.' ]
 	] ) );
 
 	G.lukeFall();
 	G.audio.play( 'sad' );
 	await G.wait( 3.2 );
-	G.banner( 'LUKE', '루크가 헤이즐을 지켰다', '등대의 불빛이 꺼졌다', 'sad', 4 );
+	G.banner( 'LUKE', '루크가 {N을} 지켰다', '등대의 불빛이 꺼졌다', 'sad', 4 );
 	await G.wait( 2.5 );
 	G.scatterLukeLight();
 	await G.wait( 2.4 );
@@ -373,7 +373,7 @@ async function chapter4( G ) {
 		[ 'moby', '그건 별이 아니었다.\n인간의 배에서 쏘아 올린 불꽃이, 우박처럼 쏟아졌지.' ],
 		[ 'moby', '어미는 나를 밀어내며 말했다.\n“별이 떨어지는 날에는 무엇이든 할 수 있어. 그러니 도망쳐.”' ],
 		[ 'moby', '어미는 돌아오지 않았다.\n...이번엔, 내가 무엇이든 할 차례다.' ],
-		[ 'finn', '헤이즐, 저분은 지금 아무것도 듣지 않아.\n하지만 네 노래는... 다를지도 몰라.' ]
+		[ 'finn', '{N}, 저분은 지금 아무것도 듣지 않아.\n하지만 네 노래는... 다를지도 몰라.' ]
 	] ) );
 	G.camRelease();
 	G.cutscene( false );
@@ -398,7 +398,7 @@ async function ending( G ) {
 		[ 'moby', '이 바다 어딘가에, 너와 같은 주파수로 노래하는 고래가 있다.' ],
 		[ 'moby', '스텔라. 아주 오래된 대왕고래지.\n미역 줄기마다 길을 써 놓은, 괴짜 같은 녀석이다.' ],
 		[ 'finn', '......루크도 들었으면 좋았을 텐데.' ],
-		[ 'narrator', '별이 떨어지는 밤.\n헤이즐은 처음으로, 누군가와 이야기했다.' ]
+		[ 'narrator', '별이 떨어지는 밤.\n{N은} 처음으로, 누군가와 이야기했다.' ]
 	] ) );
 
 	if ( G.bottleCount() >= BOTTLES.length ) {

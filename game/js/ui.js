@@ -1,4 +1,5 @@
 import { SPEAKERS } from './story.js';
+import { fillName } from './name.js';
 
 const $ = ( id ) => document.getElementById( id );
 
@@ -28,6 +29,7 @@ export class UI {
 	// 터치 기기에서는 키보드 안내를 버튼 안내로 바꾼다
 	dev( s ) {
 
+		s = fillName( s, this.game.playerName );
 		if ( ! this.game.touch || ! s ) return s;
 		return s.replace( /W A S D \/ 방향키/g, '왼쪽 조이스틱' )
 			.replace( /\[E\]/g, '[♪]' ).replace( /\[Space\]/g, '[⤴]' ).replace( /\[L\]/g, '[✉]' )
@@ -93,6 +95,12 @@ export class UI {
 
 	}
 
+	setPlayerName( name, isDefault ) {
+
+		$( 'hud-name' ).textContent = isDefault ? 'HAZEL.52HZ' : `${name.toUpperCase()}.52HZ`;
+
+	}
+
 	setMuted( muted ) {
 
 		$( 'btn-mute' ).classList.toggle( 'off', muted );
@@ -123,9 +131,9 @@ export class UI {
 		const b = $( 'banner' );
 		clearTimeout( this.bannerTimer );
 		b.className = kind;
-		b.querySelector( 'small' ).textContent = small;
+		b.querySelector( 'small' ).textContent = this.dev( small );
 		b.querySelector( 'strong' ).textContent = this.dev( strong );
-		b.querySelector( 'em' ).textContent = em;
+		b.querySelector( 'em' ).textContent = this.dev( em );
 		void b.offsetWidth;
 		this.bannerTimer = setTimeout( () => {
 
@@ -174,9 +182,9 @@ export class UI {
 
 		const c = $( 'card' );
 		$( 'card-num' ).textContent = num;
-		$( 'card-title' ).textContent = title;
-		$( 'card-sub' ).textContent = sub;
-		$( 'card-extra' ).innerHTML = extra;
+		$( 'card-title' ).textContent = this.dev( title );
+		$( 'card-sub' ).textContent = this.dev( sub );
+		$( 'card-extra' ).innerHTML = fillName( extra, this.game.playerName, true );
 		c.className = '';
 		return new Promise( ( resolve ) => {
 
@@ -236,7 +244,7 @@ export class UI {
 		if ( line.who === 'narrator' ) d.classList.add( 'narrator' );
 		if ( line.who === 'hazel' ) d.classList.add( 'hertz' );
 		const name = $( 'dialog-name' );
-		name.textContent = line.name ?? ( sp.name || 'NARRATION' );
+		name.textContent = this.dev( line.name ?? ( sp.name || 'NARRATION' ) );
 		$( 'dialog' ).querySelector( '.win-bar' ).style.background = sp.bar ?? '';
 		const img = this.portraits[ sp.portrait ];
 		$( 'dialog-portrait' ).style.backgroundImage = img ? `url(${img})` : '';
