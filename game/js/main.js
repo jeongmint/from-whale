@@ -9,8 +9,9 @@ import { World } from './world.js';
 import { loadModels, Whale, followSlot, idleCircle, steerTo, updateSwimTime, makePortraits } from './actors.js';
 import { UI } from './ui.js';
 import { AudioEngine } from './audio.js';
-import { DEFAULT_NAME, cleanName, loadName, saveName } from './name.js';
-import { CHAPTERS, PLACES, BOTTLES, ORCA_PACKS, KELP_GROVES, LETTERS, KELPS, MOBY_RESONANCE, scramble } from './story.js';
+import { cleanName, loadName, saveName } from './name.js';
+import { CHAPTERS, PLACES, BOTTLES, ORCA_PACKS, KELP_GROVES, scramble } from './story.js';
+import { lang, t, setLang, applyStatic } from './i18n.js';
 
 const BASE = window.FW_ASSET_BASE ?? '../';
 const query = new URLSearchParams( location.search );
@@ -32,7 +33,7 @@ window.addEventListener( 'unhandledrejection', ( e ) => showError( e.reason?.sta
 function showError( msg ) {
 
 	const el = $( 'error' );
-	el.textContent = `오류가 났어요 :( \n${msg}`;
+	el.textContent = `${t( 'error' )}\n${msg}`;
 	el.classList.remove( 'hidden' );
 
 }
@@ -168,7 +169,12 @@ const G = {
 	shards: [],
 	dash: 0,
 	save: loadSave(),
-	playerName: loadName()
+	customName: loadName(),
+	get playerName() {
+
+		return this.customName || lang().defaultName;
+
+	}
 };
 window.__fw = G;
 
@@ -264,7 +270,7 @@ Object.assign( G, {
 
 		G.objectiveTarget = target;
 		G.ui.setObjective( chapter, text );
-		G.ui.banner( 'NEW OBJECTIVE', text, chapter );
+		G.ui.banner( t( 'banner.objective' ), text, chapter );
 		G.audio.play( 'objective' );
 
 	},
@@ -321,8 +327,7 @@ Object.assign( G, {
 		G.ui.setParty( partyList() );
 		G.audio.play( 'join' );
 		G.audio.whaleCall( G.audio.ctx?.currentTime + 0.6, key );
-		const name = key === 'luke' ? '루크' : '핀';
-		G.ui.banner( 'NEW COMPANION', `${name}가 동료가 되었다!`, `ABILITY · ${ability}`, 'join', 4 );
+		G.ui.banner( t( 'banner.companion' ), t( key === 'luke' ? 'banner.joinLuke' : 'banner.joinFinn' ), t( 'banner.ability', { text: ability } ), 'join', 4 );
 		G.audio.setMix( key === 'luke' ? { bass: 0.9 } : { drums: 0.75 } );
 		G.world.ring( actor.pos.x, actor.pos.z, { color: 0xffd36b, to: 40, life: 1.6 } );
 
@@ -439,7 +444,8 @@ Object.assign( G, {
 		const dx = shaman.pos.x - h.pos.x, dz = shaman.pos.z - h.pos.z;
 		const d = Math.hypot( dx, dz );
 		luke.scripted = { x: h.pos.x + dx / d * 10, z: h.pos.z + dz / d * 10, speed: 45 };
-		await G.until( () => Math.hypot( luke.pos.x - luke.scripted.x, luke.pos.z - luke.scripted.z ) < 3 );
+		const t0 = G.time;
+		await G.until( () => Math.hypot( luke.pos.x - luke.scripted.x, luke.pos.z - luke.scripted.z ) < 3 || G.time - t0 > 3 );
 		luke.breach( 9 );
 		await G.wait( 0.5 );
 		G.flash( 0.9 );
@@ -536,9 +542,9 @@ Object.assign( G, {
 
 	},
 
-	boss() {
+	boss( chapterLabel ) {
 
-		return new Promise( ( resolve ) => startBoss( resolve ) );
+		return new Promise( ( resolve ) => startBoss( resolve, chapterLabel ) );
 
 	},
 
@@ -556,11 +562,11 @@ Object.assign( G, {
 		persist();
 		const minutes = Math.floor( G.stats.time / 60 ), seconds = Math.floor( G.stats.time % 60 );
 		$( 'ending-head' ).textContent = G.flags.subEnding ? 'THE END · SUB ENDING CLEAR' : 'THE END';
-		$( 'ending-quote' ).innerHTML = '“ 바다에는 자유가 있다<br>누구나 누려야 하는 ”';
+		$( 'ending-quote' ).innerHTML = t( 'ending.quote' );
 		$( 'ending-stats' ).innerHTML = [
 			`PLAY TIME ${minutes}:${String( seconds ).padStart( 2, '0' )}`,
 			`LETTERS ${G.bottleCount()}/${BOTTLES.length}`,
-			G.flags.subEnding ? '또 하나의 52Hz를 만났다' : '모든 유리병을 모으면… 또 하나의 52Hz를 만날지도'
+			G.flags.subEnding ? t( 'ending.sub' ) : t( 'ending.hint' )
 		].join( '<br>' );
 		await G.ui.fade( 0.6, 2 );
 		G.ui.show( 'hud', false );
@@ -705,7 +711,7 @@ function alertOrca( o ) {
 
 		G.lastAlert = G.time;
 		G.audio.play( 'warn' );
-		G.ui.toast( G.flags.lukeLight ? '! 연합군에게 들켰다 — 빛 조각을 먹고 도망쳐!' : '! 연합군에게 들켰다 — Shift로 도망치거나 Space로 점프!' );
+		G.ui.toast( t( G.flags.lukeLight ? 'toast.spottedLight' : 'toast.spotted' ) );
 
 	}
 
@@ -765,7 +771,7 @@ function collectShard( s ) {
 	if ( ! G.flags.dashTip ) {
 
 		G.flags.dashTip = true;
-		G.ui.toast( '루크의 빛 — 잠시 아주 빨라진다!' );
+		G.ui.toast( t( 'toast.dash' ) );
 
 	}
 
@@ -797,7 +803,7 @@ async function faint() {
 
 	G.fainting = true;
 	G.cutscene( true );
-	G.ui.toast( '{N이} 지쳐서 가라앉았다…' );
+	G.ui.toast( t( 'toast.faint' ) );
 	await G.ui.fade( 1, 1.2 );
 	const h = G.actors.hazel;
 	if ( G.boss?.active ) {
@@ -836,7 +842,7 @@ async function faint() {
 	G.ui.setHearts( G.hearts, MAX_HEARTS );
 	await G.wait( 0.3 );
 	await G.ui.fade( 0, 1 );
-	G.ui.toast( '다시 노래하자' );
+	G.ui.toast( t( 'toast.again' ) );
 	G.cutscene( false );
 	G.fainting = false;
 
@@ -859,7 +865,7 @@ function setCheckpoint( x, z ) {
 // ---------------------------------------------------------------
 // 보스: 모비 딕 설득하기
 // ---------------------------------------------------------------
-function startBoss( resolve ) {
+function startBoss( resolve, chapterLabel ) {
 
 	const arena = makeSurfaceDecal( { color: 0x3a7dff, inner: 0.99, outer: 1, opacity: 0.3 } );
 	arena.scale.setScalar( 160 );
@@ -873,7 +879,7 @@ function startBoss( resolve ) {
 	G.actors.moby.hold = false;
 	setCheckpoint( G.actors.hazel.pos.x, G.actors.hazel.pos.z );
 	G.audio.setMix( { tension: 0.6, drums: 1, melody: 0.4 } );
-	G.objective( 'CHAPTER 04 · 별이 떨어지는 날', '모비 딕의 마음에 52Hz를 닿게 하기' );
+	G.objective( chapterLabel, t( 'boss.objective' ) );
 	updateBossHud();
 
 }
@@ -881,8 +887,8 @@ function startBoss( resolve ) {
 function updateBossHud() {
 
 	const b = G.boss;
-	const hint = b.phase === 'listen' ? '♪ 지금! 파란 원 안에서 [E]' : b.phase === 'windup' || b.phase === 'charge' ? '! 돌진이 온다 — 피하거나 점프' : '떨어지는 별을 피하자';
-	G.ui.setBoss( true, b.resonance, MOBY_RESONANCE.length, hint );
+	const hint = t( b.phase === 'listen' ? 'boss.hintListen' : b.phase === 'windup' || b.phase === 'charge' ? 'boss.hintCharge' : 'boss.hintRage' );
+	G.ui.setBoss( true, b.resonance, lang().mobyResonance.length, hint );
 
 }
 
@@ -1009,8 +1015,9 @@ async function bossSing() {
 	updateBossHud();
 	G.world.ring( m.pos.x, m.pos.z, { color: 0x7fe9ff, to: 90, life: 1.8, width: 0.2 } );
 	G.flash( 0.25 );
-	await G.say( [ { who: 'moby', text: MOBY_RESONANCE[ b.resonance - 1 ] } ] );
-	if ( b.resonance >= MOBY_RESONANCE.length ) endBoss();
+	const lines = lang().mobyResonance;
+	await G.say( [ { who: 'moby', text: lines[ b.resonance - 1 ] } ] );
+	if ( b.resonance >= lines.length ) endBoss();
 
 }
 
@@ -1026,7 +1033,7 @@ function endBoss() {
 	G.actors.moby.speed = 0;
 	G.sky.meteorShower = 0.35;
 	G.targetWaves = 0.55;
-	G.ui.banner( 'MOBY DICK', '모비 딕의 마음에 닿았다', '별이 조용히 내린다', 'join', 4 );
+	G.ui.banner( ...t( 'banner.mobyDone' ), 'join', 4 );
 	G.audio.play( 'join' );
 	b.resolve();
 
@@ -1172,11 +1179,11 @@ function openJournal() {
 
 	const entries = G.save.bottles.slice().sort( ( a, b ) => a - b ).map( ( id ) => {
 
-		const l = LETTERS.find( ( x ) => x.id === id );
+		const l = lang().letters.find( ( x ) => x.id === id );
 		return { ...l, read: G.save.read.includes( id ), scrambled: scramble( l.body ) };
 
 	} );
-	if ( G.flags.letter0Read ) entries.unshift( { head: 'LETTER #00 — 모비의 편지', body: '별이 떨어지는 날에는\n무엇이든 할 수 있다.', from: '— M.', read: true } );
+	if ( G.flags.letter0Read ) entries.unshift( { ...lang().mobyLetter, head: t( 'journal.mobyHead' ), read: true } );
 	G.ui.journal( entries, BOTTLES.length + ( G.flags.letter0Read ? 1 : 0 ) );
 
 }
@@ -1367,7 +1374,7 @@ function rechargeAtKelp() {
 	k.glow = 1.5;
 	G.world.ring( k.x, k.z, { color: 0x6dffe0, to: 30, life: 1.2, delay: 0.3 } );
 	setTimeout( () => audio.play( 'heal' ), 300 );
-	G.ui.toast( '미역 줄기가 노래에 답했다 — 스태미나 가득!' );
+	G.ui.toast( t( 'toast.recharge' ) );
 	return true;
 
 }
@@ -1383,12 +1390,13 @@ async function doReadKelp( key ) {
 	G.world.ring( k.x, k.z, { color: 0x6dffe0, to: 45, life: 1.4 } );
 	await G.wait( 0.6 );
 	const reader = G.reader();
-	const name = reader === 'luke' ? '미역 줄기 · 루크가 읽어 줌' : reader === 'finn' ? '미역 줄기 · 핀이 읽어 줌' : '미역 줄기';
-	await G.say( [ { who: 'kelp', name, text: KELPS[ key ].text }, ...KELPS[ key ].after.map( ( [ who, text ] ) => ( { who, text } ) ) ] );
+	const name = t( `kelpReader.${reader ?? 'none'}` );
+	const kelp = lang().kelps[ key ];
+	await G.say( [ { who: 'kelp', name, text: kelp.text }, ...kelp.after.map( ( [ who, text ] ) => ( { who, text } ) ) ] );
 	heal( true );
 	G.stamina = 1;
 	setCheckpoint( k.x + 18, k.z + 18 );
-	G.ui.toast( '체력·스태미나 회복 · 체크포인트 저장' );
+	G.ui.toast( t( 'toast.kelpHeal' ) );
 	G.cutscene( false );
 	G.emit( 'kelp:' + key );
 
@@ -1430,22 +1438,22 @@ async function collectBottle( b ) {
 	heal();
 	G.ui.setBottles( G.bottleCount(), BOTTLES.length );
 	const reader = G.reader();
-	const letter = LETTERS.find( ( l ) => l.id === b.id );
+	const letter = lang().letters.find( ( l ) => l.id === b.id );
 	if ( reader ) {
 
 		G.save.read.push( b.id );
 		persist();
 		await G.ui.letter( letter );
-		await G.say( [ { who: reader, text: reader === 'luke' ? '흥. 별 내용 없네. ...다음 거나 찾아.' : '...다 누군가의 노래였구나.' } ] );
+		await G.say( [ { who: reader, text: t( `bottleReact.${reader}` ) } ] );
 
 	} else {
 
 		persist();
-		G.ui.toast( `읽을 수 없는 편지를 주웠다 (${G.bottleCount()}/${BOTTLES.length})` );
+		G.ui.toast( t( 'toast.unreadBottle', { n: G.bottleCount(), total: BOTTLES.length } ) );
 
 	}
 
-	if ( G.bottleCount() === BOTTLES.length ) G.ui.banner( 'ALL LETTERS', '모든 유리병 편지를 모았다', '바다 어딘가에서 누군가 웃고 있다', 'join', 3.5 );
+	if ( G.bottleCount() === BOTTLES.length ) G.ui.banner( ...t( 'banner.allLetters' ), 'join', 3.5 );
 
 }
 
@@ -1454,9 +1462,10 @@ async function collectBottle( b ) {
 // ---------------------------------------------------------------
 async function boot() {
 
+	applyStatic();
 	G.ui = new UI( G );
 	G.ui.setMuted( audio.muted );
-	audio.onNeedsTap = () => G.started && G.ui.toast( '♪ 화면을 한 번 터치하면 음악이 다시 나와요' );
+	audio.onNeedsTap = () => G.started && G.ui.toast( t( 'toast.tapAudio' ) );
 
 	fetch( BASE + 'data/res/logo/fromwhale_logo.svg' ).then( ( r ) => r.text() ).then( ( svg ) => {
 
@@ -1542,33 +1551,45 @@ async function boot() {
 	$( 'loading' ).classList.add( 'hidden' );
 	$( 'title-buttons' ).classList.remove( 'hidden' );
 	const debugChapter = query.has( 'chapter' ) ? Number( query.get( 'chapter' ) ) : null;
-	if ( G.save.chapter > 0 && debugChapter === null ) {
+	const continueBtn = $( 'btn-continue' );
+	const showContinue = () => {
 
-		const btn = $( 'btn-continue' );
-		btn.classList.remove( 'hidden' );
-		btn.textContent = `이어하기 · ${[ 'PROLOGUE', 'CH.01', 'CH.02', 'CH.03', 'CH.04', 'ENDING' ][ G.save.chapter ]}`;
-		btn.onclick = () => {
+		if ( G.save.chapter <= 0 || debugChapter !== null ) return;
+		continueBtn.classList.remove( 'hidden' );
+		continueBtn.textContent = t( 'title.continueAt', { ch: [ 'PROLOGUE', 'CH.01', 'CH.02', 'CH.03', 'CH.04', 'ENDING' ][ G.save.chapter ] } );
 
-			setName( $( 'nickname' ).value );
-			start( G.save.chapter );
+	};
 
-		};
+	showContinue();
+	continueBtn.onclick = () => {
 
-	}
+		setName( $( 'nickname' ).value );
+		start( G.save.chapter );
 
-	// 닉네임 (비워 두면 헤이즐)
+	};
+
+	// 언어 (타이틀에서만 바꾼다)
+	document.querySelectorAll( '[data-lang]' ).forEach( ( btn ) => btn.addEventListener( 'click', () => {
+
+		setLang( btn.dataset.lang );
+		showContinue();
+		G.ui.setPlayerName( G.playerName, ! G.customName );
+
+	} ) );
+
+	// 닉네임 (비워 두면 언어별 기본 이름: 헤이즐 / Hazel / ヘイゼル)
 	const setName = ( raw ) => {
 
-		G.playerName = cleanName( raw ) || DEFAULT_NAME;
-		saveName( G.playerName );
-		G.ui.setPlayerName( G.playerName, G.playerName === DEFAULT_NAME );
+		G.customName = cleanName( raw );
+		saveName( G.customName );
+		G.ui.setPlayerName( G.playerName, ! G.customName );
 
 	};
 
 	const nameInputs = [ $( 'nickname' ), $( 'nickname-pause' ) ];
 	for ( const input of nameInputs ) {
 
-		input.value = G.playerName === DEFAULT_NAME ? '' : G.playerName;
+		input.value = G.customName;
 		input.addEventListener( 'input', () => {
 
 			setName( input.value );
@@ -1588,7 +1609,7 @@ async function boot() {
 		}
 
 	} );
-	G.ui.setPlayerName( G.playerName, G.playerName === DEFAULT_NAME );
+	G.ui.setPlayerName( G.playerName, ! G.customName );
 
 	$( 'btn-start' ).onclick = () => {
 
@@ -1705,7 +1726,7 @@ async function start( chapter ) {
 	G.ui.show( 'title', false );
 	G.ui.show( 'hud' );
 	if ( G.touch ) $( 'touch' ).classList.remove( 'hidden' );
-	if ( G.touch && innerWidth < innerHeight ) G.ui.toast( '가로로 돌리면 바다가 더 넓게 보여요' );
+	if ( G.touch && innerWidth < innerHeight ) G.ui.toast( t( 'toast.rotate' ) );
 	G.stats.time = 0;
 
 	for ( let i = chapter; i < CHAPTERS.length; i ++ ) {
@@ -1800,7 +1821,7 @@ function updatePlayer( dt ) {
 		if ( G.time - ( G.lastEdge ?? - 99 ) > 6 ) {
 
 			G.lastEdge = G.time;
-			G.ui.toast( '더 멀리는 안개뿐이다…' );
+			G.ui.toast( t( 'toast.fog' ) );
 
 		}
 
@@ -1835,7 +1856,25 @@ function updateCompanions( dt ) {
 		if ( ! w.root.visible ) continue;
 		if ( w.scripted ) {
 
-			steerTo( w, w.scripted.x, w.scripted.z, w.scripted.speed, dt, 6 );
+			// 연출용 이동: 회전 반경 없이 목표로 곧장, 가까워질수록 느리게 (빙빙 돌지 않게)
+			const s = w.scripted;
+			const dx = s.x - w.pos.x, dz = s.z - w.pos.z;
+			const d = Math.hypot( dx, dz );
+			if ( d > 0.5 ) {
+
+				const dy = Math.atan2( Math.sin( Math.atan2( dx, dz ) - w.yaw ), Math.cos( Math.atan2( dx, dz ) - w.yaw ) );
+				w.yaw += dy * Math.min( 1, dt * 8 );
+
+			}
+
+			w.speed = Math.min( s.speed, d * 3 );
+			const move = Math.min( d, w.speed * dt );
+			if ( d > 0.01 ) {
+
+				w.pos.x += dx / d * move;
+				w.pos.z += dz / d * move;
+
+			}
 
 		} else if ( G.party[ key ] === 'on' ) {
 
@@ -1925,9 +1964,9 @@ function updateBottlesAndKelp( dt ) {
 	let prompt = null;
 	if ( G.started && ! G.cutsceneOn && ! G.ui.dialogOpen ) {
 
-		if ( G.pendingKelp && G.distTo( G.kelps[ G.pendingKelp ] ) < 34 ) prompt = '<kbd>E</kbd> 미역 줄기에게 52Hz로 노래하기';
-		else if ( G.boss?.active && G.boss.phase === 'listen' && G.distTo( G.actors.moby.pos ) < 50 ) prompt = '<kbd>E</kbd> 모비 딕에게 노래하기';
-		else if ( G.stamina < 0.9 && nearestKelp( 34 ) ) prompt = '<kbd>E</kbd> 미역 곁에서 노래하기 — 스태미나 충전';
+		if ( G.pendingKelp && G.distTo( G.kelps[ G.pendingKelp ] ) < 34 ) prompt = t( 'prompt.kelp' );
+		else if ( G.boss?.active && G.boss.phase === 'listen' && G.distTo( G.actors.moby.pos ) < 50 ) prompt = t( 'prompt.moby' );
+		else if ( G.stamina < 0.9 && nearestKelp( 34 ) ) prompt = t( 'prompt.recharge' );
 
 	}
 

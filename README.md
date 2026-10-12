@@ -9,8 +9,9 @@ WebGL Three.js Project about Blue and Whale
 
 - **플레이: <https://from-whale.netlify.app/game/>**
 - 내 컴퓨터에서 실행: 저장소 루트에서 `python3 -m http.server` → <http://localhost:8000/game/>
-- 대본(대사·편지·지도 좌표)은 `game/js/story.js` 한 파일에 모여 있어요.
-- 타이틀 화면에서 닉네임을 정할 수 있어요. 비워 두면 주인공 이름은 **헤이즐**이에요. 대본에서는 `{N}`, `{N은}`, `{N을}`처럼 쓰면 이름과 맞는 조사로 바뀌어요.
+- 이야기 진행은 `game/js/story.js`, 대사·편지·안내 문장은 `game/js/lang/` 아래 언어별 파일에 있어요.
+- **한국어 · English · 日本語**를 지원해요. 처음엔 기기 언어를 보고 고르고, 타이틀 화면에서 바꿀 수 있어요. 문장은 언어마다 `game/js/lang/ko.js`, `en.js`, `ja.js` 한 파일에 모여 있어요.
+- 타이틀 화면에서 닉네임을 정할 수 있어요. 비워 두면 주인공 이름은 **헤이즐**(Hazel / ヘイゼル)이에요. 대본에서는 `{N}`, `{N은}`, `{N을}`처럼 쓰면 이름과 맞는 조사로 바뀌어요.
 
 ### 이 게임의 특징
 
@@ -44,7 +45,9 @@ WebGL Three.js Project about Blue and Whale
 | `game/js/actors.js` | 고래 모델 로딩, 헤엄치는 꼬리 셰이더, 따라오기/순찰 움직임 |
 | `game/js/audio.js` | 음원 없이 합성하는 음악(셔플 블루스 + 일렉 피아노 + 베이스 + 52Hz 허밍)과 효과음 |
 | `game/js/ui.js` | 레트로 HUD, 대화창, 챕터 카드, 소나 미니맵 |
-| `game/js/story.js` | 대본과 챕터 진행 |
+| `game/js/story.js` | 챕터 진행과 지도 좌표 |
+| `game/js/lang/*.js` | 언어별 대사·편지·UI 문장 (ko / en / ja) |
+| `game/js/i18n.js` | 언어 고르기와 문장 찾기 |
 | `game/js/name.js` | 닉네임 저장과 받침에 맞는 조사 고르기 |
 | `game/js/main.js` | 렌더링/후처리(블룸), 입력, 연합군 AI, 모비 딕 보스전 |
 

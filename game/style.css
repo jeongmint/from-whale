@@ -22,6 +22,10 @@
 	--sans: 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Pretendard', system-ui, sans-serif;
 }
 
+:root:lang(ja) { --sans: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', 'YuGothic', 'Noto Sans JP', 'Meiryo', system-ui, sans-serif; }
+:root:lang(en) { --sans: system-ui, -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; }
+:root:lang(ja) #dialog.narrator #dialog-text { font-style: normal; }
+
 * { box-sizing: border-box; }
 
 html, body {
@@ -314,7 +318,8 @@ input { touch-action: manipulation; }
 	font: 10px var(--mono); letter-spacing: 0.04em; color: var(--ink-dim);
 	padding: 0 0 6px 6px;
 }
-.spec-band b, .spec-mark b { font: 700 12px var(--sans); color: var(--ink); letter-spacing: 0; }
+.spec-band b, .spec-mark b { font: 700 12px var(--sans); color: var(--ink); letter-spacing: 0; white-space: nowrap; }
+.spec-band, .spec-mark { white-space: nowrap; }
 .spec-band { height: 34px; background: rgba(58, 160, 255, 0.28); border-top: 2px solid var(--sky); }
 .spec-band.blue { height: 46px; background: rgba(29, 79, 216, 0.4); border-top-color: #8fb4ff; }
 .spec-mark { height: 64px; border-left: 2px solid var(--cyan); color: var(--cyan); animation: specpulse 1.4s ease-in-out infinite; }
@@ -364,6 +369,20 @@ input { touch-action: manipulation; }
 #title-buttons { display: flex; flex-direction: column; align-items: center; gap: 14px; margin-top: 6px; }
 .title-row { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
 .name-field { display: flex; align-items: center; gap: 10px; color: var(--ink-dim); }
+.lang-switch { display: flex; gap: 0; border: 2px solid var(--line); box-shadow: var(--shadow); }
+.lang-switch button {
+	font: 700 13px var(--sans);
+	color: var(--ink-dim);
+	background: rgba(2, 10, 31, 0.7);
+	border: 0;
+	border-right: 1px solid rgba(95, 168, 255, 0.4);
+	padding: 7px 14px;
+	cursor: pointer;
+}
+.lang-switch button:last-child { border-right: 0; }
+.lang-switch button:hover { color: var(--ink); background: rgba(58, 160, 255, 0.25); }
+.lang-switch button.on { color: #fff; background: var(--blue); }
+.lang-switch button:focus-visible { outline: 2px solid var(--cyan); outline-offset: -2px; }
 #pause .name-field { justify-content: center; margin-top: 16px; }
 .name-field input {
 	width: 170px;
