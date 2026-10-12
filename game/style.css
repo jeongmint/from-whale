@@ -5,6 +5,12 @@
 	font-display: swap;
 }
 
+@font-face {
+	font-family: 'Squaredance';
+	src: url('../files/SquaredanceFontV1-Regular.ttf') format('truetype');
+	font-display: swap;
+}
+
 :root {
 	--ink: #eaf6ff;
 	--ink-dim: #9cc9ff;
@@ -358,13 +364,19 @@ input { touch-action: manipulation; }
 #logo-whale { width: 150px; height: 112px; fill: var(--cyan); filter: drop-shadow(0 0 18px rgba(127, 233, 255, 0.6)); animation: bob 3s ease-in-out infinite; }
 .logo {
 	margin: 0;
-	font-family: var(--mono); font-weight: 500;
+	font-family: 'Squaredance', var(--mono); font-weight: 400;
 	font-size: clamp(44px, 10vw, 96px); letter-spacing: 0.02em;
 	color: #fff;
 	text-shadow: 4px 4px 0 var(--blue), 8px 8px 0 rgba(0, 4, 20, 0.6), 0 0 50px rgba(58, 160, 255, 0.55);
 }
 .logo span { color: var(--cyan); }
 .tagline { margin: 0; color: var(--ink-dim); line-height: 1.7; font-size: 15px; }
+.home-link {
+	position: fixed; top: calc(16px + env(safe-area-inset-top, 0px)); left: 16px;
+	font: 16px 'Squaredance', var(--mono); letter-spacing: 0.06em;
+	color: var(--ink); text-decoration: none; opacity: 0.8;
+}
+.home-link:hover { opacity: 1; color: var(--cyan); }
 #loading { width: 240px; color: var(--ink-dim); display: grid; gap: 6px; }
 #title-buttons { display: flex; flex-direction: column; align-items: center; gap: 14px; margin-top: 6px; }
 .title-row { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }

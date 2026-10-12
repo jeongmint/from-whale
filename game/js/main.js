@@ -912,6 +912,7 @@ function updateBoss( dt ) {
 
 	b.listenRing.position.set( m.pos.x, 0, m.pos.z );
 	updateMeteors( dt, frozen );
+	mobyBody( frozen );
 	if ( frozen ) return;
 
 	b.t += dt;
@@ -963,14 +964,6 @@ function updateBoss( dt ) {
 			const f = m.forward;
 			m.pos.x += f.x * m.speed * dt;
 			m.pos.z += f.z * m.speed * dt;
-			// 몸통(머리 쪽 절반)과 부딪히는지
-			for ( let k = 0; k <= 3; k ++ ) {
-
-				const px = m.pos.x + f.x * ( k * 6 ), pz = m.pos.z + f.z * ( k * 6 );
-				if ( Math.hypot( h.pos.x - px, h.pos.z - pz ) < 9 ) damage( 1, { x: px, z: pz } );
-
-			}
-
 			if ( b.t > 1.4 || Math.hypot( m.pos.x - c.x, m.pos.z - c.z ) > 150 ) {
 
 				b.phase = 'listen';
@@ -1000,6 +993,29 @@ function updateBoss( dt ) {
 
 	b.listenRing.material.uniforms.uOpacity.value = b.phase === 'listen' ? 0.55 + Math.sin( G.time * 6 ) * 0.2 : 0;
 	if ( prevPhase !== b.phase ) updateBossHud();
+
+}
+
+// 모비 몸(머리~꼬리 캡슐)에 닿으면 밀려나고, 하트도 하나 준다
+function mobyBody( frozen ) {
+
+	const m = G.actors.moby;
+	const h = G.actors.hazel;
+	const f = m.forward;
+	const half = m.length * 0.42;
+	const ax = m.pos.x - f.x * half, az = m.pos.z - f.z * half; // 꼬리 쪽
+	const bx = m.pos.x + f.x * half, bz = m.pos.z + f.z * half; // 머리 쪽
+	const vx = bx - ax, vz = bz - az;
+	const t = Math.max( 0, Math.min( 1, ( ( h.pos.x - ax ) * vx + ( h.pos.z - az ) * vz ) / ( vx * vx + vz * vz ) ) );
+	const px = ax + vx * t, pz = az + vz * t;
+	const radius = 4.5 + 3 * t + 2.5; // 머리 쪽이 더 굵다 + 헤이즐 몸
+	const dx = h.pos.x - px, dz = h.pos.z - pz;
+	const d = Math.hypot( dx, dz );
+	if ( d >= radius || h.airborne ) return;
+	const nx = d > 0.01 ? dx / d : - f.z, nz = d > 0.01 ? dz / d : f.x;
+	h.pos.x = px + nx * radius;
+	h.pos.z = pz + nz * radius;
+	if ( ! frozen ) damage( 1, { x: px, z: pz } );
 
 }
 

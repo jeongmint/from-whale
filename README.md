@@ -7,7 +7,8 @@ WebGL Three.js Project about Blue and Whale
 이세계의 2066년, 소수의 인간만이 살아남은 밤바다에서 헤이즐은 유리병 편지 한 통을 줍고,
 등대지기 루크와 울보 범고래 핀을 만나 별이 떨어지는 날의 모비 딕을 설득하러 떠납니다.
 
-- **플레이: <https://from-whale.netlify.app/game/>**
+- **플레이: <https://from-whale.netlify.app/game/>** (첫 화면: <https://from-whale.netlify.app/>)
+- 첫 화면(`index.html`, `landing.css`, `landing.js`)은 HOME(게임) · ABOUT(pitch, concept) · CONTACT 메뉴예요. 처음 만들었던 3D 고래 장면은 `scene.html`에 있어요.
 - 내 컴퓨터에서 실행: 저장소 루트에서 `python3 -m http.server` → <http://localhost:8000/game/>
 - 이야기 진행은 `game/js/story.js`, 대사·편지·안내 문장은 `game/js/lang/` 아래 언어별 파일에 있어요.
 - **한국어 · English · 日本語**를 지원해요. 처음엔 기기 언어를 보고 고르고, 타이틀 화면에서 바꿀 수 있어요. 문장은 언어마다 `game/js/lang/ko.js`, `en.js`, `ja.js` 한 파일에 모여 있어요.
