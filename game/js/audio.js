@@ -56,8 +56,8 @@ function saxWave( ctx ) {
 
 }
 
-// 한 옥타브 아래에서 같은 구절을 작게 받쳐 주는 테너 (-12dB)
-const TENOR_LEVEL = 0.25;
+// 한 옥타브 아래에서 같은 구절을 작게 받쳐 주는 테너 (-13dB)
+const TENOR_LEVEL = Math.pow( 10, - 13 / 20 );
 
 const mtof = ( m ) => 440 * Math.pow( 2, ( m - 69 ) / 12 );
 
