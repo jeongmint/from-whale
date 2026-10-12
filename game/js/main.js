@@ -547,6 +547,12 @@ Object.assign( G, {
 
 	},
 
+	songPuzzle( actor, patterns ) {
+
+		return songPuzzle( actor, patterns );
+
+	},
+
 	boss( chapterLabel ) {
 
 		return new Promise( ( resolve ) => startBoss( resolve, chapterLabel ) );
@@ -930,6 +936,161 @@ function setCheckpoint( x, z ) {
 // ---------------------------------------------------------------
 // 보스: 모비 딕 설득하기
 // ---------------------------------------------------------------
+// ---------------------------------------------------------------
+// 따라 부르기: 상대가 리듬(울음)을 들려주면, 같은 박자로 52Hz를 불러 대답한다
+// 첫 대답 시점을 기준으로 간격만 맞으면 된다. 스토리 게임이라 넉넉하게 봐주고, 세 번 틀리면 루크가 박자를 세 준다
+// ---------------------------------------------------------------
+const SONG_BEAT = 60 / 92; // 음악과 같은 박자
+const SONG_TOLERANCE = 0.2; // 초
+
+function songPuzzle( actor, patterns ) {
+
+	return new Promise( ( resolve ) => {
+
+		const box = $( 'song' ), beatsEl = $( 'song-beats' ), hint = $( 'song-hint' );
+		const now = () => performance.now() / 1000;
+		const say = ( key ) => hint.textContent = G.ui.dev( t( `song.${key}` ) );
+		const timers = new Set();
+		const later = ( s, fn ) => {
+
+			const id = setTimeout( () => {
+
+				timers.delete( id );
+				fn();
+
+			}, s * 1000 );
+			timers.add( id );
+
+		};
+
+		let round = 0, fails = 0, dots = [];
+		const state = { turn: false, taps: [], tap };
+		G.puzzle = state;
+		$( 'song-title' ).textContent = t( 'song.title' );
+		document.body.classList.add( 'singing' );
+		G.ui.show( 'song' );
+		box.onpointerdown = ( e ) => {
+
+			e.stopPropagation();
+			tap();
+
+		};
+
+		G.audio.setMix( { melody: 0.15 }, 1 );
+		actor.setGlow( 0.25, 0x7fe9ff );
+
+		function listen() {
+
+			const p = patterns[ round ];
+			state.turn = false;
+			state.taps = [];
+			box.classList.remove( 'turn' );
+			beatsEl.innerHTML = '<span></span>'.repeat( p.length );
+			dots = [ ...beatsEl.children ];
+			say( 'listen' );
+			p.forEach( ( b, i ) => later( 0.5 + b * SONG_BEAT, () => {
+
+				G.audio.play( 'sob' );
+				actor.setGlow( 0.7, 0x7fe9ff );
+				later( 0.15, () => actor.setGlow( 0.25 ) );
+				G.world.ring( actor.pos.x, actor.pos.z, { color: 0x7fe9ff, to: 14, life: 0.6, width: 0.3 } );
+				dots[ i ].classList.add( 'them' );
+				later( 0.22, () => dots[ i ].classList.remove( 'them' ) );
+
+			} ) );
+			later( 0.5 + p[ p.length - 1 ] * SONG_BEAT + SONG_BEAT * 1.2, () => {
+
+				state.turn = true;
+				box.classList.add( 'turn' );
+				say( 'turn' );
+
+			} );
+
+		}
+
+		function tap() {
+
+			if ( ! state.turn ) return;
+			const p = patterns[ round ];
+			const at = now();
+			const taps = state.taps;
+			if ( taps.length && at - taps[ taps.length - 1 ] < 0.08 ) return;
+			taps.push( at );
+			const i = taps.length - 1;
+			const h = G.actors.hazel;
+			G.audio.play( 'echo' );
+			G.world.ring( h.pos.x, h.pos.z, { color: 0xffd36b, to: 12, life: 0.6, width: 0.3 } );
+			const off = ( at - taps[ 0 ] ) - ( p[ i ] - p[ 0 ] ) * SONG_BEAT;
+			if ( Math.abs( off ) > SONG_TOLERANCE ) return miss( i );
+			dots[ i ].classList.add( 'ok' );
+			if ( taps.length === p.length ) return pass();
+			// 다음 박자가 너무 늦으면 놓친 것
+			const wait = ( p[ i + 1 ] - p[ i ] ) * SONG_BEAT + SONG_TOLERANCE + 0.05;
+			const count = taps.length;
+			later( wait, () => state.turn && state.taps.length === count && miss( count ) );
+
+		}
+
+		function miss( i ) {
+
+			state.turn = false;
+			box.classList.remove( 'turn' );
+			if ( dots[ i ] ) dots[ i ].classList.add( 'bad' );
+			G.audio.play( 'miss' );
+			fails ++;
+			if ( fails >= 3 ) {
+
+				say( 'help' );
+				dots.forEach( ( d ) => d.className = 'ok' );
+				return later( 1.4, next );
+
+			}
+
+			say( 'miss' );
+			later( 1.3, listen );
+
+		}
+
+		function pass() {
+
+			state.turn = false;
+			box.classList.remove( 'turn' );
+			G.audio.play( 'pickup' );
+			say( 'good' );
+			later( 1.2, next );
+
+		}
+
+		function next() {
+
+			round ++;
+			fails = 0;
+			if ( round < patterns.length ) return listen();
+			say( 'done' );
+			G.audio.play( 'heal' );
+			actor.setGlow( 0.1, 0x7fe9ff );
+			G.world.ring( actor.pos.x, actor.pos.z, { color: 0x7fe9ff, to: 40, life: 1.4 } );
+			later( 1.4, () => {
+
+				for ( const id of timers ) clearTimeout( id );
+				G.puzzle = null;
+				box.onpointerdown = null;
+				G.ui.show( 'song', false );
+				document.body.classList.remove( 'singing' );
+				G.audio.setMix( { melody: 1 }, 1.5 );
+				actor.setGlow( 0 );
+				resolve();
+
+			} );
+
+		}
+
+		listen();
+
+	} );
+
+}
+
 function startBoss( resolve, chapterLabel ) {
 
 	const arena = makeSurfaceDecal( { color: 0x3a7dff, inner: 0.99, outer: 1, opacity: 0.3 } );
@@ -1235,6 +1396,7 @@ function onAction( code ) {
 
 	if ( code === 'Escape' ) return setPaused( true );
 	if ( code === 'KeyM' ) return G.ui.setMuted( audio.toggleMute() );
+	if ( G.puzzle && [ 'KeyE', 'Space', 'Enter' ].includes( code ) ) return G.puzzle.tap();
 	if ( ui.dialogOpen ) {
 
 		if ( [ 'Space', 'Enter', 'KeyE' ].includes( code ) ) ui.advance();

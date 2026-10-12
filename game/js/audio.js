@@ -866,6 +866,17 @@ export class AudioEngine {
 				this.voice( t, [ [ 0, 420 ], [ 0.35, 1250 ] ], { vel: 0.08, vibrato: 0.1, reverb: 0.6, type: 'triangle' } );
 				[ 76, 81, 88, 93 ].forEach( ( m, i ) => this.ep( t + i * 0.05, m, 0.14, 0.5, this.sfx, 0.6 ) );
 				break;
+			case 'sob':
+				this.noiseHit( t, { freq: 2600, q: 6, vel: 0.06, dur: 0.04, bus: this.sfx } );
+				this.voice( t, [ [ 0, 880 ], [ 0.07, 1120 ], [ 0.3, 720 ] ], { vel: 0.1, vibrato: 11, depth: 0.03, reverb: 0.6 } );
+				break;
+			case 'echo':
+				this.voice( t, [ [ 0, 312 ], [ 0.1, 400 ], [ 0.32, 364 ] ], { vel: 0.14, reverb: 0.7 } );
+				this.voice( t, [ [ 0, 156 ], [ 0.1, 200 ], [ 0.32, 182 ] ], { vel: 0.08, reverb: 0.7 } );
+				break;
+			case 'miss':
+				this.voice( t, [ [ 0, 260 ], [ 0.25, 196 ] ], { vel: 0.07, vibrato: 0.1, reverb: 0.4, type: 'triangle' } );
+				break;
 			case 'heal':
 				[ 72, 76, 79, 84 ].forEach( ( m, i ) => this.ep( t + i * 0.06, m, 0.12, 0.6, this.sfx, 0.6 ) );
 				break;
