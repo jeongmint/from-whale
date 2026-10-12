@@ -199,7 +199,10 @@ input { touch-action: manipulation; }
 	box-shadow: var(--shadow);
 	pointer-events: auto;
 }
-#home-btn svg { width: 34px; height: auto; fill: var(--ink); stroke: var(--ink); stroke-width: 6; }
+#home-btn svg { width: 34px; height: 28px; fill: var(--ink); stroke: var(--ink); stroke-width: 6; }
+/* PC: POD 창 버튼 줄 끝의 고래 칩 */
+#btn-home { display: inline-grid; place-items: center; text-decoration: none; }
+#btn-home svg { width: 20px; height: 14px; fill: var(--ink); stroke: var(--ink); stroke-width: 10; }
 #home-btn:active { background: var(--blue); transform: translate(calc(-50% + 2px), 2px); box-shadow: 2px 2px 0 rgba(0,4,20,0.55); }
 
 #minimap-wrap { position: absolute; right: 14px; bottom: 14px; transition: opacity 0.25s, transform 0.25s; }
@@ -389,6 +392,16 @@ input { touch-action: manipulation; }
 	text-shadow: 4px 4px 0 var(--blue), 8px 8px 0 rgba(0, 4, 20, 0.6), 0 0 50px rgba(58, 160, 255, 0.55);
 }
 .logo span { color: var(--cyan); }
+/* 아직 개발 중 표시 */
+.logo .beta {
+	display: inline-block;
+	margin-left: 0.4em;
+	padding: 3px 6px 1px;
+	font: 12px var(--mono); letter-spacing: 0.1em;
+	color: var(--deep); background: var(--cyan);
+	text-shadow: none;
+	vertical-align: top;
+}
 .tagline { margin: 0; color: var(--ink-dim); line-height: 1.7; font-size: 15px; }
 .home-link {
 	position: fixed; top: calc(16px + env(safe-area-inset-top, 0px)); left: 16px;
@@ -468,7 +481,8 @@ body.touch .key-only, body:not(.touch) .touch-only { display: none !important; }
 #touch-buttons button.held { background: var(--sky); }
 
 @media (max-width: 760px) {
-	#hud-status, #hud-party { width: min(160px, calc(50vw - 44px)); }
+	#hud-status, #hud-party { width: 160px; }
+	body.touch #hud-status, body.touch #hud-party { width: min(160px, calc(50vw - 44px)); }
 	#hud-status { top: 8px; left: 8px; }
 	#hud-party { top: 8px; right: 8px; }
 	#hud-objective { top: auto; bottom: 168px; min-width: 0; max-width: calc(100vw - 180px); left: 50%; }
@@ -482,8 +496,9 @@ body.touch .key-only, body:not(.touch) .touch-only { display: none !important; }
 	#toasts { top: 110px; left: 8px; }
 	.slot { width: 40px; height: 40px; }
 	#party { min-height: 40px; }
-	.party-meta { gap: 4px; }
-	.party-meta .chip { padding: 3px 6px; }
+	.party-meta { gap: 3px; }
+	.party-meta .chip { padding: 3px 5px; }
+	#btn-home svg { width: 18px; }
 }
 
 /* 가로로 든 폰: 버튼을 소나 왼쪽에 한 줄로 */

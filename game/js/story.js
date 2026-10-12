@@ -39,7 +39,7 @@ export const BOTTLES = [
 	{ id: 6, x: - 120, z: - 380 }
 ];
 
-// 작은 미역 숲: 근처에서 노래하면 스태미나가 가득 찬다
+// 작은 미역 숲: 근처에서 노래하면 하트가 가득 찬다
 export const KELP_GROVES = [
 	{ x: - 40, z: - 170 },
 	{ x: 150, z: - 400 },
@@ -281,18 +281,41 @@ async function ending( G ) {
 	G.setMusic( { tension: 0, drums: 0.3, bass: 0.5, melody: 1, piano: 1 } );
 	await G.say( lines( T().lines ) );
 
-	if ( G.bottleCount() >= BOTTLES.length ) {
+	if ( G.bottleCount() >= BOTTLES.length ) await meetStella( G );
 
-		await card( G, T().subCard );
-		G.stellaRise();
-		G.camFocus( G.actors.stella, { side: 1, dist: 140, height: 40 } );
-		G.audio.whaleCall( null, 'stella' );
-		await G.wait( 3 );
-		await G.say( lines( T().stella ) );
-		G.flags.subEnding = true;
+	G.cutscene( false );
+	await G.showEnding();
 
-	}
+}
 
+// 유리병 편지를 모두 모으면 또 하나의 52Hz, 스텔라가 떠오른다
+async function meetStella( G ) {
+
+	const T = lang().story.ending;
+	await card( G, T.subCard );
+	G.stellaRise();
+	G.camFocus( G.actors.stella, { side: 1, dist: 140, height: 40 } );
+	G.audio.whaleCall( null, 'stella' );
+	await G.wait( 3 );
+	await G.say( lines( T.stella ) );
+	G.flags.subEnding = true;
+
+}
+
+// 엔딩 뒤: 바다를 계속 헤엄치며 남은 유리병을 찾는다. 다 모으면 스텔라를 만난다
+export async function epilogue( G ) {
+
+	const T = () => lang().story.epilogue;
+	G.setStarfall( false );
+	G.setMusic( { tension: 0, drums: 0.5, bass: 0, melody: 1, piano: 1 } );
+	await G.say( lines( T().start ) );
+	G.objective( label( T().card ), T().objective );
+	G.ui.toast( T().hint );
+
+	await G.until( () => G.bottleCount() >= BOTTLES.length && ! G.ui.overlay && ! G.ui.dialogOpen );
+	await G.wait( 1.2 );
+	G.cutscene( true );
+	await meetStella( G );
 	G.cutscene( false );
 	await G.showEnding();
 

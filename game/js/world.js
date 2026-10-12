@@ -364,13 +364,28 @@ export class World {
 
 		const group = new THREE.Group();
 		const model = this.models.bottle.scene.clone( true );
+		// 유리 텍스처가 거의 흰색이라 달빛에 하얗게 번진다. 바다색을 살짝 입혀 무늬와 안의 편지가 보이게 한다
+		model.traverse( ( o ) => {
+
+			if ( ! o.isMesh || o.material.name !== 'Glass' ) return;
+			if ( ! this.bottleGlass ) {
+
+				this.bottleGlass = o.material.clone();
+				this.bottleGlass.color.set( 0x7fbfc4 );
+				this.bottleGlass.opacity = 0.85;
+
+			}
+
+			o.material = this.bottleGlass;
+
+		} );
 		const box = new THREE.Box3().setFromObject( model );
 		const size = box.getSize( new THREE.Vector3() );
 		const center = box.getCenter( new THREE.Vector3() );
 		model.position.sub( center );
 		const holder = new THREE.Group();
 		holder.add( model );
-		holder.scale.setScalar( 2.6 / size.y );
+		holder.scale.setScalar( 3.2 / size.y );
 		holder.rotation.z = Math.PI / 2 - 0.25;
 		group.add( holder );
 
@@ -389,7 +404,8 @@ export class World {
 				uniform float uTime;
 				varying float vT;
 				void main() {
-					float a = pow( clamp( 1.0 - vT, 0.0, 1.0 ), 1.6 ) * ( 0.35 + uBoost * 0.9 ) * ( 0.8 + 0.2 * sin( uTime * 4.0 + vT * 12.0 ) );
+					// 병 둘레(맨 아래)는 비워 둬서 병이 빛에 묻히지 않게 한다
+					float a = pow( clamp( 1.0 - vT, 0.0, 1.0 ), 1.6 ) * smoothstep( 0.05, 0.2, vT ) * ( 0.35 + uBoost * 0.9 ) * ( 0.8 + 0.2 * sin( uTime * 4.0 + vT * 12.0 ) );
 					gl_FragColor = vec4( vec3( 0.4, 0.9, 1.4 ) * a, 1.0 );
 				}
 			`

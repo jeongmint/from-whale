@@ -57,6 +57,18 @@ a:focus-visible, button:focus-visible { outline: 3px solid var(--sky); outline-o
 	text-shadow: 2px 2px 0 var(--blue-deep);
 }
 
+.beta {
+	display: inline-block;
+	margin-left: 10px;
+	padding: 3px 6px 1px;
+	font: 11px var(--pixel);
+	letter-spacing: 0.08em;
+	color: var(--blue);
+	background: var(--ink);
+	text-shadow: none;
+	vertical-align: 2px;
+}
+
 .langs { display: flex; gap: 2px; }
 .langs button {
 	font: 13px var(--pixel);

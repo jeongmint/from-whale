@@ -28,6 +28,7 @@ export default {
 			restart: 'Start over'
 		},
 		ending: {
+			search: 'Find the rest of the letters · {n}/{total}',
 			again: 'Play again',
 			quote: '“ The sea holds a freedom<br>that everyone deserves ”',
 			sub: 'You met another 52Hz',
@@ -39,7 +40,7 @@ export default {
 			dash: 'Luke\'s light — a burst of speed!',
 			faint: '{N} is exhausted and sinks…',
 			again: 'Let\'s sing again',
-			recharge: 'The kelp answered your song — stamina full!',
+			recharge: 'The kelp answered your song — hearts full!',
 			kelpHeal: 'Health and stamina restored · checkpoint saved',
 			unreadBottle: 'Found a letter you can\'t read ({n}/{total})',
 			tapAudio: '♪ Tap the screen once to bring the music back',
@@ -58,7 +59,7 @@ export default {
 		prompt: {
 			kelp: '<kbd>E</kbd> Sing to the kelp at 52Hz',
 			moby: '<kbd>E</kbd> Sing to Moby Dick',
-			recharge: '<kbd>E</kbd> Sing beside the kelp — refill stamina'
+			recharge: '<kbd>E</kbd> Sing beside the kelp — refill hearts'
 		},
 		kelpReader: { luke: 'Kelp · read by Luke', finn: 'Kelp · read by Finn', none: 'Kelp' },
 		bottleReact: { luke: 'Hmph. Nothing special. ...Go find the next one.', finn: '...Every one of these was somebody\'s song.' },
@@ -102,7 +103,7 @@ export default {
 	kelps: {
 		kelp1: {
 			text: 'Lost? Congratulations!\nThe real adventure starts now.\nHead toward the sunrise →',
-			after: [ [ 'luke', '...Who goes around writing on the sea? Gives me a headache.' ], [ 'luke', 'Still, the direction\'s right. East it is.' ], [ 'luke', 'Oh, and singing near kelp gets your strength back. If you\'re tired, swing by any kelp.' ] ]
+			after: [ [ 'luke', '...Who goes around writing on the sea? Gives me a headache.' ], [ 'luke', 'Still, the direction\'s right. East it is.' ], [ 'luke', 'Oh, and singing near kelp heals you up. If you get hurt, swing by any kelp.' ] ]
 		},
 		kelp2: {
 			text: 'If you meet a crying orca, don\'t be scared.\nWhales who cry a lot are usually kind ✶',
@@ -262,6 +263,14 @@ export default {
 			]
 		},
 
+		epilogue: {
+			card: [ 'EPILOGUE', 'Looking for Stella' ],
+			start: [
+				[ 'finn', 'Stella... the whale Moby Dick told us about.\nIf we gather all the scattered letters, maybe we\'ll find the way.' ]
+			],
+			objective: 'Find the rest of the letters in bottles',
+			hint: '♪ Sing 52Hz with [E] and nearby bottles show up on the sonar'
+		},
 		ending: {
 			lines: [
 				[ 'moby', '52 hertz.\nYou said you wanted to talk with other whales.' ],
