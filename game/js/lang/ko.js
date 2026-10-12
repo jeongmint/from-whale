@@ -15,6 +15,7 @@ export default {
 		},
 		hud: { hearts: '체력', journal: '편지함 (L)', mute: '소리 (M)', pause: '일시정지 (Esc)', home: '첫 화면으로', boss: 'MOBY DICK · 마음' },
 		song: { title: '52HZ ↔ FINN', listen: '들어 봐… 핀의 울음 박자', turn: '지금! 같은 박자로 노래하기 [E]', miss: '조금 달라… 다시 들어 봐', help: '루크가 박자를 세어 준다', good: '울음이 조금 잦아들었다', done: '울음이 멎었다' },
+		duet: { title: 'DUET · 52HZ ♥ 52HZ', help: '노래 [E] · 점프 [Space]', ready: '스텔라가 박자를 센다…', perfect: 'PERFECT', good: 'GOOD', miss: 'MISS', combo: '{n} COMBO', rank: 'RANK {r}', sky: '★ 밤하늘 완성!' },
 		letter: { close: '닫기 <span class="mono tiny">[E]</span>' },
 		journal: {
 			title: 'MAILBOX — 유리병 편지함',
@@ -295,6 +296,14 @@ export default {
 				[ 'stella', '안녕, 안녕! 드디어 만났네, 52헤르츠!\n내 미역 편지들 재밌었어? 전부 내가 쓴 거야!' ],
 				[ 'stella', '등의 문양 지우는 법 알려 줄까? 아니면 새로운 언어?\n...아냐 아냐, 그런 것보다 훨씬 중요한 게 있어.' ],
 				[ 'stella', '네 노래는 아무도 못 듣는 게 아니야.\n아직 아무도 안 들어 본 거지. 그건 완전 달라!' ],
+				[ 'stella', '그러니까 지금, 같이 불러 보자!\n52헤르츠 둘이면 바다 전체가 들을 거야. 박자 놓치지 마!' ]
+			],
+			duetEnd: {
+				S: [ [ 'stella', '...와. 방금 바다가 조용해졌어.\n다들 우리 노래를 듣고 있었나 봐!' ] ],
+				A: [ [ 'stella', '좋아 좋아! 처음치고 완전 잘했어!' ] ],
+				B: [ [ 'stella', '헤헤, 박자는 엉망이었지만\n지금까지 들은 노래 중에 제일 신났어!' ] ]
+			},
+			outro: [
 				[ 'stella', '그러니까 그 52헤르츠로, 너만 할 수 있는 일을 해 봐.\n혼자 노래하는 고래들한테 대답해 주는 거라든가!' ],
 				[ 'stella', '자, 다음 모험은 그거야. 어때, 신나지?!' ]
 			]

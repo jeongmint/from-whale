@@ -15,6 +15,7 @@ export default {
 		},
 		hud: { hearts: 'Health', journal: 'Letters (L)', mute: 'Sound (M)', pause: 'Pause (Esc)', home: 'Back to home', boss: 'MOBY DICK · HEART' },
 		song: { title: '52HZ ↔ FINN', listen: 'Listen… the rhythm of Finn\'s sobs', turn: 'Now! Sing back the same rhythm [E]', miss: 'Not quite… listen again', help: 'Luke counts the beat for you', good: 'The sobbing eases a little', done: 'The crying stops' },
+		duet: { title: 'DUET · 52HZ ♥ 52HZ', help: 'Sing [E] · Jump [Space]', ready: 'Stella counts you in…', perfect: 'PERFECT', good: 'GOOD', miss: 'MISS', combo: '{n} COMBO', rank: 'RANK {r}', sky: '★ The night sky is complete!' },
 		letter: { close: 'Close <span class="mono tiny">[E]</span>' },
 		journal: {
 			title: 'MAILBOX — Bottle letters',
@@ -293,6 +294,14 @@ export default {
 				[ 'stella', 'Hi, hi! We finally meet, 52 hertz!\nDid you like my kelp letters? I wrote every single one!' ],
 				[ 'stella', 'Want me to teach you how to wipe off the pattern on your back? Or a new language?\n...Nope, nope, there\'s something way more important.' ],
 				[ 'stella', 'It\'s not that no one can hear your song.\nIt\'s that no one has heard it yet. Totally different!' ],
+				[ 'stella', 'So right now, let\'s sing together!\nTwo 52-hertz voices and the whole sea will hear us. Don\'t miss the beat!' ]
+			],
+			duetEnd: {
+				S: [ [ 'stella', '...Wow. The whole sea just went quiet.\nI think everyone was listening to us!' ] ],
+				A: [ [ 'stella', 'Yes, yes! That was amazing for a first try!' ] ],
+				B: [ [ 'stella', 'Hehe, the beat was all over the place,\nbut that was the most fun song I\'ve ever heard!' ] ]
+			},
+			outro: [
 				[ 'stella', 'So use that 52 hertz to do something only you can do.\nLike answering the whales who sing alone!' ],
 				[ 'stella', 'There. That\'s your next adventure. Exciting, right?!' ]
 			]
