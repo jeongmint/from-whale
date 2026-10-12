@@ -1249,6 +1249,33 @@ function setupTouch() {
 
 }
 
+// 모바일: 두 번 탭·핀치로 화면이 확대되지 않게 막는다 (iOS는 viewport 설정만으로는 안 막힘)
+function preventZoom() {
+
+	const typing = ( e ) => e.target instanceof HTMLInputElement;
+	let lastTouchEnd = 0;
+	document.addEventListener( 'touchend', ( e ) => {
+
+		const now = performance.now();
+		if ( now - lastTouchEnd < 350 && ! typing( e ) ) e.preventDefault();
+		lastTouchEnd = now;
+
+	}, { passive: false } );
+	document.addEventListener( 'touchmove', ( e ) => {
+
+		if ( e.touches.length > 1 ) e.preventDefault();
+
+	}, { passive: false } );
+	for ( const ev of [ 'gesturestart', 'gesturechange', 'gestureend', 'dblclick' ] ) {
+
+		document.addEventListener( ev, ( e ) => ! typing( e ) && e.preventDefault(), { passive: false } );
+
+	}
+
+}
+
+preventZoom();
+
 // 마우스 드래그로 시점 돌리기
 let drag = null;
 renderer.domElement.addEventListener( 'pointerdown', ( e ) => {
