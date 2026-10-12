@@ -493,17 +493,21 @@ body.touch .key-only, body:not(.touch) .touch-only { display: none !important; }
 	/* 그림은 작아져도 손가락이 닿는 범위는 넉넉하게 */
 	body.touch #stick::before { content: ''; position: absolute; inset: -14px; border-radius: 50%; }
 	body.touch #stick-knob { width: 44px; height: 44px; margin: -22px 0 0 -22px; }
-	/* 목표: HAZEL 창 바로 아래, 같은 폭. HAZEL + 목표 = POD 높이 (아래쪽은 엄지에 가려서 읽기 어렵다) */
+	/* 목표: HAZEL 창을 POD 높이까지 늘리고, 그 안 아래쪽에 넣는다 (아래쪽은 엄지에 가려서 읽기 어렵다) */
+	body.touch #hud-status { height: 117px; }
 	body.touch #hud-status .win-body { padding: 6px 10px; }
 	body.touch #hearts { margin-bottom: 4px; }
 	body.touch #hud-objective {
-		top: 88px; bottom: auto; left: 8px; right: auto; width: 160px; height: 37px;
+		top: 82px; bottom: auto; left: 10px; right: auto; width: 156px; height: 41px;
 		transform: none; min-width: 0; max-width: none;
 		text-align: left;
+		background: none; border: 0; border-top: 1px dashed rgba(95, 168, 255, 0.45);
+		box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none;
+		animation: none;
 	}
 	body.touch #hud-objective .win-bar { display: none; }
-	body.touch #hud-objective .win-body { height: 100%; padding: 4px 8px; display: flex; flex-direction: column; justify-content: center; gap: 3px; }
-	body.touch #obj-text { font-size: 12px; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+	body.touch #hud-objective .win-body { height: 100%; padding: 3px 8px; display: flex; flex-direction: column; justify-content: center; gap: 1px; }
+	body.touch #obj-text { font-size: 12px; line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 	body.touch #obj-dist { margin: 0; font-size: 10px; line-height: 1; white-space: nowrap; }
 	body.touch #obj-dist::before { content: attr(data-chapter) '  '; color: var(--ink-dim); white-space: pre; }
 	body.touch #toasts { top: 133px; }
