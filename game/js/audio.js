@@ -90,6 +90,18 @@ export class AudioEngine {
 		this.nextTime = ctx.currentTime + 0.1;
 		this.timer = setInterval( () => this.schedule(), 25 );
 
+		// 폰을 잠그거나 다른 앱에 다녀오면 브라우저가 소리를 멈춘다.
+		// 돌아오면 다시 켜고, 그래도 막혀 있으면 다음 터치 때 켠다.
+		document.addEventListener( 'visibilitychange', () => {
+
+			if ( document.hidden ) this.ctx.suspend().catch( () => {} );
+			else this.wake();
+
+		} );
+		window.addEventListener( 'pageshow', () => this.wake() );
+		window.addEventListener( 'focus', () => this.wake() );
+		for ( const ev of [ 'pointerdown', 'touchend', 'keydown' ] ) window.addEventListener( ev, () => this.wake(), { passive: true } );
+
 	}
 
 	makeImpulse( seconds, decay ) {
@@ -169,6 +181,13 @@ export class AudioEngine {
 
 	}
 
+	wake() {
+
+		if ( ! this.ctx || document.hidden || this.ctx.state === 'running' ) return;
+		this.ctx.resume().catch( () => {} );
+
+	}
+
 	setMix( partial, seconds = 2.5 ) {
 
 		Object.assign( this.mix, partial );
@@ -204,6 +223,9 @@ export class AudioEngine {
 	schedule() {
 
 		const ctx = this.ctx;
+		if ( ctx.state !== 'running' ) return;
+		// 오래 멈췄다 돌아오면 밀린 음을 한꺼번에 치지 않고 지금부터 다시
+		if ( this.nextTime < ctx.currentTime - 0.25 ) this.nextTime = ctx.currentTime + 0.05;
 		while ( this.nextTime < ctx.currentTime + 0.12 ) {
 
 			this.playStep( this.stepIndex, this.nextTime );

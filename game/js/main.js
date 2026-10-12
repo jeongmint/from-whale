@@ -9,6 +9,7 @@ import { World } from './world.js';
 import { loadModels, Whale, followSlot, idleCircle, steerTo, updateSwimTime, makePortraits } from './actors.js';
 import { UI } from './ui.js';
 import { AudioEngine } from './audio.js';
+import { DEFAULT_NAME, cleanName, loadName, saveName } from './name.js';
 import { CHAPTERS, PLACES, BOTTLES, ORCA_PACKS, KELP_GROVES, LETTERS, KELPS, MOBY_RESONANCE, scramble } from './story.js';
 
 const BASE = window.FW_ASSET_BASE ?? '../';
@@ -166,7 +167,8 @@ const G = {
 	boss: null,
 	shards: [],
 	dash: 0,
-	save: loadSave()
+	save: loadSave(),
+	playerName: loadName()
 };
 window.__fw = G;
 
@@ -795,7 +797,7 @@ async function faint() {
 
 	G.fainting = true;
 	G.cutscene( true );
-	G.ui.toast( '헤이즐이 지쳐서 가라앉았다…' );
+	G.ui.toast( '{N이} 지쳐서 가라앉았다…' );
 	await G.ui.fade( 1, 1.2 );
 	const h = G.actors.hazel;
 	if ( G.boss?.active ) {
@@ -1116,6 +1118,7 @@ const touch = { x: 0, y: 0, boost: false, active: false };
 
 window.addEventListener( 'keydown', ( e ) => {
 
+	if ( e.target instanceof HTMLInputElement ) return;
 	if ( [ 'Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight' ].includes( e.code ) ) e.preventDefault();
 	keys.add( e.code );
 	if ( e.repeat || ! G.started ) return;
@@ -1516,12 +1519,52 @@ async function boot() {
 		const btn = $( 'btn-continue' );
 		btn.classList.remove( 'hidden' );
 		btn.textContent = `이어하기 · ${[ 'PROLOGUE', 'CH.01', 'CH.02', 'CH.03', 'CH.04', 'ENDING' ][ G.save.chapter ]}`;
-		btn.onclick = () => start( G.save.chapter );
+		btn.onclick = () => {
+
+			setName( $( 'nickname' ).value );
+			start( G.save.chapter );
+
+		};
 
 	}
 
+	// 닉네임 (비워 두면 헤이즐)
+	const setName = ( raw ) => {
+
+		G.playerName = cleanName( raw ) || DEFAULT_NAME;
+		saveName( G.playerName );
+		G.ui.setPlayerName( G.playerName, G.playerName === DEFAULT_NAME );
+
+	};
+
+	const nameInputs = [ $( 'nickname' ), $( 'nickname-pause' ) ];
+	for ( const input of nameInputs ) {
+
+		input.value = G.playerName === DEFAULT_NAME ? '' : G.playerName;
+		input.addEventListener( 'input', () => {
+
+			setName( input.value );
+			for ( const other of nameInputs ) if ( other !== input ) other.value = input.value;
+
+		} );
+
+	}
+
+	$( 'nickname' ).addEventListener( 'keydown', ( e ) => {
+
+		if ( e.key === 'Enter' ) {
+
+			$( 'nickname' ).blur();
+			$( 'btn-start' ).click();
+
+		}
+
+	} );
+	G.ui.setPlayerName( G.playerName, G.playerName === DEFAULT_NAME );
+
 	$( 'btn-start' ).onclick = () => {
 
+		setName( $( 'nickname' ).value );
 		if ( debugChapter === null ) G.save = { chapter: 0, bottles: [], read: [], kelps: [] };
 		start( debugChapter ?? 0 );
 

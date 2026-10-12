@@ -9,6 +9,7 @@ WebGL Three.js Project about Blue and Whale
 
 - 실행: 저장소 루트에서 `python3 -m http.server` → <http://localhost:8000/game/>
 - 대본(대사·편지·지도 좌표)은 `game/js/story.js` 한 파일에 모여 있어요.
+- 타이틀 화면에서 닉네임을 정할 수 있어요. 비워 두면 주인공 이름은 **헤이즐**이에요. 대본에서는 `{N}`, `{N은}`, `{N을}`처럼 쓰면 이름과 맞는 조사로 바뀌어요.
 
 ### 조작
 
@@ -31,6 +32,7 @@ WebGL Three.js Project about Blue and Whale
 | `game/js/audio.js` | 음원 없이 합성하는 음악(셔플 블루스 + 일렉 피아노 + 베이스 + 52Hz 허밍)과 효과음 |
 | `game/js/ui.js` | 레트로 HUD, 대화창, 챕터 카드, 소나 미니맵 |
 | `game/js/story.js` | 대본과 챕터 진행 |
+| `game/js/name.js` | 닉네임 저장과 받침에 맞는 조사 고르기 |
 | `game/js/main.js` | 렌더링/후처리(블룸), 입력, 연합군 AI, 모비 딕 보스전 |
 
 ### 개발용 주소 옵션
