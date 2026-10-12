@@ -79,7 +79,7 @@ export default {
 		luke: '루크 · 등대지기',
 		finn: '핀 · 나침반',
 		moby: '모비 딕',
-		shaman: '연합군 샤먼 · 긴수염고래',
+		shaman: '연합군 대장 · 샤먼',
 		stella: '스텔라',
 		orca: '연합군 범고래',
 		kelp: '미역 줄기에 쓰인 글'

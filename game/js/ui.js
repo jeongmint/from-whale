@@ -214,6 +214,7 @@ export class UI {
 
 			this.dialogQueue = { lines: [ ...lines ], resolve };
 			this.show( 'dialog' );
+			document.body.classList.add( 'talking' );
 			this.nextLine();
 
 		} );
@@ -233,6 +234,7 @@ export class UI {
 		if ( ! line ) {
 
 			this.show( 'dialog', false );
+			document.body.classList.remove( 'talking' );
 			this.dialogQueue = null;
 			q.resolve();
 			return;

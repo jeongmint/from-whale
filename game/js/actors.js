@@ -80,13 +80,58 @@ export function updateSwimTime( t ) {
 
 }
 
+// 텍스처의 밝고 어두운 무늬는 그대로 두고 색만 [어두운 색 → 밝은 색] 사이로 바꾼다
+const recolorCache = new Map();
+
+function recolorTexture( tex, [ dark, light ] ) {
+
+	const key = `${tex.uuid}:${dark}:${light}`;
+	if ( recolorCache.has( key ) ) return recolorCache.get( key );
+	const img = tex.image;
+	const canvas = document.createElement( 'canvas' );
+	canvas.width = img.width;
+	canvas.height = img.height;
+	const ctx = canvas.getContext( '2d' );
+	ctx.drawImage( img, 0, 0 );
+	const data = ctx.getImageData( 0, 0, canvas.width, canvas.height );
+	const d = data.data;
+	let lo = 255, hi = 0;
+	for ( let i = 0; i < d.length; i += 4 ) {
+
+		const l = d[ i ] * 0.3 + d[ i + 1 ] * 0.59 + d[ i + 2 ] * 0.11;
+		if ( l < lo ) lo = l;
+		if ( l > hi ) hi = l;
+
+	}
+
+	const a = new THREE.Color( dark ), b = new THREE.Color( light );
+	for ( let i = 0; i < d.length; i += 4 ) {
+
+		const t = ( d[ i ] * 0.3 + d[ i + 1 ] * 0.59 + d[ i + 2 ] * 0.11 - lo ) / Math.max( 1, hi - lo );
+		d[ i ] = ( a.r + ( b.r - a.r ) * t ) * 255;
+		d[ i + 1 ] = ( a.g + ( b.g - a.g ) * t ) * 255;
+		d[ i + 2 ] = ( a.b + ( b.b - a.b ) * t ) * 255;
+
+	}
+
+	ctx.putImageData( data, 0, 0 );
+	const out = new THREE.CanvasTexture( canvas );
+	out.encoding = tex.encoding;
+	out.flipY = tex.flipY;
+	out.wrapS = tex.wrapS;
+	out.wrapT = tex.wrapT;
+	recolorCache.set( key, out );
+	return out;
+
+}
+
 const _normal = new THREE.Vector3();
 const _q = new THREE.Quaternion();
 const _e = new THREE.Euler( 0, 0, 0, 'YXZ' );
 
 export class Whale {
 
-	constructor( gltf, { name, length = 10, ride = 0.3, freq = 3.2, amp = 0.07, tint = null, emissive = 1, glowColor = 0x000000, scaleY = 1 } = {} ) {
+	constructor( gltf, { name, length = 10, ride = 0.3, freq = 3.2, amp = 0.07, tint = null, solidColor = null, recolor = null, emissiveTint = null, emissive = 1, glowColor = 0x000000, scaleY = 1 } = {} ) {
 
 		this.name = name;
 		this.length = length;
@@ -116,6 +161,16 @@ export class Whale {
 
 				o.material = o.material.clone();
 				if ( tint ) o.material.color.multiply( new THREE.Color( tint ) );
+				// 텍스처 색 대신 한 가지 색으로 칠한다 (무늬·빛나는 문양은 그대로)
+				if ( solidColor !== null ) {
+
+					o.material.map = null;
+					o.material.color.set( solidColor );
+
+				}
+
+				if ( recolor && o.material.map ) o.material.map = recolorTexture( o.material.map, recolor );
+				if ( emissiveTint !== null ) o.material.emissive.multiply( new THREE.Color( emissiveTint ) );
 				o.material.emissiveIntensity = emissive;
 				addSwim( o.material, this.swim );
 				this.materials.push( o.material );
@@ -313,8 +368,8 @@ export function makePortraits( models ) {
 		luke: [ 'luke', {} ],
 		finn: [ 'finn', {} ],
 		moby: [ 'moby', {} ],
-		shaman: [ 'hazel', { tint: 0x6a5a7a, emissive: 0.1 } ],
-		stella: [ 'hazel', { tint: 0x3b6cff, emissive: 2 } ],
+		shaman: [ 'orca', { recolor: [ 0x7a1f4f, 0xffb3d1 ], emissive: 0.1 } ],
+		stella: [ 'hazel', { solidColor: 0xffb000, emissiveTint: 0xfff0b0, emissive: 1.2 } ],
 		orca: [ 'orca', {} ]
 	};
 
