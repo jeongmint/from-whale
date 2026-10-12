@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ko">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+		<meta name="theme-color" content="#020a1f">
+		<title>From. Whale</title>
+		<link rel="icon" href="../data/res/favicon/favicon.ico">
+		<link rel="stylesheet" href="style.css">
+		<script async src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"></script>
+		<script type="importmap">
+			{
+				"imports": {
+					"three": "https://unpkg.com/three@0.148.0/build/three.module.js",
+					"three/addons/": "https://unpkg.com/three@0.148.0/examples/jsm/"
+				}
+			}
+		</script>
+		<script>window.FW_ASSET_BASE = window.FW_ASSET_BASE || '../';</script>
+		<script type="module" src="js/main.js"></script>
+	</head>
+	<body>
+		<div id="app"></div>
+
+		<!-- HUD -->
+		<div id="hud" class="hidden">
+			<section id="hud-status" class="win">
+				<header class="win-bar"><span>HAZEL.52HZ</span><i></i></header>
+				<div class="win-body">
+					<div id="hearts" aria-label="체력"></div>
+					<div class="meter-row">
+						<span class="mono tiny">STAMINA</span>
+						<div id="stamina" class="meter"><div></div></div>
+					</div>
+				</div>
+			</section>
+
+			<section id="hud-objective" class="win">
+				<header class="win-bar"><span id="obj-chapter">PROLOGUE</span><i></i></header>
+				<div class="win-body">
+					<div id="obj-text">—</div>
+					<div id="obj-dist" class="mono tiny"></div>
+				</div>
+			</section>
+
+			<section id="hud-party" class="win">
+				<header class="win-bar"><span>POD</span><i></i></header>
+				<div class="win-body">
+					<div id="party"></div>
+					<div class="party-meta">
+						<button id="btn-journal" class="chip" title="편지함 (L)">✉ <b id="bottle-count">0/6</b></button>
+						<button id="btn-mute" class="chip" title="소리 (M)">♪</button>
+						<button id="btn-pause" class="chip" title="일시정지 (Esc)">❚❚</button>
+					</div>
+				</div>
+			</section>
+
+			<section id="hud-boss" class="win hidden">
+				<header class="win-bar"><span>MOBY DICK · 마음</span><i></i></header>
+				<div class="win-body"><div id="boss-gauge"></div><div id="boss-hint" class="mono tiny"></div></div>
+			</section>
+
+			<div id="minimap-wrap" class="win">
+				<header class="win-bar"><span>SONAR</span><i></i></header>
+				<canvas id="minimap" width="180" height="180"></canvas>
+			</div>
+
+			<div id="marker" class="hidden"><div class="diamond"></div><span></span></div>
+			<div id="edge-arrow" class="hidden"><div class="arrow"></div><span></span></div>
+			<div id="prompt" class="hidden"></div>
+			<div id="toasts"></div>
+			<div id="banner" class="hidden"><small></small><strong></strong><em></em></div>
+		</div>
+
+		<!-- 대화 -->
+		<div id="dialog" class="win hidden">
+			<header class="win-bar"><span id="dialog-name"></span><i></i></header>
+			<div class="win-body">
+				<div id="dialog-portrait"></div>
+				<p id="dialog-text"></p>
+				<span id="dialog-next">▼</span>
+			</div>
+		</div>
+
+		<!-- 챕터 카드 -->
+		<div id="card" class="hidden">
+			<div class="card-inner">
+				<small id="card-num"></small>
+				<h1 id="card-title"></h1>
+				<p id="card-sub"></p>
+				<div id="card-extra"></div>
+			</div>
+		</div>
+
+		<!-- 편지 -->
+		<div id="letter" class="overlay hidden">
+			<div class="win paper">
+				<header class="win-bar"><span id="letter-head">LETTER.TXT</span><i></i></header>
+				<div class="win-body">
+					<div id="letter-body"></div>
+					<div id="letter-from"></div>
+					<button class="btn" data-close>닫기 <span class="mono tiny">[E]</span></button>
+				</div>
+			</div>
+		</div>
+
+		<!-- 편지함 -->
+		<div id="journal" class="overlay hidden">
+			<div class="win">
+				<header class="win-bar"><span>MAILBOX — 유리병 편지함</span><i></i></header>
+				<div class="win-body">
+					<ul id="journal-list"></ul>
+					<button class="btn" data-close>닫기 <span class="mono tiny">[L]</span></button>
+				</div>
+			</div>
+		</div>
+
+		<!-- 일시정지 -->
+		<div id="pause" class="overlay hidden">
+			<div class="win">
+				<header class="win-bar"><span>PAUSE</span><i></i></header>
+				<div class="win-body">
+					<div class="help touch-only">
+						<div><kbd>조이스틱</kbd> 헤엄치기 — 많이 밀수록 빠르게</div>
+						<div><kbd>»</kbd> 누르고 있으면 빠르게 (스태미나)</div>
+						<div><kbd>⤴</kbd> 점프 — 공중에선 무적</div>
+						<div><kbd>♪</kbd> 52Hz 노래 · 말 걸기 · 소나 · 대화 넘기기</div>
+						<div><kbd>화면 드래그</kbd> 시점 &nbsp; <kbd>✉</kbd> 편지함</div>
+					</div>
+					<div class="help key-only">
+						<div><kbd>W A S D</kbd> / <kbd>방향키</kbd> 헤엄치기</div>
+						<div><kbd>Shift</kbd> 빠르게 (스태미나)</div>
+						<div><kbd>Space</kbd> 점프 — 공중에선 무적</div>
+						<div><kbd>E</kbd> 52Hz 노래 · 말 걸기 · 소나</div>
+						<div><kbd>L</kbd> 편지함 &nbsp; <kbd>M</kbd> 소리 &nbsp; <kbd>드래그</kbd> 시점</div>
+					</div>
+					<div class="row">
+						<button class="btn" id="btn-resume">계속하기</button>
+						<button class="btn ghost" id="btn-restart">처음부터</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- 타이틀 -->
+		<div id="title" class="overlay">
+			<div class="title-inner">
+				<svg id="logo-whale" viewBox="40 40 400 300" aria-hidden="true"><path id="logo-path"/></svg>
+				<h1 class="logo">From<span>.</span> Whale</h1>
+				<p class="tagline">이세계의 2066년, 소수의 인간만이 살아남은 바다.<br>아무도 듣지 못하는 52Hz로 노래하는 고래가 있었다.</p>
+				<div id="loading" class="mono tiny">LOADING <span id="load-pct">0%</span><div class="meter"><div id="load-bar"></div></div></div>
+				<div id="title-buttons" class="hidden">
+					<button class="btn big" id="btn-start">▶ 모험 시작</button>
+					<button class="btn ghost hidden" id="btn-continue">이어하기</button>
+				</div>
+				<p class="quote">“ 무언가를 한다는 생각 자체부터<br>모험은 시작된다 ”</p>
+				<p class="controls mono tiny key-only">WASD MOVE · SHIFT BOOST · SPACE JUMP · E SING 52HZ</p>
+				<p class="controls mono tiny touch-only">STICK MOVE · » BOOST · ⤴ JUMP · ♪ SING 52HZ</p>
+			</div>
+		</div>
+
+		<!-- 엔딩 -->
+		<div id="ending" class="overlay hidden">
+			<div class="win">
+				<header class="win-bar"><span id="ending-head">THE END</span><i></i></header>
+				<div class="win-body">
+					<p class="quote big" id="ending-quote"></p>
+					<div id="ending-stats" class="mono tiny"></div>
+					<div class="row">
+						<button class="btn" id="btn-again">다시 하기</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div id="fade"></div>
+		<div id="error" class="hidden"></div>
+
+		<!-- 모바일 조작 -->
+		<div id="touch" class="hidden">
+			<div id="stick"><div id="stick-knob"></div></div>
+			<div id="touch-buttons">
+				<button data-act="sing">♪<small>52Hz</small></button>
+				<button data-act="jump">⤴<small>JUMP</small></button>
+				<button data-act="boost">»<small>BOOST</small></button>
+			</div>
+		</div>
+	</body>
+</html>
