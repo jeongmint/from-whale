@@ -21,6 +21,9 @@ const COMP_PATTERNS = [
 
 const mtof = ( m ) => 440 * Math.pow( 2, ( m - 69 ) / 12 );
 
+// iPhone/iPad Safari (iPadOS는 맥처럼 보이지만 터치가 된다)
+const IS_IOS = /iP(hone|od|ad)/.test( navigator.platform ) || ( /Mac/.test( navigator.userAgent ) && navigator.maxTouchPoints > 1 );
+
 export class AudioEngine {
 
 	constructor() {
@@ -90,17 +93,86 @@ export class AudioEngine {
 		this.nextTime = ctx.currentTime + 0.1;
 		this.timer = setInterval( () => this.schedule(), 25 );
 
-		// 폰을 잠그거나 다른 앱에 다녀오면 브라우저가 소리를 멈춘다.
-		// 돌아오면 다시 켜고, 그래도 막혀 있으면 다음 터치 때 켠다.
+		// 전화·Siri 등으로 중간에 끊기면 다음 터치 때 새로 만든다
+		ctx.onstatechange = () => {
+
+			if ( ctx === this.ctx && ctx.state !== 'running' && ! document.hidden ) this.stale = true;
+
+		};
+
+		this.listen();
+
+	}
+
+	// 폰을 잠그거나 다른 앱에 다녀오면 브라우저가 소리를 멈춘다.
+	// iOS Safari는 돌아와서 resume()을 해도 '켜짐'이라고만 하고 소리가 안 나는 경우가 있어서,
+	// 돌아온 뒤 첫 터치(사용자 동작) 때 소리 엔진을 새로 만든다. 곡 진행 위치와 악기 구성은 이어진다.
+	listen() {
+
+		if ( this.listening ) return;
+		this.listening = true;
+
 		document.addEventListener( 'visibilitychange', () => {
 
-			if ( document.hidden ) this.ctx.suspend().catch( () => {} );
-			else this.wake();
+			if ( ! this.ctx ) return;
+			if ( document.hidden ) {
+
+				this.stale = true;
+				this.ctx.suspend().catch( () => {} );
+
+			} else {
+
+				this.ctx.resume().catch( () => {} );
+				// 데스크톱·안드로이드는 보통 여기서 바로 돌아온다. 아니면 터치하라고 알린다.
+				setTimeout( () => {
+
+					if ( this.stale && ( IS_IOS || this.ctx.state !== 'running' ) && ! this.muted ) this.onNeedsTap?.();
+					else if ( this.ctx.state === 'running' && ! IS_IOS ) this.stale = false;
+
+				}, 600 );
+
+			}
 
 		} );
-		window.addEventListener( 'pageshow', () => this.wake() );
-		window.addEventListener( 'focus', () => this.wake() );
-		for ( const ev of [ 'pointerdown', 'touchend', 'keydown' ] ) window.addEventListener( ev, () => this.wake(), { passive: true } );
+		window.addEventListener( 'pageshow', () => this.ctx?.resume().catch( () => {} ) );
+
+		// 대화창처럼 이벤트 전파를 막는 요소가 있어도 받도록 capture 단계에서 듣는다
+		const gesture = () => this.onGesture();
+		for ( const ev of [ 'touchend', 'pointerup', 'click', 'keydown' ] ) window.addEventListener( ev, gesture, { capture: true, passive: true } );
+
+	}
+
+	onGesture() {
+
+		if ( ! this.ctx || document.hidden ) return;
+		if ( this.stale && ( IS_IOS || this.ctx.state !== 'running' ) ) {
+
+			this.rebuild();
+			return;
+
+		}
+
+		this.stale = false;
+		if ( this.ctx.state !== 'running' ) this.ctx.resume().catch( () => {} );
+
+	}
+
+	// 소리 엔진을 버리고 새로 만든다 (사용자 동작 안에서 불러야 iOS가 허락한다)
+	rebuild() {
+
+		const old = this.ctx;
+		clearInterval( this.timer );
+		this.ctx = null;
+		this.stale = false;
+		if ( old ) {
+
+			old.onstatechange = null;
+			old.close().catch( () => {} );
+
+		}
+
+		this.init();
+		this.onRebuilt?.();
 
 	}
 
@@ -178,13 +250,6 @@ export class AudioEngine {
 
 		} );
 		filter.connect( out ).connect( this.buses.tension );
-
-	}
-
-	wake() {
-
-		if ( ! this.ctx || document.hidden || this.ctx.state === 'running' ) return;
-		this.ctx.resume().catch( () => {} );
 
 	}
 
