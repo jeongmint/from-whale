@@ -187,7 +187,11 @@ input { touch-action: manipulation; }
 #boss-gauge span.on { background: var(--cyan); box-shadow: 0 0 10px var(--cyan); }
 #boss-hint { color: var(--ink-dim); }
 
-#minimap-wrap { position: absolute; right: 14px; bottom: 14px; }
+#minimap-wrap { position: absolute; right: 14px; bottom: 14px; transition: opacity 0.25s, transform 0.25s; }
+/* 대화 중엔 어차피 못 움직이니, 대화창과 겹치는 화면에서는 소나를 잠깐 내려 둔다 */
+@media (max-width: 1200px) {
+	body.talking #minimap-wrap { opacity: 0; transform: translateY(16px); pointer-events: none; }
+}
 #minimap { display: block; width: 180px; height: 180px; }
 
 #marker {
