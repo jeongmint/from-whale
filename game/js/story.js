@@ -307,7 +307,7 @@ export async function epilogue( G ) {
 
 	const T = () => lang().story.epilogue;
 	G.setStarfall( false );
-	G.setMusic( { tension: 0, drums: 0.5, bass: 0, melody: 1, piano: 1 } );
+	G.setMusic( { tension: 0, drums: 0.5, bass: 0, melody: 1, piano: 1, sax: 0.9 } );
 	await G.say( lines( T().start ) );
 	G.objective( label( T().card ), T().objective );
 	G.ui.toast( T().hint );
