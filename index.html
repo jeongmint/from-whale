@@ -59,14 +59,17 @@
 			<path d="M385,386.21c12.22,1.41,14.4-17.57,2.18-18.98-12.22-1.41-14.41,17.57-2.19,18.98h.01Z"/>
 		</svg>
 
-		<section class="panel" id="pitch" hidden aria-labelledby="pitch-title">
-			<header class="panel-bar"><span id="pitch-title">PITCH</span><button type="button" class="close" data-close data-t-aria="close">✕</button></header>
-			<div class="panel-body" data-t="pitch"></div>
-		</section>
-
-		<section class="panel" id="concept" hidden aria-labelledby="concept-title">
-			<header class="panel-bar"><span id="concept-title">CONCEPT</span><button type="button" class="close" data-close data-t-aria="close">✕</button></header>
-			<div class="panel-body" data-t="concept"></div>
+		<section class="panel" id="about" hidden aria-label="About">
+			<header class="panel-bar">
+				<div class="tabs" role="tablist" aria-label="About">
+					<button type="button" role="tab" id="tab-pitch" aria-controls="pitch" data-tab="pitch">PITCH</button>
+					<span class="tab-sep" aria-hidden="true">|</span>
+					<button type="button" role="tab" id="tab-concept" aria-controls="concept" data-tab="concept">CONCEPT</button>
+				</div>
+				<button type="button" class="close" data-close data-t-aria="close">✕</button>
+			</header>
+			<div class="panel-body" id="pitch" role="tabpanel" aria-labelledby="tab-pitch" tabindex="0" data-t="pitch"></div>
+			<div class="panel-body" id="concept" role="tabpanel" aria-labelledby="tab-concept" tabindex="0" data-t="concept" hidden></div>
 		</section>
 
 		<section class="panel" id="contact" hidden aria-labelledby="contact-title">

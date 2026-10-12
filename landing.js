@@ -147,16 +147,61 @@ document.querySelectorAll( '[data-lang]' ).forEach( ( btn ) => btn.addEventListe
 
 } ) );
 
-// ABOUT / CONTACT 창
+// ABOUT / CONTACT 창. ABOUT 안에는 PITCH | CONCEPT 탭이 있다
 const panels = [ ...document.querySelectorAll( '.panel' ) ];
+const tabs = [ ...document.querySelectorAll( '[data-tab]' ) ];
+const TAB_IDS = tabs.map( ( t ) => t.dataset.tab );
 
-function open( id, focus = true ) {
+function selectTab( id, focusTab = false ) {
 
-	for ( const p of panels ) p.hidden = p.id !== id;
-	const panel = document.getElementById( id );
-	if ( panel && focus ) panel.querySelector( '.close' ).focus( { preventScroll: true } );
+	for ( const t of tabs ) {
+
+		const on = t.dataset.tab === id;
+		t.setAttribute( 'aria-selected', on );
+		t.tabIndex = on ? 0 : - 1;
+		document.getElementById( t.dataset.tab ).hidden = ! on;
+		if ( on && focusTab ) t.focus();
+
+	}
+
+	document.getElementById( id ).scrollTop = 0;
 
 }
+
+// id: 'pitch' | 'concept' | 'contact'
+function open( id, focus = true ) {
+
+	const tab = TAB_IDS.includes( id ) ? id : null;
+	const panelId = tab ? 'about' : id;
+	for ( const p of panels ) p.hidden = p.id !== panelId;
+	if ( tab ) selectTab( tab );
+	const panel = document.getElementById( panelId );
+	if ( ! panel || ! focus ) return;
+	( tab ? panel.querySelector( `[data-tab="${tab}"]` ) : panel.querySelector( '.close' ) ).focus( { preventScroll: true } );
+
+}
+
+tabs.forEach( ( t ) => {
+
+	t.addEventListener( 'click', () => {
+
+		history.replaceState( null, '', '#' + t.dataset.tab );
+		selectTab( t.dataset.tab );
+
+	} );
+	// ←/→ 로 탭 이동
+	t.addEventListener( 'keydown', ( e ) => {
+
+		if ( e.key !== 'ArrowLeft' && e.key !== 'ArrowRight' ) return;
+		e.preventDefault();
+		const i = TAB_IDS.indexOf( t.dataset.tab );
+		const next = TAB_IDS[ ( i + ( e.key === 'ArrowRight' ? 1 : TAB_IDS.length - 1 ) ) % TAB_IDS.length ];
+		history.replaceState( null, '', '#' + next );
+		selectTab( next, true );
+
+	} );
+
+} );
 
 function closeAll() {
 
@@ -211,4 +256,4 @@ copyBtn.addEventListener( 'click', async () => {
 
 // 주소에 #pitch 처럼 붙어 오면 그 창을 연다
 const fromHash = location.hash.slice( 1 );
-if ( panels.some( ( p ) => p.id === fromHash ) ) open( fromHash, false );
+if ( TAB_IDS.includes( fromHash ) || fromHash === 'contact' ) open( fromHash, false );

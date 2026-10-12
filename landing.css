@@ -200,6 +200,22 @@ a:focus-visible, button:focus-visible { outline: 3px solid var(--sky); outline-o
 	letter-spacing: 0.08em;
 }
 
+/* ABOUT 창 위쪽의 PITCH | CONCEPT 탭 */
+.tabs { display: flex; align-items: center; gap: 6px; }
+.tabs button {
+	font: 16px var(--pixel);
+	letter-spacing: 0.08em;
+	color: var(--blue);
+	background: transparent;
+	border: 0;
+	padding: 4px 8px 2px;
+	cursor: pointer;
+}
+.tabs button:hover { text-decoration: underline; text-underline-offset: 4px; }
+.tabs button[aria-selected="true"] { color: var(--ink); background: var(--blue); text-decoration: none; }
+.tab-sep { color: rgba(44, 94, 214, 0.45); font: 16px var(--pixel); }
+.panel-body[hidden] { display: none; }
+
 .close {
 	font: 700 18px/1 var(--sans);
 	color: var(--blue);
