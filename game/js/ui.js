@@ -383,7 +383,7 @@ export class UI {
 
 		}
 
-		const w = window.innerWidth, h = window.innerHeight;
+		const { w, h } = this.game.view;
 		const label = `${Math.round( dist )}m`;
 		const margin = 48;
 		if ( screen.onScreen ) {
