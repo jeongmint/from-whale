@@ -42,7 +42,7 @@ const TEXT = {
 				<li><b>+ 루크</b> 베이스 기타</li>
 				<li><b>+ 핀</b> 브러시 드럼</li>
 				<li><b>모비 딕</b> 낮게 깔리는 긴장의 소리와, 매 박자 울리는 킥 드럼</li>
-				<li><b>에필로그</b> 피아노와 블루스 구절을 주고받는 색소폰</li>
+				<li><b>에필로그</b> 피아노와 블루스 구절을 주고받는 색소폰, 한 옥타브 아래로 작게 겹치는 테너</li>
 			</ul>
 			<p>모든 악기가 같은 박자 위에서 돌아서, 중간에 들어와도 박이 어긋나지 않아요. 그리고 누군가 떠나면, 그 악기도 함께 사라져요.</p>
 			<a class="play" href="game/">▶ PLAY</a>`,
@@ -94,7 +94,7 @@ const TEXT = {
 				<li><b>+ Luke</b> Bass guitar</li>
 				<li><b>+ Finn</b> Brush drums</li>
 				<li><b>Moby Dick</b> A low, tense drone and a kick drum on every beat</li>
-				<li><b>Epilogue</b> A saxophone trading blues phrases with the piano</li>
+				<li><b>Epilogue</b> A saxophone trading blues phrases with the piano, softly doubled an octave below by a tenor</li>
 			</ul>
 			<p>Every instrument runs on the same beat grid, so whoever joins comes in right on time. And when someone leaves, their instrument leaves too.</p>
 			<a class="play" href="game/">▶ PLAY</a>`,
@@ -146,7 +146,7 @@ const TEXT = {
 				<li><b>+ ルーク</b> ベースギター</li>
 				<li><b>+ フィン</b> ブラシドラム</li>
 				<li><b>モビー・ディック</b> 低く響く緊張の音と、毎拍鳴るキックドラム</li>
-				<li><b>エピローグ</b> ピアノとブルースのフレーズを掛け合うサックス</li>
+				<li><b>エピローグ</b> ピアノとブルースのフレーズを掛け合うサックスと、1オクターブ下で小さく重なるテナー</li>
 			</ul>
 			<p>すべての楽器が同じ拍の上で動いているので、途中から加わってもリズムがずれません。そして誰かが去ると、その楽器も一緒に消えていきます。</p>
 			<a class="play" href="game/">▶ PLAY</a>`,

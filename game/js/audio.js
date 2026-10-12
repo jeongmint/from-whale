@@ -40,6 +40,25 @@ const SAX_CURVE = ( () => {
 
 } )();
 
+// 색소폰 배음 (2~5배음이 강하다)
+const SAX_HARMONICS = [ 0, 1, 0.85, 0.9, 0.6, 0.55, 0.38, 0.3, 0.22, 0.18, 0.14, 0.11, 0.09, 0.07, 0.06, 0.05, 0.04 ];
+const saxWaves = new WeakMap();
+function saxWave( ctx ) {
+
+	if ( ! saxWaves.has( ctx ) ) {
+
+		const imag = new Float32Array( SAX_HARMONICS );
+		saxWaves.set( ctx, ctx.createPeriodicWave( new Float32Array( imag.length ), imag ) );
+
+	}
+
+	return saxWaves.get( ctx );
+
+}
+
+// 한 옥타브 아래에서 같은 구절을 작게 받쳐 주는 테너 (-12dB)
+const TENOR_LEVEL = 0.25;
+
 const mtof = ( m ) => 440 * Math.pow( 2, ( m - 69 ) / 12 );
 
 // iPhone/iPad Safari (iPadOS는 맥처럼 보이지만 터치가 된다)
@@ -342,9 +361,14 @@ export class AudioEngine {
 
 		}
 
-		// 색소폰 (에필로그): 4마디마다 앞 2마디에 한 구절, 뒤 2마디는 피아노 차례
+		// 색소폰 (에필로그): 4마디마다 앞 2마디에 한 구절, 뒤 2마디는 피아노 차례. 한 옥타브 아래 테너가 작게 겹친다
 		const saxOn = this.mix.sax > 0.05;
-		if ( saxOn && s === 0 && this.bar % 4 === 0 ) this.saxPlan = this.planSax();
+		if ( saxOn && s === 0 && this.bar % 4 === 0 ) {
+
+			this.saxPlan = this.planSax();
+			if ( this.saxPlan ) this.saxPhrase( t, this.saxPlan.map( ( [ step, midi, len ] ) => [ step, midi - 12, len ] ), 0.24 * TENOR_LEVEL );
+
+		}
 		const saxTurn = saxOn && this.saxPlan && this.bar % 4 < 2;
 		if ( saxTurn ) {
 
@@ -516,6 +540,118 @@ export class AudioEngine {
 
 		breath.start( t, Math.random() * 1.5 );
 		breath.stop( end );
+
+	}
+
+	// 테너 색소폰: 한 구절을 한 숨에 분다. 음과 음 사이는 미끄러지듯 잇고(레가토), 쉬었다 시작하는 음은 반음 아래에서 올라온다.
+	// 긴 음은 점점 커지며 비브라토, 구절 끝은 가끔 음이 떨어지며 사라진다.
+	saxPhrase( t0, notes, vel = 0.24 ) {
+
+		const ctx = this.ctx;
+		const osc = ctx.createOscillator();
+		osc.setPeriodicWave( saxWave( ctx ) );
+		const vib = ctx.createOscillator();
+		vib.frequency.value = 5.2;
+		const vibDepth = ctx.createGain();
+		vibDepth.gain.value = 0;
+		vib.connect( vibDepth ).connect( osc.frequency );
+
+		const pre = ctx.createGain();
+		pre.gain.value = 0.6;
+		const drive = ctx.createWaveShaper();
+		drive.curve = SAX_CURVE;
+		const tone = ctx.createBiquadFilter();
+		tone.type = 'lowpass';
+		tone.Q.value = 0.9;
+		const low = ctx.createBiquadFilter();
+		low.type = 'peaking'; low.frequency.value = 550; low.Q.value = 1.2; low.gain.value = 4;
+		const mid = ctx.createBiquadFilter();
+		mid.type = 'peaking'; mid.frequency.value = 1500; mid.Q.value = 1.6; mid.gain.value = 6;
+		const amp = ctx.createGain();
+		amp.gain.value = 0;
+		osc.connect( pre ).connect( drive ).connect( tone ).connect( low ).connect( mid ).connect( amp ).connect( this.buses.sax );
+		const send = ctx.createGain();
+		send.gain.value = 0.32;
+		amp.connect( send ).connect( this.reverb );
+
+		const breath = ctx.createBufferSource();
+		breath.buffer = this.noise;
+		breath.loop = true;
+		const bf = ctx.createBiquadFilter();
+		bf.type = 'bandpass'; bf.frequency.value = 1900; bf.Q.value = 0.9;
+		const bg = ctx.createGain();
+		bg.gain.value = 0;
+		breath.connect( bf ).connect( bg ).connect( this.buses.sax );
+
+		let prevEnd = - 1, prevF = 0, first = 0;
+		notes.forEach( ( [ step, midi, len ], i ) => {
+
+			const tn = t0 + step * STEP, te = tn + len * STEP, f = mtof( midi );
+			const fresh = i === 0 || tn - prevEnd > 0.02;
+			if ( i === 0 ) first = tn;
+			if ( fresh ) {
+
+				if ( i > 0 ) amp.gain.setTargetAtTime( 0, prevEnd, 0.03 );
+				osc.frequency.setValueAtTime( f * 0.944, tn );
+				osc.frequency.exponentialRampToValueAtTime( f, tn + 0.08 );
+				amp.gain.setValueAtTime( 0.0001, tn );
+				amp.gain.exponentialRampToValueAtTime( vel, tn + 0.05 );
+
+			} else {
+
+				osc.frequency.setValueAtTime( prevF, tn );
+				osc.frequency.exponentialRampToValueAtTime( f, tn + 0.05 );
+				amp.gain.setValueAtTime( vel * 0.95, tn );
+				amp.gain.linearRampToValueAtTime( vel * 0.62, tn + 0.025 );
+				amp.gain.linearRampToValueAtTime( vel, tn + 0.08 );
+
+			}
+
+			if ( len >= 4 ) amp.gain.linearRampToValueAtTime( vel * 1.15, te - 0.04 );
+
+			vibDepth.gain.setValueAtTime( 0, tn );
+			if ( len >= 4 ) {
+
+				vibDepth.gain.linearRampToValueAtTime( 0, tn + 0.25 );
+				vibDepth.gain.linearRampToValueAtTime( f * 0.012, te - 0.02 );
+
+			}
+
+			tone.frequency.setValueAtTime( 900 + f, tn );
+			tone.frequency.exponentialRampToValueAtTime( 3000, tn + 0.06 );
+			tone.frequency.exponentialRampToValueAtTime( 2000, Math.min( tn + 0.3, te - 0.01 ) );
+
+			bg.gain.setValueAtTime( vel * 0.03, tn );
+			bg.gain.linearRampToValueAtTime( vel * ( fresh ? 0.16 : 0.08 ), tn + 0.02 );
+			bg.gain.setTargetAtTime( vel * 0.03, tn + 0.04, 0.06 );
+
+			prevEnd = te;
+			prevF = f;
+
+		} );
+
+		const last = notes[ notes.length - 1 ];
+		if ( last[ 2 ] >= 3 && Math.random() < 0.5 ) {
+
+			const fl = mtof( last[ 1 ] );
+			osc.frequency.setValueAtTime( fl, prevEnd - 0.12 );
+			osc.frequency.exponentialRampToValueAtTime( fl * 0.8, prevEnd + 0.22 );
+
+		}
+
+		amp.gain.setTargetAtTime( 0, prevEnd, 0.07 );
+		bg.gain.setTargetAtTime( 0, prevEnd, 0.05 );
+
+		const stop = prevEnd + 0.8;
+		for ( const n of [ osc, vib ] ) {
+
+			n.start( first );
+			n.stop( stop );
+
+		}
+
+		breath.start( first, Math.random() * 1.5 );
+		breath.stop( stop );
 
 	}
 
