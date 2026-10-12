@@ -15,7 +15,7 @@ export default {
 		},
 		hud: { hearts: '体力', journal: '手紙 (L)', mute: 'サウンド (M)', pause: 'ポーズ (Esc)', home: 'ホームへ', boss: 'MOBY DICK · こころ' },
 		song: { title: '52HZ ↔ FINN', listen: '聞いて… フィンの泣き声のリズム', turn: '今! 同じリズムで歌う [E]', miss: 'ちょっと違う… もう一度聞いて', help: 'ルークが拍を数えてくれる', good: '泣き声が少し落ち着いた', done: '涙が止まった' },
-		duet: { title: 'DUET · 52HZ ♥ 52HZ', help: '歌う [E] · ジャンプ [Space]', ready: 'ステラがカウントしてる…', perfect: 'PERFECT', good: 'GOOD', miss: 'MISS', combo: '{n} COMBO', rank: 'RANK {r}' },
+		duet: { title: 'DUET · 52HZ ♥ 52HZ', help: '歌う [E] · ジャンプ [Space]', ready: 'ステラがカウントしてる…', perfect: 'PERFECT', good: 'GOOD', miss: 'MISS', combo: '{n} COMBO', rank: 'RANK {r}', sky: '★ 夜空が完成した!' },
 		letter: { close: '閉じる <span class="mono tiny">[E]</span>' },
 		journal: {
 			title: 'MAILBOX — ボトルレター',

@@ -291,9 +291,12 @@ export class Sky {
 
 	}
 
-	spawnShootingStar( big = false ) {
+	// aim(수평 방향)을 주면 그쪽 하늘에 떨어뜨린다 (카메라가 보는 쪽이면 화면에 보인다)
+	spawnShootingStar( big = false, aim = null ) {
 
-		const dir = new THREE.Vector3( Math.random() * 2 - 1, 0.18 + Math.random() * 0.6, Math.random() * 2 - 1 ).normalize();
+		const dir = aim
+			? new THREE.Vector3( aim.x + ( Math.random() - 0.5 ) * 0.9, 0, aim.z + ( Math.random() - 0.5 ) * 0.9 ).normalize().setY( 0.1 + Math.random() * 0.22 ).normalize()
+			: new THREE.Vector3( Math.random() * 2 - 1, 0.18 + Math.random() * 0.6, Math.random() * 2 - 1 ).normalize();
 		const start = dir.clone().multiplyScalar( 1250 );
 		const vel = new THREE.Vector3( Math.random() * 2 - 1, - 0.5 - Math.random() * 0.6, Math.random() * 2 - 1 ).normalize().multiplyScalar( big ? 480 : 620 );
 		const len = big ? 150 : 90;
@@ -312,6 +315,23 @@ export class Sky {
 		this.time += dt;
 		this.uniforms.uTime.value = this.time;
 		this.group.position.set( cameraPos.x, 0, cameraPos.z );
+
+		// 우수수: 정해 둔 수만큼 짧은 시간에 쏟아진다
+		if ( this.burst ) {
+
+			const b = this.burst;
+			b.wait -= dt;
+			while ( b.wait <= 0 && b.left > 0 ) {
+
+				this.spawnShootingStar( Math.random() < 0.6, b.aim );
+				b.left --;
+				b.wait += b.every * ( 0.3 + Math.random() * 1.4 );
+
+			}
+
+			if ( b.left <= 0 ) this.burst = null;
+
+		}
 
 		this.shootTimer -= dt;
 		if ( this.shootTimer <= 0 ) {
@@ -338,6 +358,13 @@ export class Sky {
 			}
 
 		}
+
+	}
+
+	// 별똥별이 우수수: seconds 동안 count개를 aim 쪽 하늘에 쏟는다
+	shower( count, seconds, aim = null ) {
+
+		this.burst = { left: count, every: seconds / count, wait: 0, aim: aim && aim.clone() };
 
 	}
 

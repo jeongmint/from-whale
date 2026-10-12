@@ -583,7 +583,7 @@ Object.assign( G, {
 		$( 'ending-stats' ).innerHTML = [
 			`PLAY TIME ${minutes}:${String( seconds ).padStart( 2, '0' )}`,
 			`LETTERS ${G.bottleCount()}/${BOTTLES.length}`,
-			G.flags.duetRank ? `DUET ${G.flags.duetRank}` : '',
+			G.flags.duetRank ? `DUET ${G.flags.duetRank} · ★ ${G.flags.duetStars}` : '',
 			G.flags.subEnding ? t( 'ending.sub' ) : t( 'ending.hint' )
 		].filter( Boolean ).join( '<br>' );
 		const left = ! G.flags.subEnding && G.bottleCount() < BOTTLES.length;
@@ -1128,13 +1128,19 @@ function duet( chart ) {
 		} );
 		const end = notes[ notes.length - 1 ].t + 1.2;
 		const prev = { melody: audio.mix.melody, sax: audio.mix.sax };
-		let score = 0, combo = 0;
+		// 점프 노트 하나가 별똥별 하나. 다 맞히면 밤하늘에 별똥별이 우수수 쏟아진다
+		const starsEl = $( 'duet-stars' ), starTotal = notes.filter( ( n ) => n.lane === 'J' ).length;
+		const aim = () => camera.getWorldDirection( new THREE.Vector3() ).setY( 0 ).normalize();
+		const showStars = () => starsEl.textContent = `★ ${stars}/${starTotal}`;
+		let score = 0, combo = 0, stars = 0;
 		const flashT = {};
 
 		$( 'duet-title' ).textContent = t( 'duet.title' );
 		$( 'duet-help' ).textContent = G.ui.dev( t( 'duet.help' ) );
 		judgeEl.textContent = t( 'duet.ready' );
 		judgeEl.className = '';
+		starsEl.className = '';
+		showStars();
 		comboEl.textContent = '';
 		document.body.classList.add( 'singing' );
 		G.ui.show( 'duet' );
@@ -1201,6 +1207,9 @@ function duet( chart ) {
 			} else {
 
 				jump();
+				stars ++;
+				showStars();
+				G.sky.spawnShootingStar( true, aim() );
 				const s = G.actors.stella;
 				G.world.ring( s.pos.x, s.pos.z, { color: 0xffd36b, to: 60, life: 1, width: 0.25 } );
 
@@ -1240,10 +1249,25 @@ function duet( chart ) {
 			const ratio = score / ( notes.length * 2 );
 			const rank = ratio >= 0.85 ? 'S' : ratio >= 0.6 ? 'A' : 'B';
 			G.flags.duetRank = rank;
+			G.flags.duetStars = `${stars}/${starTotal}`;
 			judgeEl.textContent = t( 'duet.rank', { r: rank } );
 			judgeEl.className = 'perfect';
 			comboEl.textContent = `${Math.round( ratio * 100 )}%`;
 			audio.play( rank === 'B' ? 'heal' : 'join' );
+			if ( stars === starTotal ) {
+
+				// 밤하늘 완성: 별똥별이 우수수 쏟아지고, 그 하늘이 엔딩까지 이어진다
+				starsEl.classList.add( 'full' );
+				starsEl.textContent = t( 'duet.sky' );
+				G.sky.shower( 48, 4, aim() );
+				G.sky.meteorShower = 1;
+
+			} else {
+
+				// 맞힌 별만큼 하늘에 별똥별이 남는다
+				G.sky.meteorShower = Math.max( G.sky.meteorShower, 0.7 * stars / starTotal );
+
+			}
 			setTimeout( () => {
 
 				G.ui.show( 'duet', false );

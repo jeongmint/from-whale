@@ -349,6 +349,8 @@ body.singing #stick, body.singing #minimap-wrap { opacity: 0; pointer-events: no
 #duet-judge.good { color: var(--cyan); }
 #duet-judge.miss { color: var(--warn); }
 #duet-combo { color: var(--ink-dim); }
+#duet-stars { color: var(--gold); letter-spacing: 0.08em; }
+#duet-stars.full { text-shadow: 0 0 10px var(--gold); }
 #duet-help { margin: 4px 0 0; font-size: 12px; color: var(--ink-dim); text-align: center; }
 
 /* ---------- 챕터 카드 ---------- */
