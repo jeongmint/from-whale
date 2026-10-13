@@ -35,7 +35,7 @@ export class UI {
 		for ( const [ keys, touch ] of lang().ui.touchKeys ) s = s.split( keys ).join( touch );
 		return s
 			.replace( /\[E\]/g, '[♪]' ).replace( /\[Space\]/g, '[⤴]' ).replace( /\[L\]/g, '[✉]' )
-			.replace( /<kbd>E<\/kbd>/g, '<kbd>♪</kbd>' );
+			.replace( /<kbd>E<\/kbd>/g, '<kbd>♪</kbd>' ).replace( /<kbd>Space<\/kbd>/g, '<kbd>⤴</kbd>' );
 
 	}
 
@@ -420,6 +420,17 @@ export class UI {
 
 	}
 
+	// 부서진 나침반 게이지 (소나 창 제목줄). null이면 숨긴다
+	setCompass( v ) {
+
+		const el = $( 'compass-meter' );
+		el.hidden = v === null;
+		if ( v === null ) return;
+		el.querySelector( '.fill' ).style.width = `${Math.round( v * 100 )}%`;
+		el.classList.toggle( 'weak', v <= 0.35 );
+
+	}
+
 	// --- 소나 미니맵 ---
 
 	drawMinimap( data ) {
@@ -527,6 +538,26 @@ export class UI {
 
 		for ( const p of data.points ) blip( p, p.color, p.size ?? 3, p.shape, p.clamp );
 		if ( data.objective ) blip( data.objective, '#ffd36b', 5, 'diamond', true );
+
+		// 부서진 나침반: 흐려질수록 지직거리고, 다 흐려지면 신호 없음
+		const signal = data.signal ?? 1;
+		if ( signal < 0.35 ) {
+
+			const noise = 1 - signal / 0.35;
+			ctx.fillStyle = `rgba(2, 12, 40, ${signal <= 0 ? 0.94 : noise * ( 0.35 + Math.random() * 0.4 )})`;
+			ctx.fillRect( 0, 0, W, W );
+			ctx.fillStyle = 'rgba(157, 140, 255, 0.35)';
+			for ( let i = 0; i < 4 + noise * 12; i ++ ) ctx.fillRect( 0, Math.random() * W, W, 1 + Math.random() * 2 );
+			if ( signal <= 0 ) {
+
+				ctx.fillStyle = '#9d8cff';
+				ctx.font = `bold ${Math.round( W * 0.085 )}px monospace`;
+				ctx.textAlign = 'center';
+				ctx.fillText( 'NO SIGNAL', R, R + W * 0.2 );
+
+			}
+
+		}
 
 		ctx.restore();
 

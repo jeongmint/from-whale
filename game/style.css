@@ -241,7 +241,22 @@ input { touch-action: manipulation; }
 	border: 1px solid var(--cyan); background: rgba(127, 233, 255, 0.15);
 }
 
-#toasts { position: absolute; left: 14px; top: 140px; display: flex; flex-direction: column; gap: 6px; }
+/* PC: HAZEL 창 아래 작은 조작 안내 */
+#hud-keys {
+	position: absolute; top: 108px; left: 14px; width: 210px;
+	display: flex; flex-wrap: wrap; gap: 4px 10px;
+	font-size: 11px; color: var(--ink-dim);
+	text-shadow: 0 1px 3px rgba(0, 4, 20, 0.9);
+	pointer-events: none;
+}
+#hud-keys em { font-style: normal; }
+#hud-keys kbd {
+	font: 10px var(--mono); color: var(--ink);
+	padding: 1px 4px; margin-right: 4px;
+	background: rgba(5, 20, 58, 0.7); border: 1px solid var(--line);
+}
+
+#toasts { position: absolute; left: 14px; top: 160px; display: flex; flex-direction: column; gap: 6px; }
 .toast {
 	padding: 6px 10px; font-size: 13px;
 	background: var(--panel); border-left: 4px solid var(--cyan);
@@ -427,6 +442,12 @@ body.singing #stick, body.singing #minimap-wrap { opacity: 0; pointer-events: no
 #journal-list li.empty { text-align: center; color: var(--ink-dim); border-style: dashed; }
 
 .help { display: grid; gap: 8px; font-size: 14px; }
+.lab { display: grid; gap: 6px; margin-top: 12px; padding: 8px 10px; border: 1px dashed var(--line); }
+.lab-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.lab .chip { font-family: var(--sans); font-size: 13px; padding: 5px 10px; }
+.lab .chip.on { background: var(--sky); color: var(--deep); }
+.lab-note { margin: 0; font-size: 12px; line-height: 1.5; color: var(--ink-dim); }
+.lab-note.warn { color: var(--warn); }
 
 /* ---------- 타이틀 ---------- */
 #title { background: radial-gradient(ellipse at 50% 60%, rgba(2, 10, 31, 0.15), rgba(2, 10, 31, 0.75)); z-index: 10; }
@@ -498,6 +519,37 @@ body.singing #stick, body.singing #minimap-wrap { opacity: 0; pointer-events: no
 #ending { z-index: 25; }
 #ending .win { text-align: center; }
 #ending-stats { color: var(--ink-dim); line-height: 2; }
+#ending-list { list-style: none; margin: 10px auto 4px; padding: 8px 12px; max-width: 380px; display: grid; gap: 4px; text-align: left; border: 1px dashed var(--line); font-size: 13px; }
+#ending-list .head { font: 11px var(--mono); letter-spacing: 0.12em; color: var(--cyan); text-align: center; }
+#ending-list li { color: var(--ink-dim); }
+#ending-list li small { display: block; padding-left: 1.3em; font-size: 11px; opacity: 0.8; }
+#ending-list li.seen { color: var(--ink); }
+#ending-list li.now { color: var(--gold); }
+#ending-list li.star { color: var(--gold); }
+#title-endings { color: var(--gold); letter-spacing: 0.12em; margin: 4px 0 0; }
+
+/* 부서진 나침반 게이지 (소나 창 제목줄) */
+#compass-meter { display: flex; align-items: center; gap: 5px; }
+#compass-meter[hidden] { display: none; }
+#compass-meter small { font-size: 9px; letter-spacing: 0.08em; }
+#compass-meter .gauge { display: block; width: 38px; height: 5px; background: rgba(2, 10, 31, 0.6); }
+#compass-meter .fill { display: block; height: 100%; background: #9d8cff; transition: width 0.3s; }
+#compass-meter.weak .fill { background: var(--warn); animation: blink 0.8s steps(2) infinite; }
+#btn-feedback { margin-top: 14px; font: 13px var(--sans); padding: 5px 12px; }
+#feedback { margin-top: 10px; }
+#feedback textarea {
+	width: 100%; resize: vertical;
+	font: 14px/1.5 var(--sans); color: var(--ink);
+	background: rgba(2, 10, 31, 0.6); border: 1px solid var(--line);
+	padding: 8px 10px;
+	touch-action: auto;
+}
+#feedback textarea:focus { outline: 2px solid var(--cyan); outline-offset: 1px; }
+body.touch #feedback textarea { font-size: 16px; } /* iOS가 입력할 때 화면을 확대하지 않게 */
+#feedback .row { margin-top: 8px; }
+#feedback-status { margin: 8px 0 0; font-size: 13px; color: var(--ink-dim); line-height: 1.7; }
+#feedback-status b { color: var(--ink); user-select: all; }
+#feedback-status .chip { text-decoration: none; }
 
 #fade { position: fixed; inset: 0; background: #000; opacity: 0; pointer-events: none; z-index: 20; transition: opacity 1s; }
 #error { position: fixed; left: 16px; right: 16px; bottom: 16px; z-index: 30; padding: 12px; background: #3a0b1f; border: 2px solid var(--warn); font: 12px var(--mono); white-space: pre-wrap; }
@@ -508,6 +560,7 @@ body.touch .key-only, body:not(.touch) .touch-only { display: none !important; }
 /* 대화 중엔 못 움직이니 조이스틱은 잠깐 숨긴다 (대화창에 가려지지 않게) */
 #stick, #touch-buttons { transition: opacity 0.2s; }
 body.talking #stick { opacity: 0; pointer-events: none; }
+body.tilt #stick { display: none; }
 #stick {
 	position: absolute; left: 24px; bottom: 24px;
 	width: 130px; height: 130px; border-radius: 50%;
@@ -537,6 +590,7 @@ body.talking #stick { opacity: 0; pointer-events: none; }
 	#hud-party { top: 8px; right: 8px; }
 	#hud-objective { top: auto; bottom: 168px; min-width: 0; max-width: calc(100vw - 180px); left: 50%; }
 	#minimap-wrap { right: 8px; bottom: 8px; }
+	#compass-meter small { display: none; }
 	#minimap { width: 120px; height: 120px; }
 	#touch-buttons { bottom: 160px; right: 10px; }
 	#dialog { bottom: 8px; }
@@ -544,6 +598,8 @@ body.talking #stick { opacity: 0; pointer-events: none; }
 	#dialog-portrait { width: 56px; height: 56px; }
 	#dialog-text { font-size: 15px; }
 	#toasts { top: 110px; left: 8px; }
+	#hud-keys { top: 100px; left: 8px; width: 160px; }
+	body:not(.touch) #toasts { top: 150px; }
 	.slot { width: 40px; height: 40px; }
 	#party { min-height: 40px; }
 	.party-meta { gap: 3px; }

@@ -36,6 +36,14 @@
 				</div>
 			</section>
 
+			<!-- PC: HAZEL 창 아래 작은 조작 안내 -->
+			<div id="hud-keys" class="key-only">
+				<span><kbd>WASD</kbd><em data-i18n="hud.keys.swim"></em></span>
+				<span><kbd>Shift</kbd><em data-i18n="hud.keys.boost"></em></span>
+				<span><kbd>Space</kbd><em data-i18n="hud.keys.jump"></em></span>
+				<span><kbd>E</kbd><em data-i18n="hud.keys.sing"></em></span>
+			</div>
+
 			<section id="hud-objective" class="win">
 				<header class="win-bar"><span id="obj-chapter">PROLOGUE</span><i></i></header>
 				<div class="win-body">
@@ -63,7 +71,7 @@
 			</section>
 
 			<div id="minimap-wrap" class="win">
-				<header class="win-bar"><span>SONAR</span><i></i></header>
+				<header class="win-bar"><span>SONAR</span><span id="compass-meter" hidden><small>COMPASS</small><span class="gauge"><span class="fill"></span></span></span><i></i></header>
 				<canvas id="minimap" width="180" height="180"></canvas>
 			</div>
 
@@ -146,6 +154,11 @@
 				<header class="win-bar"><span>PAUSE</span><i></i></header>
 				<div class="win-body">
 					<div class="help touch-only" data-i18n="pause.helpTouch"></div>
+					<div class="lab touch-only">
+						<div class="lab-head"><span class="mono tiny" data-i18n="lab.title"></span><button class="chip" id="btn-tilt" type="button" aria-pressed="false"></button></div>
+						<p class="lab-note" data-i18n="lab.note"></p>
+						<p class="lab-note warn" id="lab-status" data-i18n="lab.denied" hidden></p>
+					</div>
 					<div class="help key-only" data-i18n="pause.helpKeys"></div>
 					<label class="name-field" for="nickname-pause">
 						<span class="mono tiny">NICKNAME</span>
@@ -181,6 +194,7 @@
 						<button class="btn big" id="btn-start" data-i18n="title.start"></button>
 						<button class="btn ghost hidden" id="btn-continue" data-i18n="title.continue"></button>
 					</div>
+					<p id="title-endings" class="mono tiny hidden"></p>
 				</div>
 				<p class="quote" data-i18n="title.quote"></p>
 				<p class="controls mono tiny key-only">WASD MOVE · SHIFT BOOST · SPACE JUMP · E SING 52HZ</p>
@@ -195,10 +209,21 @@
 				<div class="win-body">
 					<p class="quote big" id="ending-quote"></p>
 					<div id="ending-stats" class="mono tiny"></div>
+					<ul id="ending-list"></ul>
 					<div class="row">
 						<button class="btn hidden" id="btn-search"></button>
 						<button class="btn ghost" id="btn-again" data-i18n="ending.again"></button>
 					</div>
+					<!-- 아이디어 · 버그 보내기 (Netlify Forms) -->
+					<button class="chip" id="btn-feedback" type="button" data-i18n="feedback.open"></button>
+					<form id="feedback" name="feedback" method="POST" data-netlify="true" netlify-honeypot="bot-field" hidden>
+						<input type="hidden" name="form-name" value="feedback">
+						<p hidden><label>bot <input name="bot-field"></label></p>
+						<input type="hidden" name="info">
+						<textarea name="message" rows="3" maxlength="1500"></textarea>
+						<div class="row"><button class="btn" type="submit" data-i18n="feedback.send"></button></div>
+						<p id="feedback-status"></p>
+					</form>
 				</div>
 			</div>
 		</div>

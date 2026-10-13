@@ -336,8 +336,11 @@ export class Sky {
 		this.shootTimer -= dt;
 		if ( this.shootTimer <= 0 ) {
 
-			this.spawnShootingStar( this.meteorShower > 0.3 && Math.random() < 0.4 );
-			const rate = THREE.MathUtils.lerp( 4.5, 0.22, this.meteorShower );
+			// aim이 있으면 대부분 그쪽 하늘에 (스텔라 엔딩처럼 카메라가 한곳을 볼 때)
+			this.spawnShootingStar( this.meteorShower > 0.3 && Math.random() < 0.4, this.aim && Math.random() < 0.8 ? this.aim : null );
+			// meteorShower: 0 가끔 ~ 1 자주, 1을 넘으면 더 쏟아진다
+			const x = this.meteorShower;
+			const rate = x <= 1 ? THREE.MathUtils.lerp( 4.5, 0.22, x ) : 0.22 / x;
 			this.shootTimer = rate * ( 0.4 + Math.random() );
 
 		}

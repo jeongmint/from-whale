@@ -15,6 +15,8 @@ import { lang, t, setLang, applyStatic } from './i18n.js';
 
 const BASE = window.FW_ASSET_BASE ?? '../';
 const query = new URLSearchParams( location.search );
+// 테스트 옵션 ?stella: 편지 6통을 다 모은 상태로 엔딩부터 (스텔라 → 듀엣 → 서브 엔딩). 저장은 건드리지 않는다
+const STELLA_TEST = query.has( 'stella' );
 const LOW = ( query.get( 'q' ) ?? ( matchMedia( '(pointer: coarse)' ).matches ? 'low' : 'high' ) ) === 'low';
 const DT_MAX = Number( query.get( 'dtmax' ) ) || 1 / 20;
 
@@ -27,6 +29,24 @@ const DASH_SPEED = 50;
 const STUN_TIME = 1.1;
 const SAVE_KEY = 'fromwhale.save.v1';
 const EPILOGUE = CHAPTERS.length; // 엔딩 뒤 남은 편지 찾기 (이어하기 번호)
+
+// 갈래 엔딩. 3장 매복까지 연합군에게 맞은 횟수가 LUKE_MAX_HITS 이하면 루크가 살고,
+// 보스전에서 처음 쓰러지면 핀이 대신 맞는다. 루크·핀이 살았는지에 따라 엔딩 넷
+const LUKE_MAX_HITS = 1;
+const ROUTES = {
+	light: { luke: false, finn: true }, // 꺼지지 않는 빛
+	friends: { luke: true, finn: true }, // 동료의 힘
+	compass: { luke: true, finn: false }, // 부서진 나침반
+	sacrifice: { luke: false, finn: false } // 희생
+};
+const ENDING_ORDER = Object.keys( ROUTES );
+const ENDINGS_KEY = 'fromwhale.endings';
+// 테스트 옵션 ?route=light|friends|compass|sacrifice: 4장 이후를 그 갈래로 시작 (?chapter와 함께)
+const ROUTE_TEST = ROUTES[ query.get( 'route' ) ] ? query.get( 'route' ) : null;
+const newRoute = ( key ) => ( { hits: 0, luke: true, finn: true, ...ROUTES[ key ] } );
+// 핀이 떠나면 나침반이 COMPASS_TIME초에 걸쳐 흐려진다. COMPASS_WEAK 아래로는 길 안내가 깜빡이고, 0이면 꺼진다
+const COMPASS_TIME = 50;
+const COMPASS_WEAK = 0.35;
 
 const $ = ( id ) => document.getElementById( id );
 
@@ -173,6 +193,7 @@ const G = {
 	boss: null,
 	shards: [],
 	dash: 0,
+	compass: null,
 	save: loadSave(),
 	customName: loadName(),
 	get playerName() {
@@ -182,6 +203,38 @@ const G = {
 	}
 };
 window.__fw = G;
+// 저장된 갈래. 갈래가 생기기 전 저장으로 4장 이후를 이어하면 루크가 떠난 갈래
+G.route = G.save.route ? { ...newRoute(), ...G.save.route } : newRoute( G.save.chapter >= 4 ? 'light' : null );
+
+// 본 엔딩 목록 (저장과 따로 남는다)
+function loadEndings() {
+
+	try {
+
+		const e = JSON.parse( localStorage.getItem( ENDINGS_KEY ) );
+		return Array.isArray( e ) ? e : [];
+
+	} catch ( e ) {
+
+		return [];
+
+	}
+
+}
+
+function saveEnding( key ) {
+
+	if ( STELLA_TEST ) return;
+	const seen = loadEndings();
+	if ( seen.includes( key ) ) return;
+	seen.push( key );
+	try {
+
+		localStorage.setItem( ENDINGS_KEY, JSON.stringify( seen ) );
+
+	} catch ( e ) { /* 저장 불가 */ }
+
+}
 
 function loadSave() {
 
@@ -198,6 +251,7 @@ function loadSave() {
 
 function persist() {
 
+	if ( STELLA_TEST ) return;
 	try {
 
 		localStorage.setItem( SAVE_KEY, JSON.stringify( G.save ) );
@@ -392,6 +446,29 @@ Object.assign( G, {
 
 	},
 
+	// --- 갈래 ---
+
+	endingKey() {
+
+		const r = G.route;
+		return r.luke ? ( r.finn ? 'friends' : 'compass' ) : ( r.finn ? 'light' : 'sacrifice' );
+
+	},
+
+	lukeCanLive() {
+
+		return G.route.hits <= LUKE_MAX_HITS;
+
+	},
+
+	// 연출 중에 점프 신호: 플레이어가 점프할 때까지 기다린다
+	jumpCue() {
+
+		G.jumpCueOn = true;
+		return G.until( () => ! G.jumpCueOn );
+
+	},
+
 	// --- 3장: 매복 ---
 
 	spawnShaman() {
@@ -469,6 +546,30 @@ Object.assign( G, {
 
 	},
 
+	// 루크가 사는 갈래: 헤이즐과 루크가 함께 뛰어오르고, 달려든 연합군끼리 한가운데서 부딪힌다
+	async lukeDodge( ring ) {
+
+		const luke = G.actors.luke;
+		const h = G.actors.hazel;
+		await G.wait( 0.55 );
+		G.flash( 0.6 );
+		G.shake = 1.1;
+		G.audio.play( 'boom' );
+		G.world.splash( h.pos.x, h.root.position.y, h.pos.z, { count: 140, power: 15 } );
+		G.world.ring( h.pos.x, h.pos.z, { color: 0xffd36b, to: 60, life: 1.2, width: 0.25 } );
+		ring.forEach( ( o ) => {
+
+			o.state = 'stun';
+			o.stunT = 2.5;
+
+		} );
+		luke.setGlow( 1.2, 0xffb070 );
+		G.flags.lukeSaved = true;
+		await G.wait( 1.4 );
+		luke.setGlow( 0.3, 0xffd36b ); // 루크의 등불
+
+	},
+
 	lukeFall() {
 
 		const luke = G.actors.luke;
@@ -477,6 +578,7 @@ Object.assign( G, {
 		luke.falling = true;
 		luke.targetDepth = 16;
 		G.party.luke = 'gone';
+		G.route.luke = false;
 		G.flags.lukeGone = true;
 		G.ui.setParty( partyList() );
 		G.world.lighthouse.setOn( false );
@@ -509,7 +611,7 @@ Object.assign( G, {
 
 		ring.forEach( ( o ) => o.state = 'retreat' );
 		shaman.targetDepth = 25;
-		G.actors.luke.root.visible = false;
+		if ( G.party.luke === 'gone' ) G.actors.luke.root.visible = false;
 
 	},
 
@@ -578,7 +680,11 @@ Object.assign( G, {
 		G.save.cleared = true;
 		persist();
 		const minutes = Math.floor( G.stats.time / 60 ), seconds = Math.floor( G.stats.time % 60 );
-		$( 'ending-head' ).textContent = G.flags.subEnding ? 'THE END · SUB ENDING CLEAR' : 'THE END';
+		const key = G.endingKey();
+		saveEnding( key );
+		if ( G.flags.subEnding ) saveEnding( 'stella' );
+		$( 'ending-head' ).textContent = `ENDING · ${t( `endings.${key}.name` )}${G.flags.subEnding ? ' · SUB ENDING' : ''}`;
+		renderEndings( $( 'ending-list' ), key );
 		$( 'ending-quote' ).innerHTML = t( 'ending.quote' );
 		$( 'ending-stats' ).innerHTML = [
 			`PLAY TIME ${minutes}:${String( seconds ).padStart( 2, '0' )}`,
@@ -684,6 +790,7 @@ function updateOrcas( dt ) {
 
 			if ( damage( 1, w.pos ) ) {
 
+				G.route.hits ++;
 				o.state = 'stun';
 				o.stunT = 1.6;
 
@@ -871,7 +978,13 @@ function damage( n, from, { stun = 0 } = {} ) {
 	G.knock.set( dx / d * 30, 0, dz / d * 30 );
 	G.world.splash( h.pos.x, h.root.position.y, h.pos.z, { count: 50, power: 8, color: 0xffb0c0 } );
 	G.ui.setHearts( G.hearts, MAX_HEARTS );
-	if ( G.hearts <= 0 ) faint();
+	if ( G.hearts <= 0 ) {
+
+		if ( G.boss?.active && G.party.finn === 'on' ) finnShield( from );
+		else faint();
+
+	}
+
 	return true;
 
 }
@@ -931,6 +1044,111 @@ function heal( full = false ) {
 	G.hearts = full ? MAX_HEARTS : Math.min( MAX_HEARTS, G.hearts + 1 );
 	G.ui.setHearts( G.hearts, MAX_HEARTS );
 	G.audio.play( 'heal' );
+
+}
+
+// 보스전에서 처음 쓰러질 때 핀이 대신 맞는다 (부서진 나침반 · 희생 갈래)
+async function finnShield( from ) {
+
+	const T = lang().story.ch4;
+	const say = ( arr ) => G.say( arr.map( ( [ who, text ] ) => ( { who, text } ) ) );
+	const finn = G.actors.finn, h = G.actors.hazel;
+	G.fainting = true;
+	G.cutscene( true );
+	clearMeteors();
+	G.stun = 0;
+	G.knock.set( 0, 0, 0 );
+	G.party.finn = 'busy';
+	const dx = from.x - h.pos.x, dz = from.z - h.pos.z;
+	const d = Math.hypot( dx, dz ) || 1;
+	finn.scripted = { x: h.pos.x + dx / d * 8, z: h.pos.z + dz / d * 8, speed: 50 };
+	G.camFocus( finn, { side: - 1, dist: 36, height: 12 } );
+	const t0 = G.time;
+	await G.until( () => Math.hypot( finn.pos.x - finn.scripted.x, finn.pos.z - finn.scripted.z ) < 3 || G.time - t0 > 2 );
+	finn.breach( 9 );
+	await G.wait( 0.5 );
+	G.flash( 0.9 );
+	G.shake = 1.2;
+	G.audio.play( 'hit' );
+	G.audio.play( 'boom' );
+	G.world.ring( finn.pos.x, finn.pos.z, { color: 0x9d8cff, to: 60, life: 1.2, width: 0.25 } );
+	G.world.splash( finn.pos.x, finn.root.position.y, finn.pos.z, { count: 120, power: 14 } );
+	finn.setGlow( 1, 0x9d8cff );
+	G.hearts = MAX_HEARTS;
+	G.ui.setHearts( G.hearts, MAX_HEARTS );
+	await G.wait( 0.8 );
+	await say( T.finnLast );
+
+	finn.scripted = null;
+	finn.hold = true;
+	finn.falling = true;
+	finn.targetDepth = 16;
+	G.party.finn = 'gone';
+	G.route.finn = false;
+	G.flags.finnGone = true;
+	G.ui.setParty( partyList() );
+	G.audio.setMix( { drums: 0 }, 4 );
+	G.audio.play( 'sad' );
+	await G.wait( 3 );
+	G.ui.banner( ...T.bannerFinn, 'sad', 4 );
+	await G.wait( 2.5 );
+	await say( T.compass );
+	G.compass = 1;
+	G.ui.setCompass( 1 );
+	finn.root.visible = false;
+	G.boss.phase = 'rage';
+	G.boss.t = - 1;
+	G.boss.meteorT = 2;
+	updateBossHud();
+	G.invuln = 3;
+	G.camRelease();
+	G.cutscene( false );
+	G.fainting = false;
+
+}
+
+// 부서진 나침반: 시간이 지나면 길 안내가 흐려지고, 미역 곁에서 노래하면 다시 맞춰진다
+function updateCompass( dt ) {
+
+	if ( G.compass === null || ! G.started || G.ended || G.cutsceneOn || G.ui.dialogOpen ) return;
+	const before = G.compass;
+	G.compass = Math.max( 0, G.compass - dt / COMPASS_TIME );
+	if ( before > COMPASS_WEAK && G.compass <= COMPASS_WEAK ) G.ui.toast( t( 'toast.compassWeak' ) );
+	if ( before > 0 && G.compass === 0 ) G.ui.toast( t( 'toast.compassOff' ) );
+	G.ui.setCompass( G.compass );
+
+}
+
+function refillCompass( k ) {
+
+	if ( G.compass === null || G.compass > 0.97 ) return;
+	G.compass = 1;
+	G.ui.setCompass( 1 );
+	G.ui.toast( t( 'toast.compassOn' ) );
+	G.world.ring( k.x, k.z, { color: 0x9d8cff, to: 36, life: 1.2, delay: 0.2 } );
+
+}
+
+// 나침반이 흐려지면 길 안내가 깜빡이다가 꺼진다
+function guideVisible() {
+
+	const c = G.compass;
+	if ( c === null || c > COMPASS_WEAK ) return true;
+	if ( c <= 0 ) return false;
+	return ( G.time * 2.5 ) % 1 < 0.35 + 0.65 * c / COMPASS_WEAK;
+
+}
+
+// 엔딩 도감: 본 엔딩은 이름, 못 본 엔딩은 힌트
+function renderEndings( el, current ) {
+
+	const seen = loadEndings();
+	const count = ENDING_ORDER.filter( ( k ) => seen.includes( k ) ).length;
+	const items = ENDING_ORDER.map( ( k ) => seen.includes( k )
+		? `<li class="seen${k === current ? ' now' : ''}">◆ ${t( `endings.${k}.name` )}</li>`
+		: `<li>◇ ??? <small>${G.ui.dev( t( `endings.${k}.hint` ) )}</small></li>` );
+	if ( seen.includes( 'stella' ) ) items.push( `<li class="seen star">★ ${t( 'endings.stella' )}</li>` );
+	el.innerHTML = `<li class="head">ENDINGS ${count}/${ENDING_ORDER.length}</li>${items.join( '' )}`;
 
 }
 
@@ -1254,18 +1472,15 @@ function duet( chart ) {
 			judgeEl.className = 'perfect';
 			comboEl.textContent = `${Math.round( ratio * 100 )}%`;
 			audio.play( rank === 'B' ? 'heal' : 'join' );
+			// 스텔라 엔딩 내내 별똥별이 보는 쪽 하늘로 계속 떨어진다. 맞힌 별이 많을수록 더 많이
+			G.sky.aim = aim();
+			G.sky.meteorShower = 1.2 + 1.3 * stars / starTotal;
 			if ( stars === starTotal ) {
 
-				// 밤하늘 완성: 별똥별이 우수수 쏟아지고, 그 하늘이 엔딩까지 이어진다
+				// 밤하늘 완성: 별똥별이 우수수 쏟아진다
 				starsEl.classList.add( 'full' );
 				starsEl.textContent = t( 'duet.sky' );
-				G.sky.shower( 48, 4, aim() );
-				G.sky.meteorShower = 1;
-
-			} else {
-
-				// 맞힌 별만큼 하늘에 별똥별이 남는다
-				G.sky.meteorShower = Math.max( G.sky.meteorShower, 0.7 * stars / starTotal );
+				G.sky.shower( 48, 4, G.sky.aim );
 
 			}
 			setTimeout( () => {
@@ -1294,11 +1509,13 @@ function startBoss( resolve, chapterLabel ) {
 	arena.scale.setScalar( 160 );
 	arena.position.set( PLACES.moby.x, 0, PLACES.moby.z );
 	scene.add( arena );
+	// 루크가 함께면 등불로 비춰서 노래가 닿는 원이 넓어진다
+	const reach = G.party.luke === 'on' ? 64 : 46;
 	const listenRing = makeSurfaceDecal( { color: 0x5fd8ff, inner: 0.95, outer: 1, opacity: 0, fill: 0.12 } );
-	listenRing.scale.setScalar( 46 );
+	listenRing.scale.setScalar( reach );
 	scene.add( listenRing );
 
-	G.boss = { active: true, phase: 'rage', t: 0, resonance: 0, meteorT: 1.5, arena, listenRing, resolve, meteors: [] };
+	G.boss = { active: true, phase: 'rage', t: 0, resonance: 0, meteorT: 1.5, arena, listenRing, reach, resolve, meteors: [] };
 	G.actors.moby.hold = false;
 	setCheckpoint( G.actors.hazel.pos.x, G.actors.hazel.pos.z );
 	G.audio.setMix( { tension: 0.6, drums: 1, melody: 0.4 } );
@@ -1446,7 +1663,7 @@ async function bossSing() {
 
 	const b = G.boss;
 	const m = G.actors.moby;
-	if ( b.phase !== 'listen' || G.distTo( m.pos ) > 50 ) return;
+	if ( b.phase !== 'listen' || G.distTo( m.pos ) > b.reach + 4 ) return;
 	b.resonance ++;
 	b.phase = 'rage';
 	b.t = - 1.5;
@@ -1562,9 +1779,105 @@ function clearMeteors() {
 const keys = new Set();
 const touch = { x: 0, y: 0, boost: false, active: false };
 
+// 기울기 조종 (일시정지 메뉴의 실험실): 가로로 든 폰을 앞으로 눕히면 앞으로, 뒤로 젖히면 천천히 뒤로, 좌우로 기울이면 방향 전환.
+// 켤 때, 계속하기를 누를 때, 대화가 끝나 다시 움직일 수 있을 때 들고 있던 자세를 기준(0)으로 삼는다.
+const TILT_KEY = 'fromwhale.tilt';
+const tilt = { on: false, ready: false, roll: 0, pitch: 0, roll0: 0, pitch0: 0, cal: true, angle: null };
+
+function screenAngle() {
+
+	if ( typeof window.orientation === 'number' ) return window.orientation;
+	return screen.orientation ? screen.orientation.angle : 0;
+
+}
+
+function onOrientation( e ) {
+
+	if ( e.beta == null || e.gamma == null ) return;
+	const deg = Math.PI / 180, b = e.beta * deg, g = e.gamma * deg;
+	// 기기 좌표의 중력 방향 → 화면 좌표 (가로 모드면 화면이 기기에 대해 돌아가 있다)
+	const gx = Math.sin( g ) * Math.cos( b ), gy = - Math.sin( b ), gz = - Math.cos( g ) * Math.cos( b );
+	const angle = screenAngle(), a = angle * deg;
+	const sx = gx * Math.cos( a ) - gy * Math.sin( a ), sy = gx * Math.sin( a ) + gy * Math.cos( a );
+	const roll = Math.atan2( sx, Math.hypot( sy, gz ) ); // + 오른쪽이 내려감
+	const pitch = Math.atan2( - gz, - sy ); // 0 화면이 똑바로 섬, 90° 화면이 하늘을 봄. 앞으로 눕히면 커진다
+	if ( angle !== tilt.angle ) { tilt.angle = angle; tilt.cal = true; }
+	if ( tilt.cal ) {
+
+		tilt.roll = tilt.roll0 = roll;
+		tilt.pitch = tilt.pitch0 = pitch;
+		tilt.cal = false;
+
+	}
+
+	tilt.roll += ( roll - tilt.roll ) * 0.35;
+	tilt.pitch += ( pitch - tilt.pitch ) * 0.35;
+	tilt.ready = true;
+
+}
+
+const tiltActive = () => tilt.on && tilt.ready && G.touch && view.w > view.h;
+
+// 작은 흔들림은 무시하고, 기준에서 5°부터 움직여 20°에서 최고 속도
+function tiltInput() {
+
+	const ramp = ( v, from, to ) => Math.sign( v ) * Math.min( 1, Math.max( 0, ( Math.abs( v ) - from ) / ( to - from ) ) );
+	const deg = 180 / Math.PI;
+	const p = ramp( ( tilt.pitch - tilt.pitch0 ) * deg, 5, 20 );
+	const r = ramp( ( tilt.roll - tilt.roll0 ) * deg, 3, 22 );
+	return { throttle: p > 0 ? p : p * 0.35, turn: - r * 1.2 };
+
+}
+
+function setTilt( on ) {
+
+	const DOE = window.DeviceOrientationEvent;
+	if ( on && ! DOE ) return tiltFailed();
+	// iOS는 버튼을 누른 그 순간에 권한을 물어야 한다
+	if ( on && typeof DOE.requestPermission === 'function' ) {
+
+		DOE.requestPermission().then( ( s ) => s === 'granted' ? enableTilt( true ) : tiltFailed() ).catch( tiltFailed );
+		return;
+
+	}
+
+	enableTilt( on );
+
+}
+
+function enableTilt( on ) {
+
+	tilt.on = on;
+	tilt.cal = true;
+	if ( on ) window.addEventListener( 'deviceorientation', onOrientation );
+	else window.removeEventListener( 'deviceorientation', onOrientation );
+	try { localStorage.setItem( TILT_KEY, on ? '1' : '0' ); } catch ( e ) { /* 저장 못 해도 이번 판은 된다 */ }
+	$( 'lab-status' ).hidden = true;
+	tiltLabel();
+	// 센서가 없는 기기는 이벤트가 오지 않는다
+	if ( on ) setTimeout( () => tilt.on && ! tilt.ready && tiltFailed(), 1500 );
+
+}
+
+function tiltFailed() {
+
+	if ( tilt.on ) enableTilt( false );
+	$( 'lab-status' ).hidden = false;
+
+}
+
+function tiltLabel() {
+
+	const btn = $( 'btn-tilt' );
+	btn.textContent = `${t( 'lab.tilt' )} · ${t( tilt.on ? 'lab.on' : 'lab.off' )}`;
+	btn.classList.toggle( 'on', tilt.on );
+	btn.setAttribute( 'aria-pressed', String( tilt.on ) );
+
+}
+
 window.addEventListener( 'keydown', ( e ) => {
 
-	if ( e.target instanceof HTMLInputElement ) return;
+	if ( e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement ) return;
 	if ( [ 'Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight' ].includes( e.code ) ) e.preventDefault();
 	keys.add( e.code );
 	if ( e.repeat || ! G.started ) return;
@@ -1603,6 +1916,13 @@ function onAction( code ) {
 
 	}
 
+	if ( G.jumpCueOn && code === 'Space' ) {
+
+		if ( jump() ) G.jumpCueOn = false;
+		return;
+
+	}
+
 	if ( G.cutsceneOn || G.ended ) return;
 	if ( code === 'KeyE' ) sing();
 	if ( code === 'Space' ) jump();
@@ -1614,6 +1934,8 @@ function setPaused( on ) {
 
 	G.menuPaused = on;
 	G.ui.show( 'pause', on );
+	if ( on ) tiltLabel();
+	else tilt.cal = true;
 
 }
 
@@ -1636,6 +1958,20 @@ function setupTouch() {
 	if ( ! coarse ) return;
 	G.touch = true;
 	document.body.classList.add( 'touch' );
+	$( 'btn-tilt' ).onclick = () => setTilt( ! tilt.on );
+	let saved = null;
+	try { saved = localStorage.getItem( TILT_KEY ); } catch ( e ) { /* 없음 */ }
+	if ( saved === '1' && window.DeviceOrientationEvent ) {
+
+		// iOS는 다시 켤 때도 화면을 한 번 눌러야 권한을 물을 수 있다
+		if ( typeof DeviceOrientationEvent.requestPermission === 'function' ) {
+
+			tilt.on = true;
+			window.addEventListener( 'touchend', () => setTilt( true ), { once: true, capture: true } );
+
+		} else enableTilt( true );
+
+	}
 	const stick = $( 'stick' ), knob = $( 'stick-knob' );
 	let id = null;
 	const move = ( e ) => {
@@ -1701,7 +2037,7 @@ function setupTouch() {
 // 모바일: 두 번 탭·핀치로 화면이 확대되지 않게 막는다 (iOS는 viewport 설정만으로는 안 막힘)
 function preventZoom() {
 
-	const typing = ( e ) => e.target instanceof HTMLInputElement;
+	const typing = ( e ) => e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement;
 	let lastTouchEnd = 0;
 	document.addEventListener( 'touchend', ( e ) => {
 
@@ -1783,6 +2119,8 @@ function sing() {
 
 	if ( G.pendingKelp && G.distTo( G.kelps[ G.pendingKelp ] ) < 34 ) doReadKelp( G.pendingKelp );
 	else rechargeAtKelp();
+	const kelp = nearestKelp( 34 );
+	if ( kelp ) refillCompass( kelp );
 
 	if ( G.boss?.active ) bossSing();
 
@@ -1846,7 +2184,7 @@ async function doReadKelp( key ) {
 function jump() {
 
 	const h = G.actors.hazel;
-	if ( G.jumpCooldown > 0 || h.airborne || G.stun > 0 ) return;
+	if ( G.jumpCooldown > 0 || h.airborne || G.stun > 0 ) return false;
 	if ( h.breach( 12 + Math.min( h.speed, BOOST_SPEED ) * 0.12 ) ) {
 
 		G.jumpCooldown = 0.35;
@@ -1859,7 +2197,11 @@ function jump() {
 
 		}
 
+		return true;
+
 	}
+
+	return false;
 
 }
 
@@ -1991,7 +2333,7 @@ async function boot() {
 	setupTouch();
 	$( 'loading' ).classList.add( 'hidden' );
 	$( 'title-buttons' ).classList.remove( 'hidden' );
-	const debugChapter = query.has( 'chapter' ) ? Number( query.get( 'chapter' ) ) : null;
+	const debugChapter = query.has( 'chapter' ) ? Number( query.get( 'chapter' ) ) : STELLA_TEST ? 5 : null;
 	const continueBtn = $( 'btn-continue' );
 	const showContinue = () => {
 
@@ -2002,6 +2344,15 @@ async function boot() {
 	};
 
 	showContinue();
+	// 본 엔딩 수 (◆ 본 엔딩, ◇ 아직, ★ 스텔라)
+	const seen = loadEndings();
+	if ( seen.length ) {
+
+		$( 'title-endings' ).textContent = `ENDINGS ${ENDING_ORDER.map( ( k ) => seen.includes( k ) ? '◆' : '◇' ).join( '' )} ${ENDING_ORDER.filter( ( k ) => seen.includes( k ) ).length}/${ENDING_ORDER.length}${seen.includes( 'stella' ) ? ' · ★' : ''}`;
+		$( 'title-endings' ).classList.remove( 'hidden' );
+
+	}
+
 	continueBtn.onclick = () => {
 
 		setName( $( 'nickname' ).value );
@@ -2056,6 +2407,8 @@ async function boot() {
 
 		setName( $( 'nickname' ).value );
 		if ( debugChapter === null ) G.save = { chapter: 0, bottles: [], read: [], kelps: [] };
+		G.route = newRoute( ROUTE_TEST ?? ( debugChapter >= 4 ? 'light' : null ) );
+		if ( STELLA_TEST ) G.save = { ...G.save, bottles: BOTTLES.map( ( b ) => b.id ), read: BOTTLES.map( ( b ) => b.id ) };
 		start( debugChapter ?? 0 );
 
 	};
@@ -2071,6 +2424,7 @@ async function boot() {
 
 	$( 'btn-again' ).onclick = () => location.reload();
 	$( 'btn-search' ).onclick = () => searchAfterEnding();
+	setupFeedback();
 	$( 'btn-journal' ).onclick = () => ! G.cutsceneOn && ! G.ui.dialogOpen && openJournal();
 	$( 'btn-mute' ).onclick = () => G.ui.setMuted( audio.toggleMute() );
 	$( 'btn-pause' ).onclick = () => setPaused( true );
@@ -2122,21 +2476,36 @@ function setupChapter( n ) {
 
 	if ( n >= 4 ) {
 
-		G.party.luke = 'gone';
-		G.flags.lukeGone = true;
-		A.luke.root.visible = false;
-		G.world.lighthouse.setOn( false );
-		G.world.lighthouse.on = 0;
-		G.audio.setMix( { bass: 0 }, 0.1 );
-		for ( const k of [ 'kelp4', 'kelp5' ] ) G.kelps[ k ].read = true;
-
-	}
-
-	if ( n >= 4 ) {
-
 		G.setStarfall( true );
-		G.flags.lukeLight = true;
-		spawnLukeLight( PLACES.ambush.x, PLACES.ambush.z, false );
+		for ( const k of [ 'kelp4', 'kelp5' ] ) G.kelps[ k ].read = true;
+		if ( G.route.luke ) {
+
+			G.flags.lukeSaved = true;
+			A.luke.setGlow( 0.3, 0xffd36b );
+
+		} else {
+
+			G.party.luke = 'gone';
+			G.flags.lukeGone = true;
+			A.luke.root.visible = false;
+			G.world.lighthouse.setOn( false );
+			G.world.lighthouse.on = 0;
+			G.audio.setMix( { bass: 0 }, 0.1 );
+			G.flags.lukeLight = true;
+			spawnLukeLight( PLACES.ambush.x, PLACES.ambush.z, false );
+
+		}
+
+		if ( ! G.route.finn ) {
+
+			G.party.finn = 'gone';
+			G.flags.finnGone = true;
+			A.finn.root.visible = false;
+			G.audio.setMix( { drums: 0 }, 0.1 );
+			G.compass = 1;
+			G.ui.setCompass( 1 );
+
+		}
 
 	}
 	if ( n >= 5 ) {
@@ -2156,6 +2525,70 @@ function setupChapter( n ) {
 
 }
 
+// ---------------------------------------------------------------
+// 엔딩 화면의 '아이디어 · 버그 보내기': Netlify Forms로 바로 접수. 안 되면 메일 주소를 보여 준다
+// (Netlify에서 폼 감지를 켜야 접수된다. 접수된 글은 Netlify > Forms > feedback, 메일 알림도 설정 가능)
+// ---------------------------------------------------------------
+const FEEDBACK_MAIL = 'jmin.mild@gmail.com';
+
+function setupFeedback() {
+
+	const form = $( 'feedback' ), status = $( 'feedback-status' ), text = form.elements.message;
+	$( 'btn-feedback' ).onclick = () => {
+
+		form.hidden = ! form.hidden;
+		text.placeholder = t( 'feedback.placeholder' );
+		if ( ! form.hidden ) text.focus();
+
+	};
+
+	form.onsubmit = async ( e ) => {
+
+		e.preventDefault();
+		if ( ! text.value.trim() ) return text.focus();
+		form.elements.info.value = [
+			lang().code, G.touch ? 'touch' : 'pc', `${view.w}x${view.h}`,
+			$( 'ending-stats' ).innerText.replace( /\n/g, ' / ' ), navigator.userAgent
+		].join( ' · ' );
+		status.textContent = t( 'feedback.sending' );
+		let ok = false;
+		try {
+
+			const res = await fetch( '/', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+				body: new URLSearchParams( new FormData( form ) ).toString()
+			} );
+			ok = res.ok;
+
+		} catch ( err ) { /* 네트워크 오류 */ }
+
+		if ( ok ) {
+
+			status.textContent = t( 'feedback.thanks' );
+			text.value = '';
+			return;
+
+		}
+
+		// 접수가 안 되면 메일로: 주소 복사 + 메일 앱 (적은 내용을 본문에 담는다)
+		const mail = `mailto:${FEEDBACK_MAIL}?subject=${encodeURIComponent( 'From. Whale' )}&body=${encodeURIComponent( text.value )}`;
+		status.innerHTML = `${t( 'feedback.fail' )}<br><b>${FEEDBACK_MAIL}</b> <button type="button" class="chip" id="feedback-copy">${t( 'feedback.copy' )}</button> <a class="chip" href="${mail}">${t( 'feedback.mailApp' )}</a>`;
+		$( 'feedback-copy' ).onclick = async ( ev ) => {
+
+			try {
+
+				await navigator.clipboard.writeText( FEEDBACK_MAIL );
+				ev.target.textContent = t( 'feedback.copied' );
+
+			} catch ( err ) { /* 복사 불가 */ }
+
+		};
+
+	};
+
+}
+
 // 엔딩 화면에서 '남은 편지 찾으러 가기': 엔딩 바다에서 계속 헤엄친다
 async function searchAfterEnding() {
 
@@ -2163,6 +2596,7 @@ async function searchAfterEnding() {
 	G.ui.show( 'ending', false );
 	G.ended = false;
 	G.save.chapter = EPILOGUE;
+	G.save.route = { ...G.route };
 	persist();
 	G.camRelease();
 	setCheckpoint( h.pos.x, h.pos.z );
@@ -2190,6 +2624,7 @@ async function start( chapter ) {
 	if ( chapter >= EPILOGUE ) {
 
 		G.save.chapter = EPILOGUE;
+		G.save.route = { ...G.route };
 		persist();
 		await epilogue( G );
 		return;
@@ -2199,6 +2634,7 @@ async function start( chapter ) {
 	for ( let i = chapter; i < CHAPTERS.length; i ++ ) {
 
 		G.save.chapter = i;
+		G.save.route = { ...G.route };
 		persist();
 		await CHAPTERS[ i ]( G );
 
@@ -2235,7 +2671,21 @@ function updatePlayer( dt ) {
 
 		}
 
+		if ( tiltActive() ) {
+
+			const m = tiltInput();
+			if ( Math.abs( m.throttle ) > Math.abs( throttle ) ) throttle = m.throttle;
+			if ( Math.abs( m.turn ) > Math.abs( turn ) ) turn = m.turn;
+
+		}
+
 	}
+
+	// 대화나 장면이 끝나 다시 움직일 수 있게 되면 지금 자세를 기울기 기준으로
+	if ( control && ! G.hadControl ) tilt.cal = true;
+	G.hadControl = control;
+	const tilting = tiltActive();
+	if ( tilting !== G.tilting ) { G.tilting = tilting; document.body.classList.toggle( 'tilt', tilting ); }
 
 	// 핀이 있으면 부스트가 오래 간다
 	const finn = G.party.finn === 'on';
@@ -2436,10 +2886,13 @@ function updateBottlesAndKelp( dt ) {
 	if ( G.started && ! G.cutsceneOn && ! G.ui.dialogOpen ) {
 
 		if ( G.pendingKelp && G.distTo( G.kelps[ G.pendingKelp ] ) < 34 ) prompt = t( 'prompt.kelp' );
-		else if ( G.boss?.active && G.boss.phase === 'listen' && G.distTo( G.actors.moby.pos ) < 50 ) prompt = t( 'prompt.moby' );
+		else if ( G.boss?.active && G.boss.phase === 'listen' && G.distTo( G.actors.moby.pos ) < G.boss.reach + 4 ) prompt = t( 'prompt.moby' );
 		else if ( G.hearts < MAX_HEARTS && nearestKelp( 34 ) ) prompt = t( 'prompt.recharge' );
+		else if ( G.compass !== null && G.compass < 0.97 && nearestKelp( 34 ) ) prompt = t( 'prompt.compass' );
 
 	}
+
+	if ( G.jumpCueOn ) prompt = t( 'prompt.jump' );
 
 	G.ui.prompt( prompt );
 
@@ -2508,7 +2961,7 @@ function updateHud() {
 	if ( ! G.started ) return;
 	G.ui.setStamina( G.stamina, G.dash > 0 );
 	const t = G.objectiveTarget;
-	if ( t && ! G.cutsceneOn && ! G.ended ) {
+	if ( t && ! G.cutsceneOn && ! G.ended && guideVisible() ) {
 
 		const y = sampleOcean( t.x, t.z ) + 8;
 		_v.set( t.x, y, t.z ).project( camera );
@@ -2566,7 +3019,7 @@ function updateHud() {
 
 	G.ui.drawMinimap( {
 		px: h.pos.x, pz: h.pos.z, yaw: h.yaw, range: 260, time: G.time,
-		rocks: G.world.colliders, points, objective: t
+		rocks: G.world.colliders, points, objective: t, signal: G.compass ?? 1
 	} );
 
 }
@@ -2596,6 +3049,7 @@ function update( dt ) {
 	G.world.update( dt, G.time );
 
 	updatePlayer( dt );
+	updateCompass( dt );
 	updateCompanions( dt );
 	updateOrcas( dt );
 	updateBottlesAndKelp( dt );
