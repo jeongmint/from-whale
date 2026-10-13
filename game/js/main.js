@@ -1254,18 +1254,15 @@ function duet( chart ) {
 			judgeEl.className = 'perfect';
 			comboEl.textContent = `${Math.round( ratio * 100 )}%`;
 			audio.play( rank === 'B' ? 'heal' : 'join' );
+			// 스텔라 엔딩 내내 별똥별이 보는 쪽 하늘로 계속 떨어진다. 맞힌 별이 많을수록 더 많이
+			G.sky.aim = aim();
+			G.sky.meteorShower = 1.2 + 1.3 * stars / starTotal;
 			if ( stars === starTotal ) {
 
-				// 밤하늘 완성: 별똥별이 우수수 쏟아지고, 그 하늘이 엔딩까지 이어진다
+				// 밤하늘 완성: 별똥별이 우수수 쏟아진다
 				starsEl.classList.add( 'full' );
 				starsEl.textContent = t( 'duet.sky' );
-				G.sky.shower( 48, 4, aim() );
-				G.sky.meteorShower = 1;
-
-			} else {
-
-				// 맞힌 별만큼 하늘에 별똥별이 남는다
-				G.sky.meteorShower = Math.max( G.sky.meteorShower, 0.7 * stars / starTotal );
+				G.sky.shower( 48, 4, G.sky.aim );
 
 			}
 			setTimeout( () => {
@@ -1564,7 +1561,7 @@ const touch = { x: 0, y: 0, boost: false, active: false };
 
 window.addEventListener( 'keydown', ( e ) => {
 
-	if ( e.target instanceof HTMLInputElement ) return;
+	if ( e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement ) return;
 	if ( [ 'Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight' ].includes( e.code ) ) e.preventDefault();
 	keys.add( e.code );
 	if ( e.repeat || ! G.started ) return;
@@ -1701,7 +1698,7 @@ function setupTouch() {
 // 모바일: 두 번 탭·핀치로 화면이 확대되지 않게 막는다 (iOS는 viewport 설정만으로는 안 막힘)
 function preventZoom() {
 
-	const typing = ( e ) => e.target instanceof HTMLInputElement;
+	const typing = ( e ) => e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement;
 	let lastTouchEnd = 0;
 	document.addEventListener( 'touchend', ( e ) => {
 
@@ -2071,6 +2068,7 @@ async function boot() {
 
 	$( 'btn-again' ).onclick = () => location.reload();
 	$( 'btn-search' ).onclick = () => searchAfterEnding();
+	setupFeedback();
 	$( 'btn-journal' ).onclick = () => ! G.cutsceneOn && ! G.ui.dialogOpen && openJournal();
 	$( 'btn-mute' ).onclick = () => G.ui.setMuted( audio.toggleMute() );
 	$( 'btn-pause' ).onclick = () => setPaused( true );
@@ -2153,6 +2151,70 @@ function setupChapter( n ) {
 	G.ui.setBottles( G.bottleCount(), BOTTLES.length );
 	setCheckpoint( at.x, at.z );
 	placeCompanions();
+
+}
+
+// ---------------------------------------------------------------
+// 엔딩 화면의 '아이디어 · 버그 보내기': Netlify Forms로 바로 접수. 안 되면 메일 주소를 보여 준다
+// (Netlify에서 폼 감지를 켜야 접수된다. 접수된 글은 Netlify > Forms > feedback, 메일 알림도 설정 가능)
+// ---------------------------------------------------------------
+const FEEDBACK_MAIL = 'jmin.mild@gmail.com';
+
+function setupFeedback() {
+
+	const form = $( 'feedback' ), status = $( 'feedback-status' ), text = form.elements.message;
+	$( 'btn-feedback' ).onclick = () => {
+
+		form.hidden = ! form.hidden;
+		text.placeholder = t( 'feedback.placeholder' );
+		if ( ! form.hidden ) text.focus();
+
+	};
+
+	form.onsubmit = async ( e ) => {
+
+		e.preventDefault();
+		if ( ! text.value.trim() ) return text.focus();
+		form.elements.info.value = [
+			lang().code, G.touch ? 'touch' : 'pc', `${view.w}x${view.h}`,
+			$( 'ending-stats' ).innerText.replace( /\n/g, ' / ' ), navigator.userAgent
+		].join( ' · ' );
+		status.textContent = t( 'feedback.sending' );
+		let ok = false;
+		try {
+
+			const res = await fetch( '/', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+				body: new URLSearchParams( new FormData( form ) ).toString()
+			} );
+			ok = res.ok;
+
+		} catch ( err ) { /* 네트워크 오류 */ }
+
+		if ( ok ) {
+
+			status.textContent = t( 'feedback.thanks' );
+			text.value = '';
+			return;
+
+		}
+
+		// 접수가 안 되면 메일로: 주소 복사 + 메일 앱 (적은 내용을 본문에 담는다)
+		const mail = `mailto:${FEEDBACK_MAIL}?subject=${encodeURIComponent( 'From. Whale' )}&body=${encodeURIComponent( text.value )}`;
+		status.innerHTML = `${t( 'feedback.fail' )}<br><b>${FEEDBACK_MAIL}</b> <button type="button" class="chip" id="feedback-copy">${t( 'feedback.copy' )}</button> <a class="chip" href="${mail}">${t( 'feedback.mailApp' )}</a>`;
+		$( 'feedback-copy' ).onclick = async ( ev ) => {
+
+			try {
+
+				await navigator.clipboard.writeText( FEEDBACK_MAIL );
+				ev.target.textContent = t( 'feedback.copied' );
+
+			} catch ( err ) { /* 복사 불가 */ }
+
+		};
+
+	};
 
 }
 

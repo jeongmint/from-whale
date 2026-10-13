@@ -513,6 +513,21 @@ body.singing #stick, body.singing #minimap-wrap { opacity: 0; pointer-events: no
 #ending { z-index: 25; }
 #ending .win { text-align: center; }
 #ending-stats { color: var(--ink-dim); line-height: 2; }
+#btn-feedback { margin-top: 14px; font: 13px var(--sans); padding: 5px 12px; }
+#feedback { margin-top: 10px; }
+#feedback textarea {
+	width: 100%; resize: vertical;
+	font: 14px/1.5 var(--sans); color: var(--ink);
+	background: rgba(2, 10, 31, 0.6); border: 1px solid var(--line);
+	padding: 8px 10px;
+	touch-action: auto;
+}
+#feedback textarea:focus { outline: 2px solid var(--cyan); outline-offset: 1px; }
+body.touch #feedback textarea { font-size: 16px; } /* iOS가 입력할 때 화면을 확대하지 않게 */
+#feedback .row { margin-top: 8px; }
+#feedback-status { margin: 8px 0 0; font-size: 13px; color: var(--ink-dim); line-height: 1.7; }
+#feedback-status b { color: var(--ink); user-select: all; }
+#feedback-status .chip { text-decoration: none; }
 
 #fade { position: fixed; inset: 0; background: #000; opacity: 0; pointer-events: none; z-index: 20; transition: opacity 1s; }
 #error { position: fixed; left: 16px; right: 16px; bottom: 16px; z-index: 30; padding: 12px; background: #3a0b1f; border: 2px solid var(--warn); font: 12px var(--mono); white-space: pre-wrap; }

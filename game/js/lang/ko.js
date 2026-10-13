@@ -16,6 +16,7 @@ export default {
 		hud: { hearts: '체력', journal: '편지함 (L)', mute: '소리 (M)', pause: '일시정지 (Esc)', home: '첫 화면으로', boss: 'MOBY DICK · 마음', keys: { swim: '헤엄', boost: '가속', jump: '점프', sing: '노래' } },
 		song: { title: '52HZ ↔ FINN', listen: '들어 봐… 핀의 울음 박자', turn: '지금! 같은 박자로 노래하기 [E]', miss: '조금 달라… 다시 들어 봐', help: '루크가 박자를 세어 준다', good: '울음이 조금 잦아들었다', done: '울음이 멎었다' },
 		duet: { title: 'DUET · 52HZ ♥ 52HZ', help: '노래 [E] · 점프 [Space]', ready: '스텔라가 박자를 센다…', perfect: 'PERFECT', good: 'GOOD', miss: 'MISS', combo: '{n} COMBO', rank: 'RANK {r}', sky: '★ 밤하늘 완성!' },
+		feedback: { open: '✉ 아이디어 · 버그 보내기', placeholder: '아이디어나 버그를 자유롭게 적어 주세요', send: '보내기', sending: '보내는 중…', thanks: '고마워요! 잘 받았어요.', fail: '지금은 바로 보내지 못했어요. 아래 메일로 보내 주세요.', copy: '주소 복사', copied: '복사했어요!', mailApp: '메일 앱으로' },
 		letter: { close: '닫기 <span class="mono tiny">[E]</span>' },
 		journal: {
 			title: 'MAILBOX — 유리병 편지함',

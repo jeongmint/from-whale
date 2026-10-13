@@ -207,6 +207,16 @@
 						<button class="btn hidden" id="btn-search"></button>
 						<button class="btn ghost" id="btn-again" data-i18n="ending.again"></button>
 					</div>
+					<!-- 아이디어 · 버그 보내기 (Netlify Forms) -->
+					<button class="chip" id="btn-feedback" type="button" data-i18n="feedback.open"></button>
+					<form id="feedback" name="feedback" method="POST" data-netlify="true" netlify-honeypot="bot-field" hidden>
+						<input type="hidden" name="form-name" value="feedback">
+						<p hidden><label>bot <input name="bot-field"></label></p>
+						<input type="hidden" name="info">
+						<textarea name="message" rows="3" maxlength="1500"></textarea>
+						<div class="row"><button class="btn" type="submit" data-i18n="feedback.send"></button></div>
+						<p id="feedback-status"></p>
+					</form>
 				</div>
 			</div>
 		</div>
