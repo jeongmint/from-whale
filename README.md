@@ -79,4 +79,5 @@ WebGL Three.js Project about Blue and Whale
 ### 개발용 주소 옵션
 
 - `?chapter=0~6` 챕터 지정 시작 (0 프롤로그 … 5 엔딩, 6 에필로그)
+- `?stella` 편지 6통을 모은 상태로 엔딩부터 시작 (스텔라 → 듀엣 → 서브 엔딩). 저장 데이터는 그대로
 - `?q=low` 저사양 모드 (터치 기기 자동)

@@ -15,6 +15,8 @@ import { lang, t, setLang, applyStatic } from './i18n.js';
 
 const BASE = window.FW_ASSET_BASE ?? '../';
 const query = new URLSearchParams( location.search );
+// 테스트 옵션 ?stella: 편지 6통을 다 모은 상태로 엔딩부터 (스텔라 → 듀엣 → 서브 엔딩). 저장은 건드리지 않는다
+const STELLA_TEST = query.has( 'stella' );
 const LOW = ( query.get( 'q' ) ?? ( matchMedia( '(pointer: coarse)' ).matches ? 'low' : 'high' ) ) === 'low';
 const DT_MAX = Number( query.get( 'dtmax' ) ) || 1 / 20;
 
@@ -198,6 +200,7 @@ function loadSave() {
 
 function persist() {
 
+	if ( STELLA_TEST ) return;
 	try {
 
 		localStorage.setItem( SAVE_KEY, JSON.stringify( G.save ) );
@@ -1988,7 +1991,7 @@ async function boot() {
 	setupTouch();
 	$( 'loading' ).classList.add( 'hidden' );
 	$( 'title-buttons' ).classList.remove( 'hidden' );
-	const debugChapter = query.has( 'chapter' ) ? Number( query.get( 'chapter' ) ) : null;
+	const debugChapter = query.has( 'chapter' ) ? Number( query.get( 'chapter' ) ) : STELLA_TEST ? 5 : null;
 	const continueBtn = $( 'btn-continue' );
 	const showContinue = () => {
 
@@ -2053,6 +2056,7 @@ async function boot() {
 
 		setName( $( 'nickname' ).value );
 		if ( debugChapter === null ) G.save = { chapter: 0, bottles: [], read: [], kelps: [] };
+		if ( STELLA_TEST ) G.save = { ...G.save, bottles: BOTTLES.map( ( b ) => b.id ), read: BOTTLES.map( ( b ) => b.id ) };
 		start( debugChapter ?? 0 );
 
 	};
