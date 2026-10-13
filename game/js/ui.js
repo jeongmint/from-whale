@@ -561,12 +561,16 @@ export class UI {
 
 		ctx.restore();
 
-		// 플레이어 화살표
+		// 플레이어 화살표 (지도 위쪽 = 카메라 정면, 화살표 = 고래가 바라보는 쪽)
+		ctx.save();
+		ctx.translate( R, R );
+		ctx.rotate( - ( data.heading ?? 0 ) );
 		ctx.fillStyle = '#eaf6ff';
 		ctx.beginPath();
-		ctx.moveTo( R, R - 7 ); ctx.lineTo( R + 5, R + 5 ); ctx.lineTo( R, R + 2 ); ctx.lineTo( R - 5, R + 5 );
+		ctx.moveTo( 0, - 7 ); ctx.lineTo( 5, 5 ); ctx.lineTo( 0, 2 ); ctx.lineTo( - 5, 5 );
 		ctx.closePath();
 		ctx.fill();
+		ctx.restore();
 
 		ctx.strokeStyle = 'rgba(127, 233, 255, 0.6)';
 		ctx.lineWidth = 2;

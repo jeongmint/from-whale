@@ -49,13 +49,19 @@ const COMPASS_TIME = 50;
 const COMPASS_WEAK = 0.35;
 
 const $ = ( id ) => document.getElementById( id );
+const wrapAngle = ( a ) => Math.atan2( Math.sin( a ), Math.cos( a ) );
 
 window.addEventListener( 'error', ( e ) => showError( e.message ) );
 window.addEventListener( 'unhandledrejection', ( e ) => showError( e.reason?.stack ?? String( e.reason ) ) );
 function showError( msg ) {
 
 	const el = $( 'error' );
-	el.textContent = `${t( 'error' )}\n${msg}`;
+	el.textContent = `${t( 'error' )}\n${String( msg ).split( '\n' )[ 0 ]}\n`;
+	const retry = document.createElement( 'button' );
+	retry.className = 'chip';
+	retry.textContent = t( 'retry' );
+	retry.onclick = () => location.reload();
+	el.append( retry );
 	el.classList.remove( 'hidden' );
 
 }
@@ -185,7 +191,8 @@ const G = {
 	checkpoint: { x: 0, z: 0, yaw: Math.PI },
 	objectiveTarget: null,
 	camTarget: null,
-	camOrbit: 0,
+	camOrbit: 0, // 터치: 고래 등 뒤 기준으로 돌린 만큼 (잠시 뒤 제자리로)
+	camYaw: 0, // 카메라가 바라보는 방향. PC는 고래와 따로 돈다
 	shake: 0,
 	waiters: [],
 	listeners: {},
@@ -1025,6 +1032,8 @@ async function faint() {
 	}
 
 	placeCompanions();
+	G.camYaw = h.yaw;
+	G.camOrbit = 0;
 	G.hearts = MAX_HEARTS;
 	G.stamina = 1;
 	G.invuln = 3;
@@ -2078,7 +2087,9 @@ renderer.domElement.addEventListener( 'pointerdown', ( e ) => {
 window.addEventListener( 'pointermove', ( e ) => {
 
 	if ( ! drag || e.pointerId !== drag.id ) return;
-	G.camOrbit -= ( e.clientX - drag.x ) * 0.006;
+	const d = ( e.clientX - drag.x ) * 0.006;
+	if ( G.touch ) G.camOrbit -= d;
+	else G.camYaw -= d;
 	drag.x = e.clientX;
 	G.lastDrag = G.time;
 
@@ -2614,6 +2625,7 @@ async function start( chapter ) {
 
 	for ( const b of BOTTLES ) G.bottles.push( G.world.makeBottle( b, b.id ) );
 	setupChapter( chapter );
+	G.camYaw = G.actors.hazel.yaw;
 
 	G.ui.show( 'title', false );
 	G.ui.show( 'hud' );
@@ -2656,17 +2668,28 @@ function updatePlayer( dt ) {
 	if ( control ) G.stun = Math.max( 0, G.stun - dt );
 	const stunned = G.stun > 0;
 
-	let throttle = 0, turn = 0, boost = false;
+	let throttle = 0, turn = 0, boost = false, steer = null;
 	if ( control && ! stunned ) {
 
-		if ( keys.has( 'KeyW' ) || keys.has( 'ArrowUp' ) ) throttle = 1;
-		if ( keys.has( 'KeyS' ) || keys.has( 'ArrowDown' ) ) throttle = - 0.35;
-		if ( keys.has( 'KeyA' ) || keys.has( 'ArrowLeft' ) ) turn += 1;
-		if ( keys.has( 'KeyD' ) || keys.has( 'ArrowRight' ) ) turn -= 1;
+		// 키보드: 화면(카메라) 기준으로 헤엄친다. W 앞 · S 뒤 · A/D 옆. 고래가 그쪽으로 몸을 돌려 헤엄친다
+		const ix = ( keys.has( 'KeyD' ) || keys.has( 'ArrowRight' ) ? 1 : 0 ) - ( keys.has( 'KeyA' ) || keys.has( 'ArrowLeft' ) ? 1 : 0 );
+		const iz = ( keys.has( 'KeyW' ) || keys.has( 'ArrowUp' ) ? 1 : 0 ) - ( keys.has( 'KeyS' ) || keys.has( 'ArrowDown' ) ? 1 : 0 );
+		if ( ix || iz ) {
+
+			steer = Math.atan2( - ix, iz ); // 카메라 정면에서 얼마나 틀었는지 (+ 왼쪽)
+			const diff = wrapAngle( G.camYaw + steer - h.yaw );
+			turn = Math.max( - 1.6, Math.min( 1.6, diff * 2.5 ) );
+			throttle = Math.abs( diff ) > 2 ? 0.3 : 1; // 크게 돌아설 때는 천천히
+
+		}
+
 		boost = keys.has( 'ShiftLeft' ) || keys.has( 'ShiftRight' ) || touch.boost;
 		if ( touch.active ) {
 
-			throttle = Math.max( throttle, Math.min( 1, Math.hypot( touch.x, touch.y ) * 1.2 ) * ( touch.y > 0.6 ? - 0.35 : 1 ) );
+			// 많이 밀수록 빠르게, 아래로 당기면 천천히 뒤로 (S 키와 같은 속도)
+			const push = Math.min( 1, Math.hypot( touch.x, touch.y ) * 1.2 );
+			const stick = touch.y > 0.6 ? - 0.35 * push : push;
+			if ( Math.abs( stick ) > Math.abs( throttle ) ) throttle = stick;
 			turn = - touch.x * 1.2;
 
 		}
@@ -2722,6 +2745,8 @@ function updatePlayer( dt ) {
 
 	const turnRate = TURN_RATE * ( 0.6 + 0.4 * ( 1 - Math.min( Math.abs( h.speed ) / BOOST_SPEED, 1 ) ) );
 	h.yaw += turn * turnRate * dt;
+	// PC 카메라는 따로 돈다. 앞쪽(W 쪽)으로 헤엄칠 때만 천천히 등 뒤로 따라간다 (A/D만 누르면 옆으로 헤엄)
+	if ( ! G.touch && steer !== null && Math.abs( steer ) < 0.8 && ! drag ) G.camYaw += wrapAngle( h.yaw - G.camYaw ) * ( 1 - Math.exp( - dt * 1.2 ) );
 	h.bank = - turn * Math.min( 1, Math.abs( h.speed ) / MAX_SPEED ) * 0.45;
 	if ( stunned ) h.bank = Math.sin( G.time * 16 ) * 0.35 * Math.min( 1, G.stun / 0.4 );
 	updateStunStars( h, stunned );
@@ -2930,8 +2955,15 @@ function updateCamera( dt ) {
 
 	} else {
 
-		if ( G.time - ( G.lastDrag ?? - 99 ) > 1.8 && ! drag ) G.camOrbit *= Math.exp( - dt * 1.5 );
-		const yaw = h.yaw + G.camOrbit;
+		if ( G.touch ) {
+
+			// 터치는 카메라가 고래 등 뒤에 붙어 있고, 화면을 드래그해 돌려도 잠시 뒤 돌아온다
+			if ( G.time - ( G.lastDrag ?? - 99 ) > 1.8 && ! drag ) G.camOrbit *= Math.exp( - dt * 1.5 );
+			G.camYaw = h.yaw + G.camOrbit;
+
+		}
+
+		const yaw = G.camYaw;
 		const dist = 24 + Math.abs( h.speed ) * 0.28;
 		desired.set( h.pos.x - Math.sin( yaw ) * dist, h.root.position.y * 0.4 + 8.5 + Math.abs( h.speed ) * 0.05, h.pos.z - Math.cos( yaw ) * dist );
 		const f = h.forward;
@@ -3018,7 +3050,7 @@ function updateHud() {
 	if ( G.actors.moby.root.visible ) points.push( { x: G.actors.moby.pos.x, z: G.actors.moby.pos.z, color: '#bcd6ff', size: 7, shape: 'ring' } );
 
 	G.ui.drawMinimap( {
-		px: h.pos.x, pz: h.pos.z, yaw: h.yaw, range: 260, time: G.time,
+		px: h.pos.x, pz: h.pos.z, yaw: G.camYaw, heading: h.yaw - G.camYaw, range: 260, time: G.time,
 		rocks: G.world.colliders, points, objective: t, signal: G.compass ?? 1
 	} );
 
@@ -3065,8 +3097,9 @@ function update( dt ) {
 function loop() {
 
 	requestAnimationFrame( loop );
-	const dt = Math.min( clock.getDelta(), DT_MAX );
-	G.fps = G.fps ? G.fps * 0.95 + ( 1 / Math.max( dt, 1e-3 ) ) * 0.05 : 30;
+	const raw = clock.getDelta();
+	const dt = Math.min( raw, DT_MAX ); // 게임 진행은 한 프레임 최대 DT_MAX까지만
+	G.fps = G.fps ? G.fps * 0.95 + ( 1 / Math.max( raw, 1e-3 ) ) * 0.05 : 30; // FPS는 실제 프레임 시간으로
 	if ( G.ready && ! G.menuPaused && ! G.ui.overlay ) update( dt );
 	syncSize();
 	if ( G.ready ) composer.render( dt );
