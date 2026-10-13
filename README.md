@@ -12,6 +12,7 @@ WebGL Three.js Project about Blue and Whale
 - 저장: 챕터 단위 이어하기, 본 엔딩은 따로 기록
 - 실험실 (폰 일시정지 메뉴): 기울기 조종, 가로 모드 전용
 - 의견 보내기: 엔딩 화면 → Netlify Forms `feedback` (폼 감지 · 메일 알림 설정 필요)
+- 링크 공유 미리보기: `data/res/og.jpg` (1200×627, 타이틀 화면 캡처). 바꾼 뒤 LinkedIn Post Inspector로 새로고침
 
 ### 특징
 

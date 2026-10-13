@@ -26,6 +26,7 @@ const TURN_RATE = 1.9;
 const MAX_HEARTS = 3;
 const DETECT = 56;
 const DASH_SPEED = 50;
+const REVERSE_SPEED = 9; // 조이스틱을 아래로 당기거나 폰을 뒤로 젖혔을 때 최고 후진 속도
 const STUN_TIME = 1.1;
 const SAVE_KEY = 'fromwhale.save.v1';
 const EPILOGUE = CHAPTERS.length; // 엔딩 뒤 남은 편지 찾기 (이어하기 번호)
@@ -1834,7 +1835,7 @@ function tiltInput() {
 	const deg = 180 / Math.PI;
 	const p = ramp( ( tilt.pitch - tilt.pitch0 ) * deg, 5, 20 );
 	const r = ramp( ( tilt.roll - tilt.roll0 ) * deg, 3, 22 );
-	return { throttle: p > 0 ? p : p * 0.35, turn: - r * 1.2 };
+	return { throttle: p, turn: - r * 1.2 };
 
 }
 
@@ -2686,9 +2687,9 @@ function updatePlayer( dt ) {
 		boost = keys.has( 'ShiftLeft' ) || keys.has( 'ShiftRight' ) || touch.boost;
 		if ( touch.active ) {
 
-			// 많이 밀수록 빠르게, 아래로 당기면 천천히 뒤로 (S 키와 같은 속도)
+			// 많이 밀수록 빠르게, 아래로 당기면 뒤로
 			const push = Math.min( 1, Math.hypot( touch.x, touch.y ) * 1.2 );
-			const stick = touch.y > 0.6 ? - 0.35 * push : push;
+			const stick = touch.y > 0.6 ? - push : push;
 			if ( Math.abs( stick ) > Math.abs( throttle ) ) throttle = stick;
 			turn = - touch.x * 1.2;
 
@@ -2716,7 +2717,7 @@ function updatePlayer( dt ) {
 	if ( boosting ) G.stamina = Math.max( 0, G.stamina - dt * ( finn ? 0.16 : 0.26 ) );
 	else G.stamina = Math.min( 1, G.stamina + dt * ( finn ? 0.26 : 0.16 ) );
 
-	let target = throttle > 0 ? throttle * ( boosting ? BOOST_SPEED : MAX_SPEED ) : throttle * 8;
+	let target = throttle > 0 ? throttle * ( boosting ? BOOST_SPEED : MAX_SPEED ) : throttle * REVERSE_SPEED;
 	if ( G.dash > 0 ) {
 
 		G.dash -= dt;
