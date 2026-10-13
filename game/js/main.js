@@ -1562,6 +1562,102 @@ function clearMeteors() {
 const keys = new Set();
 const touch = { x: 0, y: 0, boost: false, active: false };
 
+// 기울기 조종 (일시정지 메뉴의 실험실): 가로로 든 폰을 앞으로 눕히면 앞으로, 뒤로 젖히면 천천히 뒤로, 좌우로 기울이면 방향 전환.
+// 켤 때, 계속하기를 누를 때, 대화가 끝나 다시 움직일 수 있을 때 들고 있던 자세를 기준(0)으로 삼는다.
+const TILT_KEY = 'fromwhale.tilt';
+const tilt = { on: false, ready: false, roll: 0, pitch: 0, roll0: 0, pitch0: 0, cal: true, angle: null };
+
+function screenAngle() {
+
+	if ( typeof window.orientation === 'number' ) return window.orientation;
+	return screen.orientation ? screen.orientation.angle : 0;
+
+}
+
+function onOrientation( e ) {
+
+	if ( e.beta == null || e.gamma == null ) return;
+	const deg = Math.PI / 180, b = e.beta * deg, g = e.gamma * deg;
+	// 기기 좌표의 중력 방향 → 화면 좌표 (가로 모드면 화면이 기기에 대해 돌아가 있다)
+	const gx = Math.sin( g ) * Math.cos( b ), gy = - Math.sin( b ), gz = - Math.cos( g ) * Math.cos( b );
+	const angle = screenAngle(), a = angle * deg;
+	const sx = gx * Math.cos( a ) - gy * Math.sin( a ), sy = gx * Math.sin( a ) + gy * Math.cos( a );
+	const roll = Math.atan2( sx, Math.hypot( sy, gz ) ); // + 오른쪽이 내려감
+	const pitch = Math.atan2( - gz, - sy ); // 0 화면이 똑바로 섬, 90° 화면이 하늘을 봄. 앞으로 눕히면 커진다
+	if ( angle !== tilt.angle ) { tilt.angle = angle; tilt.cal = true; }
+	if ( tilt.cal ) {
+
+		tilt.roll = tilt.roll0 = roll;
+		tilt.pitch = tilt.pitch0 = pitch;
+		tilt.cal = false;
+
+	}
+
+	tilt.roll += ( roll - tilt.roll ) * 0.35;
+	tilt.pitch += ( pitch - tilt.pitch ) * 0.35;
+	tilt.ready = true;
+
+}
+
+const tiltActive = () => tilt.on && tilt.ready && G.touch && view.w > view.h;
+
+// 작은 흔들림은 무시하고, 기준에서 5°부터 움직여 20°에서 최고 속도
+function tiltInput() {
+
+	const ramp = ( v, from, to ) => Math.sign( v ) * Math.min( 1, Math.max( 0, ( Math.abs( v ) - from ) / ( to - from ) ) );
+	const deg = 180 / Math.PI;
+	const p = ramp( ( tilt.pitch - tilt.pitch0 ) * deg, 5, 20 );
+	const r = ramp( ( tilt.roll - tilt.roll0 ) * deg, 3, 22 );
+	return { throttle: p > 0 ? p : p * 0.35, turn: - r * 1.2 };
+
+}
+
+function setTilt( on ) {
+
+	const DOE = window.DeviceOrientationEvent;
+	if ( on && ! DOE ) return tiltFailed();
+	// iOS는 버튼을 누른 그 순간에 권한을 물어야 한다
+	if ( on && typeof DOE.requestPermission === 'function' ) {
+
+		DOE.requestPermission().then( ( s ) => s === 'granted' ? enableTilt( true ) : tiltFailed() ).catch( tiltFailed );
+		return;
+
+	}
+
+	enableTilt( on );
+
+}
+
+function enableTilt( on ) {
+
+	tilt.on = on;
+	tilt.cal = true;
+	if ( on ) window.addEventListener( 'deviceorientation', onOrientation );
+	else window.removeEventListener( 'deviceorientation', onOrientation );
+	try { localStorage.setItem( TILT_KEY, on ? '1' : '0' ); } catch ( e ) { /* 저장 못 해도 이번 판은 된다 */ }
+	$( 'lab-status' ).hidden = true;
+	tiltLabel();
+	// 센서가 없는 기기는 이벤트가 오지 않는다
+	if ( on ) setTimeout( () => tilt.on && ! tilt.ready && tiltFailed(), 1500 );
+
+}
+
+function tiltFailed() {
+
+	if ( tilt.on ) enableTilt( false );
+	$( 'lab-status' ).hidden = false;
+
+}
+
+function tiltLabel() {
+
+	const btn = $( 'btn-tilt' );
+	btn.textContent = `${t( 'lab.tilt' )} · ${t( tilt.on ? 'lab.on' : 'lab.off' )}`;
+	btn.classList.toggle( 'on', tilt.on );
+	btn.setAttribute( 'aria-pressed', String( tilt.on ) );
+
+}
+
 window.addEventListener( 'keydown', ( e ) => {
 
 	if ( e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement ) return;
@@ -1614,6 +1710,8 @@ function setPaused( on ) {
 
 	G.menuPaused = on;
 	G.ui.show( 'pause', on );
+	if ( on ) tiltLabel();
+	else tilt.cal = true;
 
 }
 
@@ -1636,6 +1734,20 @@ function setupTouch() {
 	if ( ! coarse ) return;
 	G.touch = true;
 	document.body.classList.add( 'touch' );
+	$( 'btn-tilt' ).onclick = () => setTilt( ! tilt.on );
+	let saved = null;
+	try { saved = localStorage.getItem( TILT_KEY ); } catch ( e ) { /* 없음 */ }
+	if ( saved === '1' && window.DeviceOrientationEvent ) {
+
+		// iOS는 다시 켤 때도 화면을 한 번 눌러야 권한을 물을 수 있다
+		if ( typeof DeviceOrientationEvent.requestPermission === 'function' ) {
+
+			tilt.on = true;
+			window.addEventListener( 'touchend', () => setTilt( true ), { once: true, capture: true } );
+
+		} else enableTilt( true );
+
+	}
 	const stick = $( 'stick' ), knob = $( 'stick-knob' );
 	let id = null;
 	const move = ( e ) => {
@@ -2301,7 +2413,21 @@ function updatePlayer( dt ) {
 
 		}
 
+		if ( tiltActive() ) {
+
+			const m = tiltInput();
+			if ( Math.abs( m.throttle ) > Math.abs( throttle ) ) throttle = m.throttle;
+			if ( Math.abs( m.turn ) > Math.abs( turn ) ) turn = m.turn;
+
+		}
+
 	}
+
+	// 대화나 장면이 끝나 다시 움직일 수 있게 되면 지금 자세를 기울기 기준으로
+	if ( control && ! G.hadControl ) tilt.cal = true;
+	G.hadControl = control;
+	const tilting = tiltActive();
+	if ( tilting !== G.tilting ) { G.tilting = tilting; document.body.classList.toggle( 'tilt', tilting ); }
 
 	// 핀이 있으면 부스트가 오래 간다
 	const finn = G.party.finn === 'on';

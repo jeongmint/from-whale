@@ -30,6 +30,14 @@ export default {
 			resume: 'Resume',
 			restart: 'Start over'
 		},
+		lab: {
+			title: 'LAB',
+			tilt: 'Tilt to steer',
+			on: 'ON',
+			off: 'OFF',
+			note: 'In landscape, tilt the phone instead of using the stick. Tip it forward to swim, back to slowly reverse, left or right to turn. However you hold it when you switch this on or press Resume counts as neutral.',
+			denied: 'Can\'t read the tilt sensor. Check that motion access is allowed.'
+		},
 		ending: {
 			search: 'Find the rest of the letters · {n}/{total}',
 			again: 'Play again',

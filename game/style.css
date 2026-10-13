@@ -442,6 +442,12 @@ body.singing #stick, body.singing #minimap-wrap { opacity: 0; pointer-events: no
 #journal-list li.empty { text-align: center; color: var(--ink-dim); border-style: dashed; }
 
 .help { display: grid; gap: 8px; font-size: 14px; }
+.lab { display: grid; gap: 6px; margin-top: 12px; padding: 8px 10px; border: 1px dashed var(--line); }
+.lab-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.lab .chip { font-family: var(--sans); font-size: 13px; padding: 5px 10px; }
+.lab .chip.on { background: var(--sky); color: var(--deep); }
+.lab-note { margin: 0; font-size: 12px; line-height: 1.5; color: var(--ink-dim); }
+.lab-note.warn { color: var(--warn); }
 
 /* ---------- 타이틀 ---------- */
 #title { background: radial-gradient(ellipse at 50% 60%, rgba(2, 10, 31, 0.15), rgba(2, 10, 31, 0.75)); z-index: 10; }
@@ -538,6 +544,7 @@ body.touch .key-only, body:not(.touch) .touch-only { display: none !important; }
 /* 대화 중엔 못 움직이니 조이스틱은 잠깐 숨긴다 (대화창에 가려지지 않게) */
 #stick, #touch-buttons { transition: opacity 0.2s; }
 body.talking #stick { opacity: 0; pointer-events: none; }
+body.tilt #stick { display: none; }
 #stick {
 	position: absolute; left: 24px; bottom: 24px;
 	width: 130px; height: 130px; border-radius: 50%;
