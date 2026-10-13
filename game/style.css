@@ -519,6 +519,22 @@ body.singing #stick, body.singing #minimap-wrap { opacity: 0; pointer-events: no
 #ending { z-index: 25; }
 #ending .win { text-align: center; }
 #ending-stats { color: var(--ink-dim); line-height: 2; }
+#ending-list { list-style: none; margin: 10px auto 4px; padding: 8px 12px; max-width: 380px; display: grid; gap: 4px; text-align: left; border: 1px dashed var(--line); font-size: 13px; }
+#ending-list .head { font: 11px var(--mono); letter-spacing: 0.12em; color: var(--cyan); text-align: center; }
+#ending-list li { color: var(--ink-dim); }
+#ending-list li small { display: block; padding-left: 1.3em; font-size: 11px; opacity: 0.8; }
+#ending-list li.seen { color: var(--ink); }
+#ending-list li.now { color: var(--gold); }
+#ending-list li.star { color: var(--gold); }
+#title-endings { color: var(--gold); letter-spacing: 0.12em; margin: 4px 0 0; }
+
+/* 부서진 나침반 게이지 (소나 창 제목줄) */
+#compass-meter { display: flex; align-items: center; gap: 5px; }
+#compass-meter[hidden] { display: none; }
+#compass-meter small { font-size: 9px; letter-spacing: 0.08em; }
+#compass-meter .gauge { display: block; width: 38px; height: 5px; background: rgba(2, 10, 31, 0.6); }
+#compass-meter .fill { display: block; height: 100%; background: #9d8cff; transition: width 0.3s; }
+#compass-meter.weak .fill { background: var(--warn); animation: blink 0.8s steps(2) infinite; }
 #btn-feedback { margin-top: 14px; font: 13px var(--sans); padding: 5px 12px; }
 #feedback { margin-top: 10px; }
 #feedback textarea {
@@ -574,6 +590,7 @@ body.tilt #stick { display: none; }
 	#hud-party { top: 8px; right: 8px; }
 	#hud-objective { top: auto; bottom: 168px; min-width: 0; max-width: calc(100vw - 180px); left: 50%; }
 	#minimap-wrap { right: 8px; bottom: 8px; }
+	#compass-meter small { display: none; }
 	#minimap { width: 120px; height: 120px; }
 	#touch-buttons { bottom: 160px; right: 10px; }
 	#dialog { bottom: 8px; }

@@ -45,6 +45,13 @@ export default {
 			sub: 'You met another 52Hz',
 			hint: 'Find every bottle… and you might meet another 52Hz'
 		},
+		endings: {
+			light: { name: 'The Light That Never Fades', hint: 'Get hit by the Alliance more than once, but never fall before Moby Dick' },
+			friends: { name: 'The Strength of Friends', hint: 'Get hit by the Alliance once at most, and never fall before Moby Dick' },
+			compass: { name: 'The Broken Compass', hint: 'Keep Luke safe, then fall before Moby Dick' },
+			sacrifice: { name: 'Sacrifice', hint: 'If both Luke and Finn take the blow for {N}' },
+			stella: 'Another 52Hz'
+		},
 		toast: {
 			spotted: '! The Alliance spotted you — Shift to flee, Space to jump!',
 			spottedLight: '! The Alliance spotted you — grab a shard of light and flee!',
@@ -56,7 +63,10 @@ export default {
 			unreadBottle: 'Found a letter you can\'t read ({n}/{total})',
 			tapAudio: '♪ Tap the screen once to bring the music back',
 			rotate: 'Turn your phone sideways to see more of the sea',
-			fog: 'Beyond here there is only fog…'
+			fog: 'Beyond here there is only fog…',
+			compassWeak: 'The compass is fading… sing beside some kelp',
+			compassOff: 'The compass went dark — sing beside kelp to bring it back',
+			compassOn: 'The kelp set the broken compass right again'
 		},
 		banner: {
 			objective: 'NEW OBJECTIVE',
@@ -70,7 +80,9 @@ export default {
 		prompt: {
 			kelp: '<kbd>E</kbd> Sing to the kelp at 52Hz',
 			moby: '<kbd>E</kbd> Sing to Moby Dick',
-			recharge: '<kbd>E</kbd> Sing beside the kelp — refill hearts'
+			recharge: '<kbd>E</kbd> Sing beside the kelp — refill hearts',
+			compass: '<kbd>E</kbd> Sing beside the kelp — fix the compass',
+			jump: '<kbd>Space</kbd> Jump now!'
 		},
 		kelpReader: { luke: 'Kelp · read by Luke', finn: 'Kelp · read by Finn', none: 'Kelp' },
 		bottleReact: { luke: 'Hmph. Nothing special. ...Go find the next one.', finn: '...Every one of these was somebody\'s song.' },
@@ -228,6 +240,7 @@ export default {
 				[ 'finn', 'And don\'t sing. A suspicious hertz carries a long way.' ],
 				[ 'luke', 'And if they spot us? We just ram them.' ],
 				[ 'finn', '...That\'s why narwhals don\'t live very long.' ],
+				[ 'luke', 'Hmph. If you two don\'t get hit, I won\'t have to ram anyone.' ],
 				[ 'narrator', 'Touching the Alliance costs health.\nWhile jumping with [Space], nothing can hit you.' ]
 			],
 			objKelp4: 'Find the kelp while avoiding the Alliance',
@@ -259,7 +272,21 @@ export default {
 				[ 'narrator', 'The lighthouse light has gone out.\nNo one is left to read the letters.' ],
 				[ 'finn', '...I won\'t be as good as Luke.\nBut from now on, I\'ll read them for you.' ]
 			],
-			objKelp5: 'Sing in front of the kelp  [E]'
+			objKelp5: 'Sing in front of the kelp  [E]',
+			lukeJump: [ [ 'luke', '{N}! JUMP!!' ] ],
+			lukeSaved: [
+				[ 'narrator', '{N} and Luke leapt out of the sea at the same moment.\nThe charging Alliance crashed into each other right in the middle.' ],
+				[ 'luke', '...Ha! See that? Thinking comes later.' ],
+				[ 'finn', 'You\'re both okay...? Thank goodness... *sniff*' ],
+				[ 'luke', 'No time to cry! I\'ll keep my horn lit. Stay close!' ]
+			],
+			bannerSaved: [ 'LUKE', '{N} and Luke leapt together', 'The lighthouse light is still on' ],
+			objEscapeSaved: 'Run! Follow Luke to the southern current',
+			afterEscapeSaved: [
+				[ 'luke', 'Phew... we made it. Pretty fast for a crybaby, Finn.' ],
+				[ 'finn', '...And you\'re still alive, for a narwhal.' ],
+				[ 'luke', 'Ha! And I plan to stay that way.' ]
+			]
 		},
 
 		ch4: {
@@ -276,14 +303,31 @@ export default {
 				[ 'moby', 'My mother pushed me away and said,\n“On the day the stars fall, you can do anything. So run.”' ],
 				[ 'moby', 'She never came back.\n...This time, it is my turn to do anything.' ],
 				[ 'finn', '{N}, he isn\'t listening to anyone right now.\nBut your song... might be different.' ]
+			],
+			lukeLantern: [
+				[ 'luke', '{N}, I\'ll keep my light on him until your song gets through.' ],
+				[ 'luke', 'When he listens, anywhere my light reaches, he\'ll hear you.' ]
+			],
+			bannerLantern: [ 'ABILITY', 'Luke\'s Lantern', 'When Moby Dick listens, the blue circle your song reaches gets wider' ],
+			finnLast: [
+				[ 'finn', '......Not crying this time.' ],
+				[ 'finn', '{N}. You know the way now.\nIf you don\'t... ask the kelp.' ],
+				[ 'finn', '...Thank you for the song.' ]
+			],
+			bannerFinn: [ 'FINN', 'Finn protected {N}', 'The compass broke' ],
+			compass: [
+				[ 'narrator', 'Where Finn sank, pieces of a broken compass glittered.' ],
+				[ 'narrator', 'From now on, the guidance slowly fades.\nSing beside some kelp to set it right again.' ]
 			]
 		},
 
 		epilogue: {
 			card: [ 'EPILOGUE', 'Looking for Stella' ],
-			start: [
-				[ 'finn', 'Stella... the whale Moby Dick told us about.\nIf we gather all the scattered letters, maybe we\'ll find the way.' ]
-			],
+			start: {
+				finn: [ [ 'finn', 'Stella... the whale Moby Dick told us about.\nIf we gather all the scattered letters, maybe we\'ll find the way.' ] ],
+				luke: [ [ 'luke', 'Stella... some odd old blue whale who doodles on kelp?\nGather every scattered letter and we\'ll find her. Let\'s go.' ] ],
+				none: [ [ 'narrator', 'Stella. The other 52Hz Moby Dick spoke of.\nGather every scattered letter, and the way might appear.' ] ]
+			},
 			objective: 'Find the rest of the letters in bottles',
 			hint: '♪ Sing 52Hz with [E] and nearby bottles show up on the sonar'
 		},
@@ -294,10 +338,37 @@ export default {
 				[ 'moby', 'The sea holds a freedom\nthat everyone deserves.' ],
 				[ 'moby', 'The humans, the Alliance, you.\n...And me.' ],
 				[ 'moby', 'Somewhere in this sea, there is a whale who sings at your frequency.' ],
-				[ 'moby', 'Stella. A very old blue whale.\nAn odd one, who wrote directions on every stalk of kelp.' ],
-				[ 'finn', '......I wish Luke could have heard this.' ],
-				[ 'narrator', 'On the night the stars fell,\n{N} talked with someone for the very first time.' ]
+				[ 'moby', 'Stella. A very old blue whale.\nAn odd one, who wrote directions on every stalk of kelp.' ]
 			],
+			routes: {
+				light: [
+					[ 'finn', '......I wish Luke could have heard this.' ],
+					[ 'narrator', 'Far to the north, the dark lighthouse blinked, just once.' ],
+					[ 'narrator', 'On the night the stars fell,\n{N} talked with someone for the very first time.' ]
+				],
+				friends: [
+					[ 'luke', '...Huh? That\'s it? Easier than I thought.' ],
+					[ 'finn', '*sniff*... I\'m so glad... so, so glad...' ],
+					[ 'luke', 'Crying again. ...Hey, {N}. When we get back to the lighthouse, sing me another one.' ],
+					[ 'narrator', 'On the night the stars fell,\n{N} sang with friends for the very first time.' ]
+				],
+				compass: [
+					[ 'luke', '...That crybaby. Didn\'t cry at the end.' ],
+					[ 'luke', 'We\'ll have to find our own way now. The way he taught us.' ],
+					[ 'narrator', 'The broken compass no longer points anywhere.\nStill, {N} knew where to go.' ]
+				],
+				sacrifice: [
+					[ 'moby', '...Two of them sank into the sea to protect you.' ],
+					[ 'hazel', '( sings at 52Hz instead of answering )' ],
+					[ 'narrator', 'On the night the stars fell,\n{N} talked with someone for the very first time,\nand left two friends behind in the sea.' ]
+				]
+			},
+			cards: {
+				light: [ 'ENDING', 'The Light That Never Fades', 'Luke\'s light still floats on the sea' ],
+				friends: [ 'ENDING', 'The Strength of Friends', 'A song for three' ],
+				compass: [ 'ENDING', 'The Broken Compass', 'Now we find our own way' ],
+				sacrifice: [ 'ENDING', 'Sacrifice', 'A 52Hz left alone' ]
+			},
 			subCard: [ 'SUB ENDING', 'Stella', 'Another 52Hz' ],
 			stella: [
 				[ 'stella', 'Hi, hi! We finally meet, 52 hertz!\nDid you like my kelp letters? I wrote every single one!' ],

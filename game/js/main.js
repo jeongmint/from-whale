@@ -30,6 +30,24 @@ const STUN_TIME = 1.1;
 const SAVE_KEY = 'fromwhale.save.v1';
 const EPILOGUE = CHAPTERS.length; // 엔딩 뒤 남은 편지 찾기 (이어하기 번호)
 
+// 갈래 엔딩. 3장 매복까지 연합군에게 맞은 횟수가 LUKE_MAX_HITS 이하면 루크가 살고,
+// 보스전에서 처음 쓰러지면 핀이 대신 맞는다. 루크·핀이 살았는지에 따라 엔딩 넷
+const LUKE_MAX_HITS = 1;
+const ROUTES = {
+	light: { luke: false, finn: true }, // 꺼지지 않는 빛
+	friends: { luke: true, finn: true }, // 동료의 힘
+	compass: { luke: true, finn: false }, // 부서진 나침반
+	sacrifice: { luke: false, finn: false } // 희생
+};
+const ENDING_ORDER = Object.keys( ROUTES );
+const ENDINGS_KEY = 'fromwhale.endings';
+// 테스트 옵션 ?route=light|friends|compass|sacrifice: 4장 이후를 그 갈래로 시작 (?chapter와 함께)
+const ROUTE_TEST = ROUTES[ query.get( 'route' ) ] ? query.get( 'route' ) : null;
+const newRoute = ( key ) => ( { hits: 0, luke: true, finn: true, ...ROUTES[ key ] } );
+// 핀이 떠나면 나침반이 COMPASS_TIME초에 걸쳐 흐려진다. COMPASS_WEAK 아래로는 길 안내가 깜빡이고, 0이면 꺼진다
+const COMPASS_TIME = 50;
+const COMPASS_WEAK = 0.35;
+
 const $ = ( id ) => document.getElementById( id );
 
 window.addEventListener( 'error', ( e ) => showError( e.message ) );
@@ -175,6 +193,7 @@ const G = {
 	boss: null,
 	shards: [],
 	dash: 0,
+	compass: null,
 	save: loadSave(),
 	customName: loadName(),
 	get playerName() {
@@ -184,6 +203,38 @@ const G = {
 	}
 };
 window.__fw = G;
+// 저장된 갈래. 갈래가 생기기 전 저장으로 4장 이후를 이어하면 루크가 떠난 갈래
+G.route = G.save.route ? { ...newRoute(), ...G.save.route } : newRoute( G.save.chapter >= 4 ? 'light' : null );
+
+// 본 엔딩 목록 (저장과 따로 남는다)
+function loadEndings() {
+
+	try {
+
+		const e = JSON.parse( localStorage.getItem( ENDINGS_KEY ) );
+		return Array.isArray( e ) ? e : [];
+
+	} catch ( e ) {
+
+		return [];
+
+	}
+
+}
+
+function saveEnding( key ) {
+
+	if ( STELLA_TEST ) return;
+	const seen = loadEndings();
+	if ( seen.includes( key ) ) return;
+	seen.push( key );
+	try {
+
+		localStorage.setItem( ENDINGS_KEY, JSON.stringify( seen ) );
+
+	} catch ( e ) { /* 저장 불가 */ }
+
+}
 
 function loadSave() {
 
@@ -395,6 +446,29 @@ Object.assign( G, {
 
 	},
 
+	// --- 갈래 ---
+
+	endingKey() {
+
+		const r = G.route;
+		return r.luke ? ( r.finn ? 'friends' : 'compass' ) : ( r.finn ? 'light' : 'sacrifice' );
+
+	},
+
+	lukeCanLive() {
+
+		return G.route.hits <= LUKE_MAX_HITS;
+
+	},
+
+	// 연출 중에 점프 신호: 플레이어가 점프할 때까지 기다린다
+	jumpCue() {
+
+		G.jumpCueOn = true;
+		return G.until( () => ! G.jumpCueOn );
+
+	},
+
 	// --- 3장: 매복 ---
 
 	spawnShaman() {
@@ -472,6 +546,30 @@ Object.assign( G, {
 
 	},
 
+	// 루크가 사는 갈래: 헤이즐과 루크가 함께 뛰어오르고, 달려든 연합군끼리 한가운데서 부딪힌다
+	async lukeDodge( ring ) {
+
+		const luke = G.actors.luke;
+		const h = G.actors.hazel;
+		await G.wait( 0.55 );
+		G.flash( 0.6 );
+		G.shake = 1.1;
+		G.audio.play( 'boom' );
+		G.world.splash( h.pos.x, h.root.position.y, h.pos.z, { count: 140, power: 15 } );
+		G.world.ring( h.pos.x, h.pos.z, { color: 0xffd36b, to: 60, life: 1.2, width: 0.25 } );
+		ring.forEach( ( o ) => {
+
+			o.state = 'stun';
+			o.stunT = 2.5;
+
+		} );
+		luke.setGlow( 1.2, 0xffb070 );
+		G.flags.lukeSaved = true;
+		await G.wait( 1.4 );
+		luke.setGlow( 0.3, 0xffd36b ); // 루크의 등불
+
+	},
+
 	lukeFall() {
 
 		const luke = G.actors.luke;
@@ -480,6 +578,7 @@ Object.assign( G, {
 		luke.falling = true;
 		luke.targetDepth = 16;
 		G.party.luke = 'gone';
+		G.route.luke = false;
 		G.flags.lukeGone = true;
 		G.ui.setParty( partyList() );
 		G.world.lighthouse.setOn( false );
@@ -512,7 +611,7 @@ Object.assign( G, {
 
 		ring.forEach( ( o ) => o.state = 'retreat' );
 		shaman.targetDepth = 25;
-		G.actors.luke.root.visible = false;
+		if ( G.party.luke === 'gone' ) G.actors.luke.root.visible = false;
 
 	},
 
@@ -581,7 +680,11 @@ Object.assign( G, {
 		G.save.cleared = true;
 		persist();
 		const minutes = Math.floor( G.stats.time / 60 ), seconds = Math.floor( G.stats.time % 60 );
-		$( 'ending-head' ).textContent = G.flags.subEnding ? 'THE END · SUB ENDING CLEAR' : 'THE END';
+		const key = G.endingKey();
+		saveEnding( key );
+		if ( G.flags.subEnding ) saveEnding( 'stella' );
+		$( 'ending-head' ).textContent = `ENDING · ${t( `endings.${key}.name` )}${G.flags.subEnding ? ' · SUB ENDING' : ''}`;
+		renderEndings( $( 'ending-list' ), key );
 		$( 'ending-quote' ).innerHTML = t( 'ending.quote' );
 		$( 'ending-stats' ).innerHTML = [
 			`PLAY TIME ${minutes}:${String( seconds ).padStart( 2, '0' )}`,
@@ -687,6 +790,7 @@ function updateOrcas( dt ) {
 
 			if ( damage( 1, w.pos ) ) {
 
+				G.route.hits ++;
 				o.state = 'stun';
 				o.stunT = 1.6;
 
@@ -874,7 +978,13 @@ function damage( n, from, { stun = 0 } = {} ) {
 	G.knock.set( dx / d * 30, 0, dz / d * 30 );
 	G.world.splash( h.pos.x, h.root.position.y, h.pos.z, { count: 50, power: 8, color: 0xffb0c0 } );
 	G.ui.setHearts( G.hearts, MAX_HEARTS );
-	if ( G.hearts <= 0 ) faint();
+	if ( G.hearts <= 0 ) {
+
+		if ( G.boss?.active && G.party.finn === 'on' ) finnShield( from );
+		else faint();
+
+	}
+
 	return true;
 
 }
@@ -934,6 +1044,111 @@ function heal( full = false ) {
 	G.hearts = full ? MAX_HEARTS : Math.min( MAX_HEARTS, G.hearts + 1 );
 	G.ui.setHearts( G.hearts, MAX_HEARTS );
 	G.audio.play( 'heal' );
+
+}
+
+// 보스전에서 처음 쓰러질 때 핀이 대신 맞는다 (부서진 나침반 · 희생 갈래)
+async function finnShield( from ) {
+
+	const T = lang().story.ch4;
+	const say = ( arr ) => G.say( arr.map( ( [ who, text ] ) => ( { who, text } ) ) );
+	const finn = G.actors.finn, h = G.actors.hazel;
+	G.fainting = true;
+	G.cutscene( true );
+	clearMeteors();
+	G.stun = 0;
+	G.knock.set( 0, 0, 0 );
+	G.party.finn = 'busy';
+	const dx = from.x - h.pos.x, dz = from.z - h.pos.z;
+	const d = Math.hypot( dx, dz ) || 1;
+	finn.scripted = { x: h.pos.x + dx / d * 8, z: h.pos.z + dz / d * 8, speed: 50 };
+	G.camFocus( finn, { side: - 1, dist: 36, height: 12 } );
+	const t0 = G.time;
+	await G.until( () => Math.hypot( finn.pos.x - finn.scripted.x, finn.pos.z - finn.scripted.z ) < 3 || G.time - t0 > 2 );
+	finn.breach( 9 );
+	await G.wait( 0.5 );
+	G.flash( 0.9 );
+	G.shake = 1.2;
+	G.audio.play( 'hit' );
+	G.audio.play( 'boom' );
+	G.world.ring( finn.pos.x, finn.pos.z, { color: 0x9d8cff, to: 60, life: 1.2, width: 0.25 } );
+	G.world.splash( finn.pos.x, finn.root.position.y, finn.pos.z, { count: 120, power: 14 } );
+	finn.setGlow( 1, 0x9d8cff );
+	G.hearts = MAX_HEARTS;
+	G.ui.setHearts( G.hearts, MAX_HEARTS );
+	await G.wait( 0.8 );
+	await say( T.finnLast );
+
+	finn.scripted = null;
+	finn.hold = true;
+	finn.falling = true;
+	finn.targetDepth = 16;
+	G.party.finn = 'gone';
+	G.route.finn = false;
+	G.flags.finnGone = true;
+	G.ui.setParty( partyList() );
+	G.audio.setMix( { drums: 0 }, 4 );
+	G.audio.play( 'sad' );
+	await G.wait( 3 );
+	G.ui.banner( ...T.bannerFinn, 'sad', 4 );
+	await G.wait( 2.5 );
+	await say( T.compass );
+	G.compass = 1;
+	G.ui.setCompass( 1 );
+	finn.root.visible = false;
+	G.boss.phase = 'rage';
+	G.boss.t = - 1;
+	G.boss.meteorT = 2;
+	updateBossHud();
+	G.invuln = 3;
+	G.camRelease();
+	G.cutscene( false );
+	G.fainting = false;
+
+}
+
+// 부서진 나침반: 시간이 지나면 길 안내가 흐려지고, 미역 곁에서 노래하면 다시 맞춰진다
+function updateCompass( dt ) {
+
+	if ( G.compass === null || ! G.started || G.ended || G.cutsceneOn || G.ui.dialogOpen ) return;
+	const before = G.compass;
+	G.compass = Math.max( 0, G.compass - dt / COMPASS_TIME );
+	if ( before > COMPASS_WEAK && G.compass <= COMPASS_WEAK ) G.ui.toast( t( 'toast.compassWeak' ) );
+	if ( before > 0 && G.compass === 0 ) G.ui.toast( t( 'toast.compassOff' ) );
+	G.ui.setCompass( G.compass );
+
+}
+
+function refillCompass( k ) {
+
+	if ( G.compass === null || G.compass > 0.97 ) return;
+	G.compass = 1;
+	G.ui.setCompass( 1 );
+	G.ui.toast( t( 'toast.compassOn' ) );
+	G.world.ring( k.x, k.z, { color: 0x9d8cff, to: 36, life: 1.2, delay: 0.2 } );
+
+}
+
+// 나침반이 흐려지면 길 안내가 깜빡이다가 꺼진다
+function guideVisible() {
+
+	const c = G.compass;
+	if ( c === null || c > COMPASS_WEAK ) return true;
+	if ( c <= 0 ) return false;
+	return ( G.time * 2.5 ) % 1 < 0.35 + 0.65 * c / COMPASS_WEAK;
+
+}
+
+// 엔딩 도감: 본 엔딩은 이름, 못 본 엔딩은 힌트
+function renderEndings( el, current ) {
+
+	const seen = loadEndings();
+	const count = ENDING_ORDER.filter( ( k ) => seen.includes( k ) ).length;
+	const items = ENDING_ORDER.map( ( k ) => seen.includes( k )
+		? `<li class="seen${k === current ? ' now' : ''}">◆ ${t( `endings.${k}.name` )}</li>`
+		: `<li>◇ ??? <small>${G.ui.dev( t( `endings.${k}.hint` ) )}</small></li>` );
+	if ( seen.includes( 'stella' ) ) items.push( `<li class="seen star">★ ${t( 'endings.stella' )}</li>` );
+	el.innerHTML = `<li class="head">ENDINGS ${count}/${ENDING_ORDER.length}</li>${items.join( '' )}`;
 
 }
 
@@ -1294,11 +1509,13 @@ function startBoss( resolve, chapterLabel ) {
 	arena.scale.setScalar( 160 );
 	arena.position.set( PLACES.moby.x, 0, PLACES.moby.z );
 	scene.add( arena );
+	// 루크가 함께면 등불로 비춰서 노래가 닿는 원이 넓어진다
+	const reach = G.party.luke === 'on' ? 64 : 46;
 	const listenRing = makeSurfaceDecal( { color: 0x5fd8ff, inner: 0.95, outer: 1, opacity: 0, fill: 0.12 } );
-	listenRing.scale.setScalar( 46 );
+	listenRing.scale.setScalar( reach );
 	scene.add( listenRing );
 
-	G.boss = { active: true, phase: 'rage', t: 0, resonance: 0, meteorT: 1.5, arena, listenRing, resolve, meteors: [] };
+	G.boss = { active: true, phase: 'rage', t: 0, resonance: 0, meteorT: 1.5, arena, listenRing, reach, resolve, meteors: [] };
 	G.actors.moby.hold = false;
 	setCheckpoint( G.actors.hazel.pos.x, G.actors.hazel.pos.z );
 	G.audio.setMix( { tension: 0.6, drums: 1, melody: 0.4 } );
@@ -1446,7 +1663,7 @@ async function bossSing() {
 
 	const b = G.boss;
 	const m = G.actors.moby;
-	if ( b.phase !== 'listen' || G.distTo( m.pos ) > 50 ) return;
+	if ( b.phase !== 'listen' || G.distTo( m.pos ) > b.reach + 4 ) return;
 	b.resonance ++;
 	b.phase = 'rage';
 	b.t = - 1.5;
@@ -1699,6 +1916,13 @@ function onAction( code ) {
 
 	}
 
+	if ( G.jumpCueOn && code === 'Space' ) {
+
+		if ( jump() ) G.jumpCueOn = false;
+		return;
+
+	}
+
 	if ( G.cutsceneOn || G.ended ) return;
 	if ( code === 'KeyE' ) sing();
 	if ( code === 'Space' ) jump();
@@ -1895,6 +2119,8 @@ function sing() {
 
 	if ( G.pendingKelp && G.distTo( G.kelps[ G.pendingKelp ] ) < 34 ) doReadKelp( G.pendingKelp );
 	else rechargeAtKelp();
+	const kelp = nearestKelp( 34 );
+	if ( kelp ) refillCompass( kelp );
 
 	if ( G.boss?.active ) bossSing();
 
@@ -1958,7 +2184,7 @@ async function doReadKelp( key ) {
 function jump() {
 
 	const h = G.actors.hazel;
-	if ( G.jumpCooldown > 0 || h.airborne || G.stun > 0 ) return;
+	if ( G.jumpCooldown > 0 || h.airborne || G.stun > 0 ) return false;
 	if ( h.breach( 12 + Math.min( h.speed, BOOST_SPEED ) * 0.12 ) ) {
 
 		G.jumpCooldown = 0.35;
@@ -1971,7 +2197,11 @@ function jump() {
 
 		}
 
+		return true;
+
 	}
+
+	return false;
 
 }
 
@@ -2114,6 +2344,15 @@ async function boot() {
 	};
 
 	showContinue();
+	// 본 엔딩 수 (◆ 본 엔딩, ◇ 아직, ★ 스텔라)
+	const seen = loadEndings();
+	if ( seen.length ) {
+
+		$( 'title-endings' ).textContent = `ENDINGS ${ENDING_ORDER.map( ( k ) => seen.includes( k ) ? '◆' : '◇' ).join( '' )} ${ENDING_ORDER.filter( ( k ) => seen.includes( k ) ).length}/${ENDING_ORDER.length}${seen.includes( 'stella' ) ? ' · ★' : ''}`;
+		$( 'title-endings' ).classList.remove( 'hidden' );
+
+	}
+
 	continueBtn.onclick = () => {
 
 		setName( $( 'nickname' ).value );
@@ -2168,6 +2407,7 @@ async function boot() {
 
 		setName( $( 'nickname' ).value );
 		if ( debugChapter === null ) G.save = { chapter: 0, bottles: [], read: [], kelps: [] };
+		G.route = newRoute( ROUTE_TEST ?? ( debugChapter >= 4 ? 'light' : null ) );
 		if ( STELLA_TEST ) G.save = { ...G.save, bottles: BOTTLES.map( ( b ) => b.id ), read: BOTTLES.map( ( b ) => b.id ) };
 		start( debugChapter ?? 0 );
 
@@ -2236,21 +2476,36 @@ function setupChapter( n ) {
 
 	if ( n >= 4 ) {
 
-		G.party.luke = 'gone';
-		G.flags.lukeGone = true;
-		A.luke.root.visible = false;
-		G.world.lighthouse.setOn( false );
-		G.world.lighthouse.on = 0;
-		G.audio.setMix( { bass: 0 }, 0.1 );
-		for ( const k of [ 'kelp4', 'kelp5' ] ) G.kelps[ k ].read = true;
-
-	}
-
-	if ( n >= 4 ) {
-
 		G.setStarfall( true );
-		G.flags.lukeLight = true;
-		spawnLukeLight( PLACES.ambush.x, PLACES.ambush.z, false );
+		for ( const k of [ 'kelp4', 'kelp5' ] ) G.kelps[ k ].read = true;
+		if ( G.route.luke ) {
+
+			G.flags.lukeSaved = true;
+			A.luke.setGlow( 0.3, 0xffd36b );
+
+		} else {
+
+			G.party.luke = 'gone';
+			G.flags.lukeGone = true;
+			A.luke.root.visible = false;
+			G.world.lighthouse.setOn( false );
+			G.world.lighthouse.on = 0;
+			G.audio.setMix( { bass: 0 }, 0.1 );
+			G.flags.lukeLight = true;
+			spawnLukeLight( PLACES.ambush.x, PLACES.ambush.z, false );
+
+		}
+
+		if ( ! G.route.finn ) {
+
+			G.party.finn = 'gone';
+			G.flags.finnGone = true;
+			A.finn.root.visible = false;
+			G.audio.setMix( { drums: 0 }, 0.1 );
+			G.compass = 1;
+			G.ui.setCompass( 1 );
+
+		}
 
 	}
 	if ( n >= 5 ) {
@@ -2341,6 +2596,7 @@ async function searchAfterEnding() {
 	G.ui.show( 'ending', false );
 	G.ended = false;
 	G.save.chapter = EPILOGUE;
+	G.save.route = { ...G.route };
 	persist();
 	G.camRelease();
 	setCheckpoint( h.pos.x, h.pos.z );
@@ -2368,6 +2624,7 @@ async function start( chapter ) {
 	if ( chapter >= EPILOGUE ) {
 
 		G.save.chapter = EPILOGUE;
+		G.save.route = { ...G.route };
 		persist();
 		await epilogue( G );
 		return;
@@ -2377,6 +2634,7 @@ async function start( chapter ) {
 	for ( let i = chapter; i < CHAPTERS.length; i ++ ) {
 
 		G.save.chapter = i;
+		G.save.route = { ...G.route };
 		persist();
 		await CHAPTERS[ i ]( G );
 
@@ -2628,10 +2886,13 @@ function updateBottlesAndKelp( dt ) {
 	if ( G.started && ! G.cutsceneOn && ! G.ui.dialogOpen ) {
 
 		if ( G.pendingKelp && G.distTo( G.kelps[ G.pendingKelp ] ) < 34 ) prompt = t( 'prompt.kelp' );
-		else if ( G.boss?.active && G.boss.phase === 'listen' && G.distTo( G.actors.moby.pos ) < 50 ) prompt = t( 'prompt.moby' );
+		else if ( G.boss?.active && G.boss.phase === 'listen' && G.distTo( G.actors.moby.pos ) < G.boss.reach + 4 ) prompt = t( 'prompt.moby' );
 		else if ( G.hearts < MAX_HEARTS && nearestKelp( 34 ) ) prompt = t( 'prompt.recharge' );
+		else if ( G.compass !== null && G.compass < 0.97 && nearestKelp( 34 ) ) prompt = t( 'prompt.compass' );
 
 	}
+
+	if ( G.jumpCueOn ) prompt = t( 'prompt.jump' );
 
 	G.ui.prompt( prompt );
 
@@ -2700,7 +2961,7 @@ function updateHud() {
 	if ( ! G.started ) return;
 	G.ui.setStamina( G.stamina, G.dash > 0 );
 	const t = G.objectiveTarget;
-	if ( t && ! G.cutsceneOn && ! G.ended ) {
+	if ( t && ! G.cutsceneOn && ! G.ended && guideVisible() ) {
 
 		const y = sampleOcean( t.x, t.z ) + 8;
 		_v.set( t.x, y, t.z ).project( camera );
@@ -2758,7 +3019,7 @@ function updateHud() {
 
 	G.ui.drawMinimap( {
 		px: h.pos.x, pz: h.pos.z, yaw: h.yaw, range: 260, time: G.time,
-		rocks: G.world.colliders, points, objective: t
+		rocks: G.world.colliders, points, objective: t, signal: G.compass ?? 1
 	} );
 
 }
@@ -2788,6 +3049,7 @@ function update( dt ) {
 	G.world.update( dt, G.time );
 
 	updatePlayer( dt );
+	updateCompass( dt );
 	updateCompanions( dt );
 	updateOrcas( dt );
 	updateBottlesAndKelp( dt );

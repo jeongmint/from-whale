@@ -71,7 +71,7 @@
 			</section>
 
 			<div id="minimap-wrap" class="win">
-				<header class="win-bar"><span>SONAR</span><i></i></header>
+				<header class="win-bar"><span>SONAR</span><span id="compass-meter" hidden><small>COMPASS</small><span class="gauge"><span class="fill"></span></span></span><i></i></header>
 				<canvas id="minimap" width="180" height="180"></canvas>
 			</div>
 
@@ -194,6 +194,7 @@
 						<button class="btn big" id="btn-start" data-i18n="title.start"></button>
 						<button class="btn ghost hidden" id="btn-continue" data-i18n="title.continue"></button>
 					</div>
+					<p id="title-endings" class="mono tiny hidden"></p>
 				</div>
 				<p class="quote" data-i18n="title.quote"></p>
 				<p class="controls mono tiny key-only">WASD MOVE · SHIFT BOOST · SPACE JUMP · E SING 52HZ</p>
@@ -208,6 +209,7 @@
 				<div class="win-body">
 					<p class="quote big" id="ending-quote"></p>
 					<div id="ending-stats" class="mono tiny"></div>
+					<ul id="ending-list"></ul>
 					<div class="row">
 						<button class="btn hidden" id="btn-search"></button>
 						<button class="btn ghost" id="btn-again" data-i18n="ending.again"></button>

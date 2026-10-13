@@ -236,34 +236,50 @@ async function chapter3( G ) {
 	G.ambushCharge( ring );
 	await G.wait( 0.9 );
 	G.audio.whaleCall( null, 'luke' );
-	await G.say( lines( T().lukeCry ) );
-	await G.lukeShield( ring );
-	await G.wait( 0.8 );
-	await G.say( lines( T().lukeLast ) );
 
-	G.lukeFall();
-	G.audio.play( 'sad' );
-	await G.wait( 3.2 );
-	G.banner( ...T().bannerLuke, 'sad', 4 );
-	await G.wait( 2.5 );
-	G.scatterLukeLight();
-	await G.wait( 2.4 );
-	await G.say( lines( T().lightScatter ) );
-	G.banner( ...T().bannerAbility, 'join', 4.5 );
-	await G.wait( 1 );
-	await G.say( lines( T().go ) );
+	// 갈림길: 여기까지 연합군에게 한 번까지만 맞았으면, 루크와 함께 뛰어올라 피한다
+	const saved = G.lukeCanLive();
+	if ( saved ) {
+
+		await G.say( lines( T().lukeJump ) );
+		await G.jumpCue();
+		await G.lukeDodge( ring );
+		await G.say( lines( T().lukeSaved ) );
+		G.banner( ...T().bannerSaved, 'join', 4 );
+		await G.wait( 1 );
+
+	} else {
+
+		await G.say( lines( T().lukeCry ) );
+		await G.lukeShield( ring );
+		await G.wait( 0.8 );
+		await G.say( lines( T().lukeLast ) );
+
+		G.lukeFall();
+		G.audio.play( 'sad' );
+		await G.wait( 3.2 );
+		G.banner( ...T().bannerLuke, 'sad', 4 );
+		await G.wait( 2.5 );
+		G.scatterLukeLight();
+		await G.wait( 2.4 );
+		await G.say( lines( T().lightScatter ) );
+		G.banner( ...T().bannerAbility, 'join', 4.5 );
+		await G.wait( 1 );
+		await G.say( lines( T().go ) );
+
+	}
 
 	G.setMusic( { tension: 0.35, drums: 0.8 } );
 	G.camRelease();
 	G.cutscene( false );
 	G.ambushChase( ring );
-	G.objective( label( T().card ), T().objEscape, PLACES.kelp5 );
+	G.objective( label( T().card ), saved ? T().objEscapeSaved : T().objEscape, PLACES.kelp5 );
 	await G.until( () => G.distTo( PLACES.kelp5 ) < 60 );
 	G.ambushRetreat( ring, shaman );
 	G.toast( T().toastStop );
 	G.setMusic( { tension: 0, drums: 0.6, melody: 1 } );
 
-	await G.say( lines( T().afterEscape ) );
+	await G.say( lines( saved ? T().afterEscapeSaved : T().afterEscape ) );
 	G.objective( label( T().card ), T().objKelp5, PLACES.kelp5 );
 	await G.readKelp( 'kelp5' );
 
@@ -287,6 +303,14 @@ async function chapter4( G ) {
 	G.audio.whaleCall( null, 'moby' );
 	await G.wait( 2.5 );
 	await G.say( lines( T().moby ) );
+	// 루크가 살아 있으면 등불로 모비를 비춰 준다 (노래가 닿는 원이 넓어진다)
+	if ( G.party.luke === 'on' ) {
+
+		await G.say( lines( T().lukeLantern ) );
+		G.banner( ...T().bannerLantern, 'join', 4 );
+
+	}
+
 	G.camRelease();
 	G.cutscene( false );
 
@@ -300,10 +324,14 @@ async function chapter4( G ) {
 async function ending( G ) {
 
 	const T = () => lang().story.ending;
+	// 루크·핀이 살았는지에 따라 엔딩이 갈린다: 꺼지지 않는 빛 / 동료의 힘 / 부서진 나침반 / 희생
+	const key = G.endingKey();
 	G.cutscene( true );
 	G.camFocus( G.actors.moby, { side: - 1, dist: 80, height: 22 } );
-	G.setMusic( { tension: 0, drums: 0.3, bass: 0.5, melody: 1, piano: 1 } );
-	await G.say( lines( T().lines ) );
+	// 루크의 베이스는 희생 엔딩에서만 돌아오지 않고, 핀의 드럼은 핀이 있을 때만
+	G.setMusic( { tension: 0, drums: G.route.finn ? 0.3 : 0, bass: key === 'sacrifice' ? 0 : 0.5, melody: 1, piano: 1 } );
+	await G.say( lines( [ ...T().lines, ...T().routes[ key ] ] ) );
+	await card( G, T().cards[ key ] );
 
 	if ( G.bottleCount() >= BOTTLES.length ) await meetStella( G );
 
@@ -335,7 +363,8 @@ export async function epilogue( G ) {
 	const T = () => lang().story.epilogue;
 	G.setStarfall( false );
 	G.setMusic( { tension: 0, drums: 0.5, bass: 0, melody: 1, piano: 1, sax: 0.9 } );
-	await G.say( lines( T().start ) );
+	const who = G.party.finn === 'on' ? 'finn' : G.party.luke === 'on' ? 'luke' : 'none';
+	await G.say( lines( T().start[ who ] ) );
 	G.objective( label( T().card ), T().objective );
 	G.ui.toast( T().hint );
 
