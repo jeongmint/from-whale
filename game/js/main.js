@@ -55,7 +55,12 @@ window.addEventListener( 'unhandledrejection', ( e ) => showError( e.reason?.sta
 function showError( msg ) {
 
 	const el = $( 'error' );
-	el.textContent = `${t( 'error' )}\n${msg}`;
+	el.textContent = `${t( 'error' )}\n${String( msg ).split( '\n' )[ 0 ]}\n`;
+	const retry = document.createElement( 'button' );
+	retry.className = 'chip';
+	retry.textContent = t( 'retry' );
+	retry.onclick = () => location.reload();
+	el.append( retry );
 	el.classList.remove( 'hidden' );
 
 }
@@ -2666,7 +2671,10 @@ function updatePlayer( dt ) {
 		boost = keys.has( 'ShiftLeft' ) || keys.has( 'ShiftRight' ) || touch.boost;
 		if ( touch.active ) {
 
-			throttle = Math.max( throttle, Math.min( 1, Math.hypot( touch.x, touch.y ) * 1.2 ) * ( touch.y > 0.6 ? - 0.35 : 1 ) );
+			// 많이 밀수록 빠르게, 아래로 당기면 천천히 뒤로 (S 키와 같은 속도)
+			const push = Math.min( 1, Math.hypot( touch.x, touch.y ) * 1.2 );
+			const stick = touch.y > 0.6 ? - 0.35 * push : push;
+			if ( Math.abs( stick ) > Math.abs( throttle ) ) throttle = stick;
 			turn = - touch.x * 1.2;
 
 		}
@@ -3065,8 +3073,9 @@ function update( dt ) {
 function loop() {
 
 	requestAnimationFrame( loop );
-	const dt = Math.min( clock.getDelta(), DT_MAX );
-	G.fps = G.fps ? G.fps * 0.95 + ( 1 / Math.max( dt, 1e-3 ) ) * 0.05 : 30;
+	const raw = clock.getDelta();
+	const dt = Math.min( raw, DT_MAX ); // 게임 진행은 한 프레임 최대 DT_MAX까지만
+	G.fps = G.fps ? G.fps * 0.95 + ( 1 / Math.max( raw, 1e-3 ) ) * 0.05 : 30; // FPS는 실제 프레임 시간으로
 	if ( G.ready && ! G.menuPaused && ! G.ui.overlay ) update( dt );
 	syncSize();
 	if ( G.ready ) composer.render( dt );

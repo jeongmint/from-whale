@@ -6,6 +6,7 @@ export default {
 
 	ui: {
 		error: 'Something went wrong :(',
+		retry: 'Reload',
 		title: {
 			tagline: 'Another world, the year 2066. A sea where only a few humans remain.<br>There was a whale who sang at 52Hz, a song no one could hear.',
 			start: '▶ Begin the journey',

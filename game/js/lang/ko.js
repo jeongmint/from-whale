@@ -6,6 +6,7 @@ export default {
 
 	ui: {
 		error: '오류가 났어요 :(',
+		retry: '다시 불러오기',
 		title: {
 			tagline: '이세계의 2066년, 소수의 인간만이 살아남은 바다.<br>아무도 듣지 못하는 52Hz로 노래하는 고래가 있었다.',
 			start: '▶ 모험 시작',

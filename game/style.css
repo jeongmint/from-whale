@@ -45,7 +45,8 @@ html, body {
 	user-select: none;
 	-webkit-user-select: none;
 	-webkit-tap-highlight-color: transparent;
-	overscroll-behavior: none;
+	/* 당겨서 새로고침만 막는다. 가로까지 막으면 크롬 트랙패드 스와이프 뒤로가기가 안 된다 */
+	overscroll-behavior-y: none;
 	touch-action: none;
 }
 
@@ -552,6 +553,7 @@ body.touch #feedback textarea { font-size: 16px; } /* iOS가 입력할 때 화�
 #feedback-status .chip { text-decoration: none; }
 
 #fade { position: fixed; inset: 0; background: #000; opacity: 0; pointer-events: none; z-index: 20; transition: opacity 1s; }
+#error .chip { margin-top: 8px; font-size: 13px; padding: 6px 12px; }
 #error { position: fixed; left: 16px; right: 16px; bottom: 16px; z-index: 30; padding: 12px; background: #3a0b1f; border: 2px solid var(--warn); font: 12px var(--mono); white-space: pre-wrap; }
 
 /* ---------- 모바일 ---------- */
