@@ -241,7 +241,22 @@ input { touch-action: manipulation; }
 	border: 1px solid var(--cyan); background: rgba(127, 233, 255, 0.15);
 }
 
-#toasts { position: absolute; left: 14px; top: 140px; display: flex; flex-direction: column; gap: 6px; }
+/* PC: HAZEL 창 아래 작은 조작 안내 */
+#hud-keys {
+	position: absolute; top: 108px; left: 14px; width: 210px;
+	display: flex; flex-wrap: wrap; gap: 4px 10px;
+	font-size: 11px; color: var(--ink-dim);
+	text-shadow: 0 1px 3px rgba(0, 4, 20, 0.9);
+	pointer-events: none;
+}
+#hud-keys em { font-style: normal; }
+#hud-keys kbd {
+	font: 10px var(--mono); color: var(--ink);
+	padding: 1px 4px; margin-right: 4px;
+	background: rgba(5, 20, 58, 0.7); border: 1px solid var(--line);
+}
+
+#toasts { position: absolute; left: 14px; top: 160px; display: flex; flex-direction: column; gap: 6px; }
 .toast {
 	padding: 6px 10px; font-size: 13px;
 	background: var(--panel); border-left: 4px solid var(--cyan);
@@ -544,6 +559,8 @@ body.talking #stick { opacity: 0; pointer-events: none; }
 	#dialog-portrait { width: 56px; height: 56px; }
 	#dialog-text { font-size: 15px; }
 	#toasts { top: 110px; left: 8px; }
+	#hud-keys { top: 100px; left: 8px; width: 160px; }
+	body:not(.touch) #toasts { top: 150px; }
 	.slot { width: 40px; height: 40px; }
 	#party { min-height: 40px; }
 	.party-meta { gap: 3px; }

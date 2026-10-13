@@ -13,7 +13,7 @@ export default {
 			continueAt: 'Continue · {ch}',
 			quote: '“ Adventure begins<br>with the very thought of doing something ”'
 		},
-		hud: { hearts: 'Health', journal: 'Letters (L)', mute: 'Sound (M)', pause: 'Pause (Esc)', home: 'Back to home', boss: 'MOBY DICK · HEART' },
+		hud: { hearts: 'Health', journal: 'Letters (L)', mute: 'Sound (M)', pause: 'Pause (Esc)', home: 'Back to home', boss: 'MOBY DICK · HEART', keys: { swim: 'Swim', boost: 'Boost', jump: 'Jump', sing: 'Sing' } },
 		song: { title: '52HZ ↔ FINN', listen: 'Listen… the rhythm of Finn\'s sobs', turn: 'Now! Sing back the same rhythm [E]', miss: 'Not quite… listen again', help: 'Luke counts the beat for you', good: 'The sobbing eases a little', done: 'The crying stops' },
 		duet: { title: 'DUET · 52HZ ♥ 52HZ', help: 'Sing [E] · Jump [Space]', ready: 'Stella counts you in…', perfect: 'PERFECT', good: 'GOOD', miss: 'MISS', combo: '{n} COMBO', rank: 'RANK {r}', sky: '★ The night sky is complete!' },
 		letter: { close: 'Close <span class="mono tiny">[E]</span>' },
