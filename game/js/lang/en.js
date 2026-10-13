@@ -90,7 +90,7 @@ export default {
 		boss: {
 			objective: 'Let your 52Hz song reach Moby Dick\'s heart',
 			hintListen: '♪ Now! Get inside the blue ring and press [E]',
-			hintCharge: '! He\'s charging — dodge or jump',
+			hintCharge: '! Moby Dick is charging — dodge or jump',
 			hintRage: 'Dodge the falling stars'
 		},
 		touchKeys: [ [ 'W A S D / arrow keys', 'the left stick' ] ],
@@ -119,7 +119,7 @@ export default {
 		{ id: 1, head: 'LETTER #01', body: 'Since the humans dwindled, the sea has gone quiet.\nSo quiet that now we fight among ourselves.', from: '— A nameless dolphin' },
 		{ id: 2, head: 'LETTER #02', body: 'The sea has no rulers. That is its first law.\nNo one governs anyone.\nSo why does the Alliance keep talking about “order”?', from: '— A humpback whale' },
 		{ id: 3, head: 'LETTER #03', body: 'The Alliance Shaman says strange hertz make the sea sick.\nIs that really true?\nMy song is a little strange, too.', from: '— K, Alliance trainee' },
-		{ id: 4, head: 'LETTER #04', body: 'In the years the whaling grew worst, a white sperm whale wrecked the ships.\nPeople called him Moby Dick.\nAfter that, the balance of the sea was never the same.', from: '— A scrap of an old ship\'s log' },
+		{ id: 4, head: 'LETTER #04', body: 'In the years the whaling grew worst, a white sperm whale wrecked the ships.\nPeople named that whale Moby Dick.\nAfter that, the balance of the sea was never the same.', from: '— A scrap of an old ship\'s log' },
 		{ id: 5, head: 'LETTER #05', body: 'With a pattern of light on your back, humans can\'t see you.\nThe trade-off: other whales\' songs sound a little farther away.\nBut I keep mine for a very good reason!', from: '— S' },
 		{ id: 6, head: 'LETTER #06', body: 'A lighthouse keeps its light on for the sea,\neven when no one says thank you.\n\nAll clear tonight.', from: '— Lighthouse log, L' }
 	],
@@ -220,15 +220,15 @@ export default {
 				[ 'finn', 'And you. You\'re the 52 hertz, aren\'t you?\nThe Alliance is hunting you. Any whale with a suspicious hertz gets “purified.”' ],
 				[ 'hazel', '( shows the bottle )' ],
 				[ 'finn', '......This handwriting.' ],
-				[ 'finn', 'It\'s Moby Dick\'s. He said that on the day the stars fall, he would finish the humans.' ],
+				[ 'finn', 'It\'s Moby Dick\'s. On the day the stars fall, Moby Dick swore to finish the humans.' ],
 				[ 'luke', 'Hey. Are you crying right now?' ],
 				[ 'finn', '...I cry easily. Don\'t mind it.\n*sniff*... *sob*...' ],
-				[ 'luke', '...It\'s not stopping. {N}, hear the rhythm of those sobs?\nSing it back to him, beat for beat. That\'s how whales comfort each other.' ]
+				[ 'luke', '...It\'s not stopping. {N}, hear the rhythm of those sobs?\nSing it right back, beat for beat. That\'s how whales comfort each other.' ]
 			],
 			calm: [
 				[ 'finn', '......' ],
 				[ 'finn', 'That\'s strange. They say nobody can hear 52 hertz.\n...But I heard you.' ],
-				[ 'finn', 'I know the way. The currents, and the Alliance patrol routes.\n...I need to see him one more time, too.' ],
+				[ 'finn', 'I know the way. The currents, and the Alliance patrol routes.\n...I need to see Moby Dick one more time, too.' ],
 				[ 'luke', 'Travel with a crybaby orca? ...Well, we do need a guide.' ]
 			],
 			ability: 'Foresight — shows how far Alliance patrols can see · boost lasts longer'
@@ -303,11 +303,11 @@ export default {
 				[ 'moby', 'They were not stars.\nThey were flares fired from human ships, pouring down like hail.' ],
 				[ 'moby', 'My mother pushed me away and said,\n“On the day the stars fall, you can do anything. So run.”' ],
 				[ 'moby', 'She never came back.\n...This time, it is my turn to do anything.' ],
-				[ 'finn', '{N}, he isn\'t listening to anyone right now.\nBut your song... might be different.' ]
+				[ 'finn', '{N}, Moby Dick isn\'t listening to anyone right now.\nBut your song... might be different.' ]
 			],
 			lukeLantern: [
-				[ 'luke', '{N}, I\'ll keep my light on him until your song gets through.' ],
-				[ 'luke', 'When he listens, anywhere my light reaches, he\'ll hear you.' ]
+				[ 'luke', '{N}, I\'ll keep my light on Moby Dick until your song gets through.' ],
+				[ 'luke', 'Once Moby Dick listens, your song will carry as far as my light reaches.' ]
 			],
 			bannerLantern: [ 'ABILITY', 'Luke\'s Lantern', 'When Moby Dick listens, the blue circle your song reaches gets wider' ],
 			finnLast: [
@@ -326,7 +326,7 @@ export default {
 			card: [ 'EPILOGUE', 'Looking for Stella' ],
 			start: {
 				finn: [ [ 'finn', 'Stella... the whale Moby Dick told us about.\nIf we gather all the scattered letters, maybe we\'ll find the way.' ] ],
-				luke: [ [ 'luke', 'Stella... some odd old blue whale who doodles on kelp?\nGather every scattered letter and we\'ll find her. Let\'s go.' ] ],
+				luke: [ [ 'luke', 'Stella... some odd old blue whale who doodles on kelp?\nGather every scattered letter and we\'ll track that whale down. Let\'s go.' ] ],
 				none: [ [ 'narrator', 'Stella. The other 52Hz Moby Dick spoke of.\nGather every scattered letter, and the way might appear.' ] ]
 			},
 			objective: 'Find the rest of the letters in bottles',
@@ -355,7 +355,7 @@ export default {
 				],
 				compass: [
 					[ 'luke', '...That crybaby. Didn\'t cry at the end.' ],
-					[ 'luke', 'We\'ll have to find our own way now. The way he taught us.' ],
+					[ 'luke', 'We\'ll have to find our own way now. The way Finn taught us.' ],
 					[ 'narrator', 'The broken compass no longer points anywhere.\nStill, {N} knew where to go.' ]
 				],
 				sacrifice: [
