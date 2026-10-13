@@ -27,7 +27,7 @@ export default {
 		},
 		pause: {
 			helpTouch: '<div><kbd>조이스틱</kbd> 헤엄치기 — 많이 밀수록 빠르게</div><div><kbd>»</kbd> 누르고 있으면 빠르게 (스태미나)</div><div><kbd>⤴</kbd> 점프 — 공중에선 무적</div><div><kbd>♪</kbd> 52Hz 노래 · 말 걸기 · 소나 · 대화 넘기기</div><div><kbd>화면 드래그</kbd> 시점 &nbsp; <kbd>✉</kbd> 편지함</div>',
-			helpKeys: '<div><kbd>W A S D</kbd> / <kbd>방향키</kbd> 헤엄치기</div><div><kbd>Shift</kbd> 빠르게 (스태미나)</div><div><kbd>Space</kbd> 점프 — 공중에선 무적</div><div><kbd>E</kbd> 52Hz 노래 · 말 걸기 · 소나</div><div><kbd>L</kbd> 편지함 &nbsp; <kbd>M</kbd> 소리 &nbsp; <kbd>드래그</kbd> 시점</div>',
+			helpKeys: '<div><kbd>W A S D</kbd> / <kbd>방향키</kbd> 화면 기준으로 헤엄치기 (A·D 옆으로)</div><div><kbd>Shift</kbd> 빠르게 (스태미나)</div><div><kbd>Space</kbd> 점프 — 공중에선 무적</div><div><kbd>E</kbd> 52Hz 노래 · 말 걸기 · 소나</div><div><kbd>L</kbd> 편지함 &nbsp; <kbd>M</kbd> 소리 &nbsp; <kbd>드래그</kbd> 시점</div>',
 			resume: '계속하기',
 			restart: '처음부터'
 		},

@@ -27,7 +27,7 @@ export default {
 		},
 		pause: {
 			helpTouch: '<div><kbd>Stick</kbd> Swim — push further to go faster</div><div><kbd>»</kbd> Hold to go fast (stamina)</div><div><kbd>⤴</kbd> Jump — nothing can hit you in the air</div><div><kbd>♪</kbd> Sing at 52Hz · talk · sonar · next line</div><div><kbd>Drag</kbd> Look around &nbsp; <kbd>✉</kbd> Letters</div>',
-			helpKeys: '<div><kbd>W A S D</kbd> / <kbd>Arrows</kbd> Swim</div><div><kbd>Shift</kbd> Go fast (stamina)</div><div><kbd>Space</kbd> Jump — nothing can hit you in the air</div><div><kbd>E</kbd> Sing at 52Hz · talk · sonar</div><div><kbd>L</kbd> Letters &nbsp; <kbd>M</kbd> Sound &nbsp; <kbd>Drag</kbd> Look around</div>',
+			helpKeys: '<div><kbd>W A S D</kbd> / <kbd>Arrows</kbd> Swim relative to the screen (A·D sideways)</div><div><kbd>Shift</kbd> Go fast (stamina)</div><div><kbd>Space</kbd> Jump — nothing can hit you in the air</div><div><kbd>E</kbd> Sing at 52Hz · talk · sonar</div><div><kbd>L</kbd> Letters &nbsp; <kbd>M</kbd> Sound &nbsp; <kbd>Drag</kbd> Look around</div>',
 			resume: 'Resume',
 			restart: 'Start over'
 		},

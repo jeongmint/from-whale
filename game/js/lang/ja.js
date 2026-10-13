@@ -27,7 +27,7 @@ export default {
 		},
 		pause: {
 			helpTouch: '<div><kbd>スティック</kbd> 泳ぐ — 大きく倒すほど速い</div><div><kbd>»</kbd> 押している間ダッシュ (スタミナ)</div><div><kbd>⤴</kbd> ジャンプ — 空中では無敵</div><div><kbd>♪</kbd> 52Hzで歌う · 話しかける · ソナー · 会話を進める</div><div><kbd>画面ドラッグ</kbd> 視点 &nbsp; <kbd>✉</kbd> 手紙</div>',
-			helpKeys: '<div><kbd>W A S D</kbd> / <kbd>矢印キー</kbd> 泳ぐ</div><div><kbd>Shift</kbd> ダッシュ (スタミナ)</div><div><kbd>Space</kbd> ジャンプ — 空中では無敵</div><div><kbd>E</kbd> 52Hzで歌う · 話しかける · ソナー</div><div><kbd>L</kbd> 手紙 &nbsp; <kbd>M</kbd> サウンド &nbsp; <kbd>ドラッグ</kbd> 視点</div>',
+			helpKeys: '<div><kbd>W A S D</kbd> / <kbd>矢印キー</kbd> 画面基準で泳ぐ (A·Dで横へ)</div><div><kbd>Shift</kbd> ダッシュ (スタミナ)</div><div><kbd>Space</kbd> ジャンプ — 空中では無敵</div><div><kbd>E</kbd> 52Hzで歌う · 話しかける · ソナー</div><div><kbd>L</kbd> 手紙 &nbsp; <kbd>M</kbd> サウンド &nbsp; <kbd>ドラッグ</kbd> 視点</div>',
 			resume: 'つづける',
 			restart: '最初から'
 		},

@@ -650,8 +650,14 @@ body.tilt #stick { display: none; }
 	#stick { left: 16px; bottom: 16px; width: 120px; height: 120px; }
 	body.talking #touch-buttons { opacity: 0; pointer-events: none; }
 	#song, #duet { bottom: 84px; }
-	#dialog { width: min(620px, calc(100vw - 32px)); }
-	#dialog .win-body { min-height: 84px; padding: 8px 10px; }
+	/* 대화창: 아래쪽 가운데에 얇게 한 줄 (대화 중엔 조이스틱 · 버튼 · 소나가 숨어서 자리가 빈다) */
+	#dialog { bottom: 6px; width: min(700px, calc(100vw - 24px)); }
+	#dialog .win-bar { position: absolute; left: 10px; top: -9px; padding: 1px 7px; font-size: 9px; }
+	#dialog .win-bar i { display: none; }
+	#dialog .win-body { display: flex; align-items: center; gap: 8px; min-height: 0; padding: 9px 26px 6px 8px; }
+	#dialog-portrait { width: 30px; height: 30px; flex: none; border-width: 1px; }
+	#dialog-text { font-size: 13px; line-height: 1.45; min-height: 0; white-space: normal; }
+	#dialog-next { right: 9px; bottom: auto; top: 50%; margin-top: -8px; }
 	#toasts { top: 96px; }
 	#banner { top: 24%; padding: 10px 0 12px; }
 	#card-title { font-size: clamp(34px, 12vh, 64px); }
