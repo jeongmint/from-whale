@@ -432,7 +432,8 @@ export async function epilogue( G ) {
 
 	const T = () => lang().story.epilogue;
 	G.setStarfall( false );
-	G.setMusic( { tension: 0, drums: 0.5, bass: 0, melody: 1, piano: 1, sax: 0.9 } );
+	// 핀의 드럼은 핀이 있을 때만 (보스전에서 떠났으면 에필로그에서도 다시 나오지 않는다)
+	G.setMusic( { tension: 0, drums: G.party.finn === 'on' ? 0.5 : 0, bass: 0, melody: 1, piano: 1, sax: 0.9 } );
 	const who = G.party.finn === 'on' ? 'finn' : G.party.luke === 'on' ? 'luke' : 'none';
 	await G.say( lines( T().start[ who ] ) );
 	G.objective( label( T().card ), T().objective );
