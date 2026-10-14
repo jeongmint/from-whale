@@ -366,8 +366,8 @@ body.singing #stick, body.singing #minimap-wrap { opacity: 0; pointer-events: no
 #duet-info { display: flex; justify-content: space-between; margin-top: 6px; font: 700 13px var(--mono); min-height: 16px; }
 #duet-judge.perfect { color: var(--gold); text-shadow: 0 0 14px var(--gold); }
 #duet-judge.excellent { color: #fff2c4; text-shadow: 0 0 12px rgba(255, 226, 150, 0.85); }
-#duet-judge.good { color: var(--cyan); }
-#duet-judge.miss { color: var(--warn); }
+#duet-judge.good { color: var(--cyan); text-shadow: 0 0 12px var(--cyan); }
+#duet-judge.miss { color: var(--warn); text-shadow: 0 0 12px var(--warn); }
 #duet-combo { color: var(--ink-dim); }
 #duet-stars { color: var(--gold); letter-spacing: 0.08em; }
 #duet-stars.full { text-shadow: 0 0 10px var(--gold); }
@@ -683,8 +683,9 @@ body.tilt #stick { display: none; }
 
 /* 가로로 든 폰: 버튼을 소나 왼쪽에 한 줄로 */
 @media (pointer: coarse) and (max-height: 520px) {
-	#hud-status { top: 6px; left: 6px; transform: scale(0.82); transform-origin: top left; }
-	#hud-party { top: 6px; right: 6px; transform: scale(0.82); transform-origin: top right; }
+	/* HAZEL · POD 창은 0.72배로 (목표 칸이 들어가며 HAZEL 창이 길어져서) */
+	#hud-status { top: 6px; left: 6px; transform: scale(0.72); transform-origin: top left; }
+	#hud-party { top: 6px; right: 6px; transform: scale(0.72); transform-origin: top right; }
 	#hud-objective { top: 6px; bottom: auto; max-width: calc(100vw - 400px); min-width: 0; }
 	#hud-objective .win-body { padding: 6px 10px; }
 	#obj-text { font-size: 13px; }
@@ -715,11 +716,11 @@ body.tilt #stick { display: none; }
 	#banner { top: 24%; padding: 10px 0 12px; }
 	#card-title { font-size: clamp(34px, 12vh, 64px); }
 	.spectrum { margin-top: 16px; }
-	/* 목표: 데스크탑처럼 HAZEL 창 안 아래쪽 칸에. HAZEL 창과 같은 비율(0.82)로 줄인다 */
+	/* 목표: 데스크탑처럼 HAZEL 창 안 아래쪽 칸에. HAZEL 창과 같은 비율(0.72)로 줄인다 */
 	#hud-status { width: 210px; height: 152px; }
 	#hud-objective {
-		top: 77px; left: 8px; right: auto; width: 206px; height: 62px;
-		transform: scale(0.82); transform-origin: top left;
+		top: 68px; left: 7px; right: auto; width: 206px; height: 62px;
+		transform: scale(0.72); transform-origin: top left;
 		min-width: 0; max-width: none;
 		text-align: left;
 		background: none; border: 0; border-top: 1px dashed rgba(95, 168, 255, 0.45);
@@ -731,7 +732,7 @@ body.tilt #stick { display: none; }
 	#obj-text { font-size: 14px; line-height: 1.35; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
 	#obj-dist { margin: 0; font-size: 11px; line-height: 1; white-space: nowrap; }
 	#obj-dist::before { content: attr(data-chapter) '  '; color: var(--ink-dim); white-space: pre; }
-	#toasts { top: 140px; }
+	#toasts { top: 126px; }
 	#hud-boss { top: 6px; }
 }
 

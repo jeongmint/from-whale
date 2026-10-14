@@ -68,7 +68,7 @@ function render( list, mine ) {
 		const song = document.createElement( 'b' );
 		song.textContent = `♪ ${e.song}`;
 		const meta = document.createElement( 'small' );
-		meta.textContent = `${e.name} · ${e.rank} · ${e.score}${Number.isInteger( e.p ) ? ` · P${e.p}` : ''}`;
+		meta.textContent = `${e.name} · ${e.rank} · ${e.score}${Number.isInteger( e.p ) ? ` · Perfect ${e.p}` : ''}`;
 		li.append( place, song, meta );
 		ol.append( li );
 
