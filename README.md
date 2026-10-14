@@ -31,7 +31,7 @@ A sea adventure of **Hazel**, a whale who sings at 52Hz. Another world, the year
 - **6 endings + ending gallery** — 4 decided by Luke's and Finn's fates + The Late Whale + A Whale's Stopped Heart (below). Unseen endings show hints only
 - **Kelp** — signposts with written directions, sing beside them to restore hearts
 - **Moby Dick boss fight** — 6 songs that reach him win him over. Body hits and falling stars cost a heart; stun 1.1 s from stars, 1.5 s from charges (with Finn's Tears, a song clears it at once)
-- **Stella (hidden ending)** — all 6 letters in bottles (Moby's prologue letter included) → 12-bar blues duet (S·A·B rank, a shooting star per jump note) → name the song and leave it with your nickname and score on the shared **Duet TOP 10**. Remaining letters can be found in the epilogue after the ending
+- **Stella (hidden ending)** — all 6 letters in bottles (Moby's prologue letter included) → 12-bar blues duet (PERFECT ±35 ms · EXCELLENT ±90 ms · GOOD ±200 ms, 450 max, S·A·B rank, a shooting star per jump note) → name the song and leave it with your nickname and score on the shared **Duet TOP 10**. Remaining letters can be found in the epilogue after the ending
 - **Space and sea** — Gerstner waves, glittering ripples, ringed planet, shooting stars, bloom
 - **Retro blue UI** — window-style HUD, sonar minimap, chapter cards, PC controls guide, current objective inside the HAZEL window (top center left clear). One-line dialog at the bottom, two-column title, and the call-and-response window at the bottom left in tilt mode on landscape phones
 - **Light models** — 500–650 vertices per whale, 512px textures. Phone support
@@ -102,7 +102,7 @@ Color options (`Whale` in `game/js/actors.js`): `solidColor` for a single color,
 | `game/js/name.js` | Nickname, Korean particles (`{N은}`, `{N을}`) |
 | `game/js/scores.js` | Duet scoreboard window (saves on this device only when the server can't be reached) |
 | `game/js/main.js` | Rendering, bloom, input, Alliance AI, boss fight, routes · ending gallery, epilogue |
-| `netlify/functions/duet-scores.mjs` | Duet scoreboard server (Netlify Functions + Blobs). Keeps the TOP 50; checks length, banned words, max score, 20 s between posts. Remove entries in the Netlify dashboard → Blobs → `duet-scores` → `top` |
+| `netlify/functions/duet-scores.mjs` | Duet scoreboard server (Netlify Functions + Blobs). Keeps the TOP 50; checks length, banned words, score matching the judgment counts, 20 s between posts. Remove entries in the Netlify dashboard → Blobs → `duet-scores` → `top-v2` |
 | `package.json` | `@netlify/blobs` for the server code |
 | `tools/make_stella.py` | Stella model generator (low-poly blue whale with texture). Edit the numbers, then `python3 tools/make_stella.py` |
 | `scene.html` | Early 3D whale scene |
