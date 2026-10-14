@@ -722,7 +722,7 @@ Object.assign( G, {
 	// 듀엣이 끝난 뒤 점수판 (노래 이름을 붙여 TOP 10에 남긴다)
 	scores() {
 
-		return openScores( G.ui, { name: G.playerName, score: G.flags.duetScore ?? 0, max: G.flags.duetMax ?? 0, rank: G.flags.duetRank ?? 'B', test: STELLA_TEST } );
+		return openScores( G.ui, { name: G.playerName, score: G.flags.duetScore ?? 0, max: G.flags.duetMax ?? 0, rank: G.flags.duetRank ?? 'B', counts: G.flags.duetCounts ?? { perfect: 0, excellent: 0, good: 0 }, test: STELLA_TEST } );
 
 	},
 
@@ -1491,7 +1491,9 @@ function songPuzzle( actor, patterns ) {
 // 스텔라와 듀엣: 음악 박자에 맞춰 ♪(노래)·⤴(점프) 노트를 맞히는 리듬 게임. 실패는 없고 등급만 매긴다
 // 시계는 오디오 시계에서 출력 지연을 뺀 값이라, 귀에 들리는 박자와 노트가 맞는다
 // ---------------------------------------------------------------
-const DUET_PERFECT = 0.09, DUET_GOOD = 0.2; // 초
+// 판정 창 (초)과 점수: PERFECT는 거의 정확히 맞힌 것만, EXCELLENT는 조금 어긋난 것, GOOD은 그 밖
+const DUET_PERFECT = 0.035, DUET_EXCELLENT = 0.09, DUET_GOOD = 0.2;
+const DUET_POINTS = { perfect: 10, excellent: 8, good: 5 };
 const DUET_SPEED = 150; // 노트가 흘러오는 속도 (px/초)
 
 function duet( chart ) {
@@ -1522,6 +1524,7 @@ function duet( chart ) {
 		const aim = () => camera.getWorldDirection( new THREE.Vector3() ).setY( 0 ).normalize();
 		const showStars = () => starsEl.textContent = `★ ${stars}/${starTotal}`;
 		let score = 0, combo = 0, stars = 0;
+		const counts = { perfect: 0, excellent: 0, good: 0 };
 		const flashT = {};
 
 		$( 'duet-title' ).textContent = t( 'duet.title' );
@@ -1574,10 +1577,11 @@ function duet( chart ) {
 			if ( ! note ) return; // 빈 박자에 누른 건 벌하지 않는다
 			note.done = true;
 			note.el.classList.add( 'hit' );
-			const perfect = closest <= DUET_PERFECT;
-			score += perfect ? 2 : 1;
+			const kind = closest <= DUET_PERFECT ? 'perfect' : closest <= DUET_EXCELLENT ? 'excellent' : 'good';
+			score += DUET_POINTS[ kind ];
+			counts[ kind ] ++;
 			combo ++;
-			show( perfect ? 'perfect' : 'good' );
+			show( kind );
 			if ( lane === 'S' ) {
 
 				// 헤이즐이 멜로디, 스텔라가 한 옥타브 아래로 같이 부른다
@@ -1635,15 +1639,17 @@ function duet( chart ) {
 		function finish() {
 
 			G.duetPlay = null;
-			const ratio = score / ( notes.length * 2 );
-			const rank = ratio >= 0.85 ? 'S' : ratio >= 0.6 ? 'A' : 'B';
+			const max = notes.length * DUET_POINTS.perfect;
+			const ratio = score / max;
+			const rank = ratio >= 0.8 ? 'S' : ratio >= 0.55 ? 'A' : 'B';
 			G.flags.duetRank = rank;
 			G.flags.duetScore = score;
-			G.flags.duetMax = notes.length * 2;
+			G.flags.duetMax = max;
+			G.flags.duetCounts = { ...counts };
 			G.flags.duetStars = `${stars}/${starTotal}`;
 			judgeEl.textContent = t( 'duet.rank', { r: rank } );
 			judgeEl.className = 'perfect';
-			comboEl.textContent = `${Math.round( ratio * 100 )}%`;
+			comboEl.textContent = `${Math.round( ratio * 100 )}% · P${counts.perfect} E${counts.excellent} G${counts.good}`;
 			audio.play( rank === 'B' ? 'heal' : 'join' );
 			// 스텔라 엔딩 내내 별똥별이 보는 쪽 하늘로 계속 떨어진다. 맞힌 별이 많을수록 더 많이
 			G.sky.aim = aim();

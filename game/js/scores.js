@@ -68,7 +68,7 @@ function render( list, mine ) {
 		const song = document.createElement( 'b' );
 		song.textContent = `♪ ${e.song}`;
 		const meta = document.createElement( 'small' );
-		meta.textContent = `${e.name} · ${e.rank} · ${e.score}`;
+		meta.textContent = `${e.name} · ${e.rank} · ${e.score}${Number.isInteger( e.p ) ? ` · P${e.p}` : ''}`;
 		li.append( place, song, meta );
 		ol.append( li );
 
@@ -83,7 +83,7 @@ function status( text ) {
 }
 
 // 점수판 창을 열고, 닫히면 끝난다. test: 서버에 올리지 않는다 (?stella 테스트)
-export function openScores( ui, { name, score, max, rank, test = false } ) {
+export function openScores( ui, { name, score, max, rank, counts, test = false } ) {
 
 	const form = $( 'score-form' );
 	const input = $( 'song-name' );
@@ -128,7 +128,8 @@ export function openScores( ui, { name, score, max, rank, test = false } ) {
 		e.preventDefault();
 		input.blur();
 		const song = input.value.replace( /\s+/g, ' ' ).replace( /[\u0000-\u001f<>]/g, '' ).trim().slice( 0, 24 ) || input.placeholder;
-		const entry = { id: `local-${Date.now()}`, name, song, score, rank, at: Date.now() };
+		const { perfect: p, excellent: e2, good: g } = counts;
+		const entry = { id: `local-${Date.now()}`, name, song, score, rank, p, e: e2, g, at: Date.now() };
 		if ( test ) return done( [ entry ], entry.id, t( 'scores.test' ) );
 		if ( offline ) return done( saveLocal( entry ), entry.id, t( 'scores.offline' ) );
 
@@ -139,7 +140,7 @@ export function openScores( ui, { name, score, max, rank, test = false } ) {
 			const { status: code, data } = await request( {
 				method: 'POST',
 				headers: { 'content-type': 'application/json' },
-				body: JSON.stringify( { name, song, score } )
+				body: JSON.stringify( { name, song, score, p, e: e2, g } )
 			} );
 			if ( code === 422 || code === 429 ) {
 

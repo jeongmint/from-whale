@@ -16,7 +16,7 @@ export default {
 		},
 		hud: { hearts: '体力', journal: '手紙 (L)', mute: 'サウンド (M)', pause: 'ポーズ (Esc)', home: 'ホームへ', boss: 'MOBY DICK · こころ', keys: { swim: '泳ぐ', boost: '加速', jump: 'ジャンプ', sing: '歌う' } },
 		song: { title: '52HZ ↔ FINN', listen: '聞いて… フィンの泣き声のリズム', turn: '今! 同じリズムで歌う [E]', miss: 'ちょっと違う… もう一度聞いて', help: 'ルークが拍を数えてくれる', good: '泣き声が少し落ち着いた', done: '涙が止まった' },
-		duet: { title: 'DUET · 52HZ ♥ 52HZ', help: '歌う [E] · ジャンプ [Space]', ready: 'ステラがカウントしてる…', perfect: 'PERFECT', good: 'GOOD', miss: 'MISS', combo: '{n} COMBO', rank: 'RANK {r}', sky: '★ 夜空が完成した!' },
+		duet: { title: 'DUET · 52HZ ♥ 52HZ', help: '歌う [E] · ジャンプ [Space]', ready: 'ステラがカウントしてる…', perfect: 'PERFECT', excellent: 'EXCELLENT', good: 'GOOD', miss: 'MISS', combo: '{n} COMBO', rank: 'RANK {r}', sky: '★ 夜空が完成した!' },
 		feedback: { open: '✉ アイデア · バグを送る', placeholder: 'アイデアやバグを自由に書いてください', send: '送る', sending: '送信中…', thanks: 'ありがとう! 受け取りました。', fail: '今は送れませんでした。下のメールに送ってください。', copy: 'アドレスをコピー', copied: 'コピーしました!', mailApp: 'メールアプリで' },
 		letter: { close: '閉じる <span class="mono tiny">[E]</span>' },
 		// デュエットのスコアボード (歌に名前をつけて TOP 10 に残す)
