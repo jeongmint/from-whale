@@ -299,13 +299,16 @@ async function chapter4( G ) {
 	G.objective( label( T().card ), T().objMoby, PLACES.moby );
 	await G.until( () => G.distTo( PLACES.moby ) < 175 );
 
+	// 모비 딕을 만나기 전에 편지를 다 모았으면 지각한 고래 엔딩으로 간다. 모비는 한참 기다렸다
+	if ( G.bottleCount() >= LETTER_TOTAL ) G.route.late = true;
+
 	G.cutscene( true );
 	const moby = G.actors.moby;
 	G.mobyRise();
 	G.camFocus( moby, { side: 1, dist: 115, height: 36 } );
 	G.audio.whaleCall( null, 'moby' );
 	await G.wait( 2.5 );
-	await G.say( lines( T().moby ) );
+	await G.say( lines( G.route.late ? [ ...T().lateMoby, ...T().moby.slice( 1 ) ] : T().moby ) );
 	// 루크가 살아 있으면 등불로 모비를 비춰 준다 (노래가 닿는 원이 넓어진다)
 	if ( G.party.luke === 'on' ) {
 
@@ -328,6 +331,7 @@ async function ending( G ) {
 
 	const T = () => lang().story.ending;
 	// 루크·핀이 살았는지에 따라 엔딩이 갈린다: 꺼지지 않는 빛 / 동료의 힘 / 부서진 나침반 / 희생
+	// 모비 딕을 만나기 전에 편지를 다 모았으면 지각한 고래 (스텔라도 늦게 온다)
 	const key = G.endingKey();
 	G.cutscene( true );
 	G.camFocus( G.actors.moby, { side: - 1, dist: 100, height: 27 } );
@@ -352,7 +356,7 @@ async function meetStella( G ) {
 	G.camFocus( G.actors.stella, { side: 1, dist: 185, height: 52 } );
 	G.audio.whaleCall( null, 'stella' );
 	await G.wait( 3 );
-	await G.say( lines( T().stella ) );
+	await G.say( lines( G.route.late ? [ ...T().stellaLate, ...T().stella ] : T().stella ) );
 	// 또 하나의 52Hz와 함께 부르는 듀엣 (리듬 게임). 실패는 없고 등급에 따라 스텔라의 반응이 달라진다
 	const rank = await G.duet( DUET_CHART );
 	await G.say( lines( [ ...T().duetEnd[ rank ], ...T().outro ] ) );

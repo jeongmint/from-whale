@@ -53,6 +53,7 @@ export default {
 			friends: { name: 'The Strength of Friends', hint: 'Never get hit by the Alliance, and never fall before Moby Dick' },
 			compass: { name: 'The Broken Compass', hint: 'Keep Luke safe, then fall before Moby Dick' },
 			sacrifice: { name: 'Sacrifice', hint: 'If both Luke and Finn take the blow for {N}' },
+			late: { name: 'The Late Whale', hint: 'If you gather every letter in a bottle before meeting Moby Dick' },
 			heart: { name: 'A Whale\'s Stopped Heart', hint: 'If you fall twice in one chapter…' },
 			stella: 'Another 52Hz'
 		},
@@ -311,6 +312,12 @@ export default {
 				[ 'moby', 'She never came back.\n...This time, it is my turn to do anything.' ],
 				[ 'finn', '{N}, Moby Dick isn\'t listening to anyone right now.\nBut your song... might be different.' ]
 			],
+			// When every letter is gathered before meeting Moby Dick: replaces the first moby line
+			lateMoby: [
+				[ 'moby', '...So you finally show up. Half the stars have fallen already.' ],
+				[ 'moby', 'I hear you swam the whole sea. Picking up every bottle along the way.' ],
+				[ 'hazel', '( quietly hides five bottles behind a flipper )' ]
+			],
 			lukeLantern: [
 				[ 'luke', '{N}, I\'ll keep my light on Moby Dick until your song gets through.' ],
 				[ 'luke', 'Once Moby Dick listens, your song will carry as far as my light reaches.' ]
@@ -376,15 +383,25 @@ export default {
 					[ 'moby', '...Two of them sank into the sea to protect you.' ],
 					[ 'hazel', '( sings at 52Hz instead of answering )' ],
 					[ 'narrator', 'On the night the stars fell,\n{N} talked with someone for the very first time,\nand left two friends behind in the sea.' ]
+				],
+				late: [
+					[ 'moby', '...That one is always late. Just like you.' ],
+					[ 'narrator', 'On the night the stars fell,\n{N} arrived a little late,\nbut having read every last letter in the sea.' ]
 				]
 			},
 			cards: {
 				light: [ 'ENDING', 'The Light That Never Fades', 'Luke\'s light still floats on the sea' ],
 				friends: [ 'ENDING', 'The Strength of Friends', 'A song for three' ],
 				compass: [ 'ENDING', 'The Broken Compass', 'Now we find our own way' ],
-				sacrifice: [ 'ENDING', 'Sacrifice', 'A 52Hz left alone' ]
+				sacrifice: [ 'ENDING', 'Sacrifice', 'A 52Hz left alone' ],
+				late: [ 'ENDING', 'The Late Whale', 'Late, but every letter read' ]
 			},
 			subCard: [ 'SUB ENDING', 'Stella', 'Another 52Hz' ],
+			// Comes before stella in the Late Whale ending
+			stellaLate: [
+				[ 'stella', 'Huff, huff... Sorry, sorry, I\'m late! I just got here too!' ],
+				[ 'moby', '...Of course.' ]
+			],
 			stella: [
 				[ 'stella', 'Hi, hi! We finally meet, 52 hertz!\nDid you like my kelp letters? I wrote every single one!' ],
 				[ 'stella', 'Want me to teach you how to wipe off the pattern on your back? Or a new language?\n...Nope, nope, there\'s something way more important.' ],
