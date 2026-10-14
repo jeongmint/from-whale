@@ -39,13 +39,14 @@ const ROUTES = {
 	light: { luke: false, finn: true }, // 꺼지지 않는 빛
 	friends: { luke: true, finn: true }, // 동료의 힘
 	compass: { luke: true, finn: false }, // 부서진 나침반
-	sacrifice: { luke: false, finn: false } // 희생
+	sacrifice: { luke: false, finn: false }, // 희생
+	late: { late: true } // 지각한 고래: 모비 딕을 만나기 전에 편지를 다 모으면 루크·핀과 상관없이 이 엔딩
 };
 const ENDING_ORDER = [ ...Object.keys( ROUTES ), 'heart' ]; // heart: 한 장에서 두 번 쓰러지면 (멈춘 고래의 심장)
 const ENDINGS_KEY = 'fromwhale.endings';
-// 테스트 옵션 ?route=light|friends|compass|sacrifice: 4장 이후를 그 갈래로 시작 (?chapter와 함께)
+// 테스트 옵션 ?route=light|friends|compass|sacrifice|late: 4장 이후를 그 갈래로 시작 (?chapter와 함께)
 const ROUTE_TEST = ROUTES[ query.get( 'route' ) ] ? query.get( 'route' ) : null;
-const newRoute = ( key ) => ( { hits: 0, luke: true, finn: true, ...ROUTES[ key ] } );
+const newRoute = ( key ) => ( { hits: 0, luke: true, finn: true, late: false, ...ROUTES[ key ] } );
 // 핀이 떠나면 나침반이 COMPASS_TIME초에 걸쳐 흐려진다. COMPASS_WEAK 아래로는 길 안내가 깜빡이고, 0이면 꺼진다
 const COMPASS_TIME = 50;
 const COMPASS_WEAK = 0.35;
@@ -468,6 +469,7 @@ Object.assign( G, {
 	endingKey() {
 
 		const r = G.route;
+		if ( r.late ) return 'late';
 		return r.luke ? ( r.finn ? 'friends' : 'compass' ) : ( r.finn ? 'light' : 'sacrifice' );
 
 	},
