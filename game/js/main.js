@@ -10,7 +10,7 @@ import { loadModels, Whale, followSlot, idleCircle, steerTo, updateSwimTime, mak
 import { UI } from './ui.js';
 import { AudioEngine } from './audio.js';
 import { cleanName, loadName, saveName } from './name.js';
-import { CHAPTERS, PLACES, BOTTLES, LETTER_TOTAL, ORCA_PACKS, KELP_GROVES, scramble, epilogue } from './story.js';
+import { CHAPTERS, PLACES, BOTTLES, LETTER_TOTAL, ORCA_PACKS, KELP_GROVES, scramble, epilogue, lukeLateFall } from './story.js';
 import { lang, t, setLang, applyStatic } from './i18n.js';
 
 const BASE = window.FW_ASSET_BASE ?? '../';
@@ -530,6 +530,38 @@ Object.assign( G, {
 
 	},
 
+	// 매복 뒤 루크의 희생: 헤이즐과 부딪힌 연합군 사이로 뛰어든다. 근처 연합군은 한동안 멈춘다
+	async lukeBlock( o ) {
+
+		const luke = G.actors.luke;
+		const h = G.actors.hazel;
+		G.party.luke = 'busy';
+		const dx = o.whale.pos.x - h.pos.x, dz = o.whale.pos.z - h.pos.z;
+		const d = Math.hypot( dx, dz ) || 1;
+		luke.scripted = { x: h.pos.x + dx / d * 5, z: h.pos.z + dz / d * 5, speed: 45 };
+		for ( const other of G.orcas ) {
+
+			if ( other.state === 'gone' || other.state === 'retreat' ) continue;
+			if ( Math.hypot( other.whale.pos.x - h.pos.x, other.whale.pos.z - h.pos.z ) > 140 ) continue;
+			other.state = 'stun';
+			other.stunT = 8;
+
+		}
+
+		const t0 = G.time;
+		await G.until( () => Math.hypot( luke.pos.x - luke.scripted.x, luke.pos.z - luke.scripted.z ) < 3 || G.time - t0 > 2 );
+		luke.breach( 9 );
+		await G.wait( 0.5 );
+		G.flash( 0.9 );
+		G.shake = 1.2;
+		G.audio.play( 'hit' );
+		G.audio.play( 'boom' );
+		G.world.ring( luke.pos.x, luke.pos.z, { color: 0xffd36b, to: 70, life: 1.2, width: 0.25 } );
+		G.world.splash( luke.pos.x, luke.root.position.y, luke.pos.z, { count: 120, power: 14 } );
+		luke.setGlow( 1.2, 0xffb070 );
+
+	},
+
 	ambushCharge( ring ) {
 
 		ring.forEach( ( o ) => o.state = 'close' );
@@ -814,7 +846,15 @@ function updateOrcas( dt ) {
 		const hostile = [ 'chase', 'hunt', 'return', 'patrol' ].includes( o.state );
 		if ( hostile && ! frozen && dP < 7.5 ) {
 
-			if ( damage( 1, w.pos ) ) {
+			// 매복을 함께 넘긴 뒤에도, 모비 딕에게 닿기 전에 맞으면 루크가 대신 들이받고 떠난다
+			if ( lukeGuards() ) {
+
+				G.route.hits ++;
+				o.state = 'stun';
+				o.stunT = 1.6;
+				lukeLateFall( G, o );
+
+			} else if ( damage( 1, w.pos ) ) {
 
 				G.route.hits ++;
 				o.state = 'stun';
@@ -983,6 +1023,15 @@ function updateStunStars( h, on ) {
 
 }
 // stun: 그 시간 동안 헤엄·노래·점프를 못 하고 비틀거린다 (머리 위로 별이 돈다)
+// 루크가 대신 맞아 줄 수 있는 때: 매복을 함께 넘겼고, 아직 보스전 전이고, 헤이즐이 맞을 수 있는 상태
+function lukeGuards() {
+
+	const h = G.actors.hazel;
+	if ( G.invuln > 0 || h.airborne || G.cutsceneOn || G.fainting || G.dash > 0 ) return false;
+	return G.flags.lukeSaved && G.party.luke === 'on' && ! G.lukeFalling && G.save.chapter <= 4 && ! G.flags.mobyMet;
+
+}
+
 function damage( n, from, { stun = 0 } = {} ) {
 
 	const h = G.actors.hazel;

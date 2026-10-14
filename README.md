@@ -33,12 +33,12 @@ A sea adventure of **Hazel**, a whale who sings at 52Hz. Another world, the year
 - **Moby Dick boss fight** — 6 songs that reach him win him over. Body hits and falling stars cost a heart; stun 1.1 s from stars, 1.5 s from charges
 - **Stella (hidden ending)** — all 6 letters in bottles (Moby's prologue letter included) → 12-bar blues duet (S·A·B rank, a shooting star per jump note). Remaining letters can be found in the epilogue after the ending
 - **Space and sea** — Gerstner waves, glittering ripples, ringed planet, shooting stars, bloom
-- **Retro blue UI** — window-style HUD, sonar minimap, chapter cards, PC controls guide. One-line dialog at the bottom on landscape phones
+- **Retro blue UI** — window-style HUD, sonar minimap, chapter cards, PC controls guide. One-line dialog at the bottom, two-column title, and the call-and-response window at the bottom left in tilt mode on landscape phones
 - **Light models** — 500–650 vertices per whale, 512px textures. Phone support
 
 ### Branching endings
 
-- Ch. 3 ambush: never hit by the Alliance → jump away together, Luke lives, Luke's lantern (wider song range in the boss fight). Hit even once → Luke's sacrifice, light shards (speed boost)
+- Luke: never hit by the Alliance until reaching Moby Dick → Luke lives, Luke's lantern (wider song range in the boss fight). Hit before the ch. 3 ambush → Luke's sacrifice at the ambush; hit after getting through it together → Luke rams in and falls on the spot. Either way, light shards (speed boost)
 - Boss fight: Finn takes the first fall → broken compass (directions fade and go dark, restored by singing beside kelp)
 - All 6 letters before meeting Moby Dick: **The Late Whale** (regardless of Luke and Finn, Moby grumbles, Stella is late too) → Stella's duet follows, 2 endings in one run
 - Two falls in one chapter: **A Whale's Stopped Heart** → Continue restarts that chapter (Finn's fall does not count)

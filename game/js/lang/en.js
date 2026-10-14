@@ -261,6 +261,8 @@ export default {
 				[ 'shaman', 'Purify them.' ]
 			],
 			lukeCry: [ [ 'luke', '{N}!!' ] ],
+			// After the ambush, hit before reaching Moby Dick (comes before lukeLast)
+			lukeLate: [ [ 'luke', '...I told you not to get hit.\nWell, ramming things was always my job.' ] ],
 			lukeLast: [
 				[ 'luke', '...Thinking comes later.\nIt always did.' ],
 				[ 'luke', 'Go. Finn, take {N} and go!' ],

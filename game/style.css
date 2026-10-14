@@ -650,6 +650,12 @@ body.tilt #stick { display: none; }
 	#stick { left: 16px; bottom: 16px; width: 120px; height: 120px; }
 	body.talking #touch-buttons { opacity: 0; pointer-events: none; }
 	#song, #duet { bottom: 84px; }
+	/* 기울기 모드: 조이스틱 자리(왼쪽 아래)가 비니까 따라 부르기 창을 그쪽으로 작게 옮긴다 */
+	body.tilt #song { left: 10px; bottom: 10px; transform: none; width: min(300px, 38vw); }
+	body.tilt #song .win-body { padding: 4px 10px 6px; }
+	body.tilt #song-beats { gap: 11px; margin: 6px 0; }
+	body.tilt #song-beats span { width: 14px; height: 14px; }
+	body.tilt #song-hint { font-size: 12px; }
 	/* 대화창: 아래쪽 가운데에 얇게 한 줄 (대화 중엔 조이스틱 · 버튼 · 소나가 숨어서 자리가 빈다) */
 	#dialog { bottom: 6px; width: min(700px, calc(100vw - 24px)); }
 	#dialog .win-bar { position: absolute; left: 10px; top: -9px; padding: 1px 7px; font-size: 9px; }
@@ -682,3 +688,18 @@ body.tilt #stick { display: none; }
 @keyframes cardout { to { opacity: 0; } }
 @keyframes titlein { from { letter-spacing: 0.4em; opacity: 0; filter: blur(8px); } }
 @keyframes jitter { 50% { transform: translateX(1px); } }
+
+/* 폰 가로 모드 타이틀: 세로가 짧아서 왼쪽에 로고 · 소개, 오른쪽에 언어 · 닉네임 · 시작을 두 칸으로 */
+@media (max-height: 520px) and (orientation: landscape) {
+	#title { overflow-y: auto; }
+	.title-inner { display: grid; grid-template-columns: auto auto; column-gap: clamp(24px, 6vw, 64px); row-gap: 6px; align-items: center; justify-items: center; }
+	#logo-whale { grid-area: 1 / 1; width: 80px; height: 60px; }
+	.logo { grid-area: 2 / 1; font-size: clamp(30px, 6.5vw, 54px); }
+	.logo .beta { font-size: 10px; padding: 2px 5px 1px; }
+	.tagline { grid-area: 3 / 1; font-size: 12px; line-height: 1.55; max-width: 46vw; }
+	.quote { grid-area: 4 / 1; font-size: 12px; line-height: 1.55; margin: 0; }
+	#loading, #title-buttons { grid-area: 1 / 2 / 5 / 3; }
+	#title-buttons { gap: 10px; margin: 0; }
+	.controls { grid-area: 5 / 1 / 6 / 3; margin: 4px 0 0; font-size: 10px; }
+	.home-link { top: calc(10px + env(safe-area-inset-top, 0px)); left: 12px; font-size: 12px; }
+}
