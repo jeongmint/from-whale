@@ -44,13 +44,16 @@ export default {
 			again: 'Play again',
 			quote: '“ The sea holds a freedom<br>that everyone deserves ”',
 			sub: 'You met another 52Hz',
-			hint: 'Find every bottle… and you might meet another 52Hz'
+			hint: 'Find every bottle… and you might meet another 52Hz',
+			retry: 'Retry this chapter',
+			heartHint: 'Press Continue to swim this chapter again from the start'
 		},
 		endings: {
 			light: { name: 'The Light That Never Fades', hint: 'Get hit by the Alliance more than once, but never fall before Moby Dick' },
 			friends: { name: 'The Strength of Friends', hint: 'Get hit by the Alliance once at most, and never fall before Moby Dick' },
 			compass: { name: 'The Broken Compass', hint: 'Keep Luke safe, then fall before Moby Dick' },
 			sacrifice: { name: 'Sacrifice', hint: 'If both Luke and Finn take the blow for {N}' },
+			heart: { name: 'A Whale\'s Stopped Heart', hint: 'If you fall twice in one chapter…' },
 			stella: 'Another 52Hz'
 		},
 		toast: {
@@ -67,7 +70,8 @@ export default {
 			fog: 'Beyond here there is only fog…',
 			compassWeak: 'The compass is fading… sing beside some kelp',
 			compassOff: 'The compass went dark — sing beside kelp to bring it back',
-			compassOn: 'The kelp set the broken compass right again'
+			compassOn: 'The kelp set the broken compass right again',
+			lastHeart: 'Your heart is weak — fall once more in this chapter and it stops'
 		},
 		banner: {
 			objective: 'NEW OBJECTIVE',
@@ -152,6 +156,7 @@ export default {
 		'Why keep singing a song that no one can hear?',
 		'My mother... sang a song like that, too.',
 		'Even if I end every human, she will not come back. Will she.',
+		'That night, the last song my mother sang... sounded like this.',
 		'......Enough. I hear you now.'
 	],
 
@@ -331,6 +336,14 @@ export default {
 			},
 			objective: 'Find the rest of the letters in bottles',
 			hint: '♪ Sing 52Hz with [E] and nearby bottles show up on the sonar'
+		},
+		heart: {
+			lines: [
+				[ 'narrator', '{N}\'s heartbeat slows, and slows.' ],
+				[ 'narrator', 'Thump…      thump……' ],
+				[ 'narrator', 'The 52Hz song no one ever heard\nsank into the deep.' ]
+			],
+			card: [ 'ENDING', 'A Whale\'s Stopped Heart', 'Again, from the start of this chapter' ]
 		},
 		ending: {
 			lines: [
