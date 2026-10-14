@@ -180,6 +180,8 @@ export class Ocean {
 			uNormalMap: { value: normalMap },
 			uMoonDir: { value: moonDir.clone().normalize() },
 			uMoonColor: { value: new THREE.Color( 0xdcecff ).convertSRGBToLinear() },
+			// 약하게 흩어진 윤슬의 색. 평소엔 uMoonColor와 같고, 엔딩 6개 보상에선 금빛 → 하늘색으로 번진다
+			uMoonEdge: { value: new THREE.Color( 0xdcecff ).convertSRGBToLinear() },
 			uDeep: { value: new THREE.Color( 0x041a4a ).convertSRGBToLinear() },
 			uShallow: { value: new THREE.Color( 0x1170c4 ).convertSRGBToLinear() },
 			uFoam: { value: new THREE.Color( 0xbff0ff ).convertSRGBToLinear() },
@@ -212,6 +214,7 @@ export class Ocean {
 				uniform sampler2D uNormalMap;
 				uniform vec3 uMoonDir;
 				uniform vec3 uMoonColor;
+				uniform vec3 uMoonEdge;
 				uniform vec3 uDeep;
 				uniform vec3 uShallow;
 				uniform vec3 uFoam;
@@ -251,7 +254,8 @@ export class Ocean {
 					vec3 col = mix( water, refl, fres );
 
 					float spec = pow( max( dot( R, uMoonDir ), 0.0 ), 420.0 );
-					col += uMoonColor * spec * 5.0;
+					vec3 glint = mix( uMoonEdge, uMoonColor, smoothstep( 0.03, 0.45, spec ) );
+					col += glint * spec * 5.0;
 
 					// 파도 마루의 포말: 수면이 압축되는 곳(Jacobian < 1)
 					float J = T.x * B.z - T.z * B.x;

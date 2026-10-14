@@ -189,7 +189,10 @@ export class Sky {
 
 	makeMoon() {
 
+		// 달 색 (엔딩 6개 보상에선 금빛 달 + 하늘색 달무리)
+		this.moonUniforms = { uDisc: { value: new THREE.Vector3( 0.82, 0.9, 1.0 ) }, uHalo: { value: new THREE.Vector3( 0.3, 0.55, 1.0 ) } };
 		const mat = new THREE.ShaderMaterial( {
+			uniforms: this.moonUniforms,
 			transparent: true,
 			depthWrite: false,
 			blending: THREE.AdditiveBlending,
@@ -198,6 +201,8 @@ export class Sky {
 				void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 ); }
 			`,
 			fragmentShader: /* glsl */`
+				uniform vec3 uDisc;
+				uniform vec3 uHalo;
 				varying vec2 vUv;
 				void main() {
 					vec2 c = vUv - 0.5;
@@ -205,7 +210,7 @@ export class Sky {
 					float disc = smoothstep( 0.25, 0.235, d );
 					float crater = 0.85 + 0.15 * sin( c.x * 40.0 + 1.3 ) * sin( c.y * 37.0 );
 					float halo = exp( - d * 6.0 ) * 0.22 + exp( - d * 14.0 ) * 0.5;
-					vec3 col = vec3( 0.82, 0.9, 1.0 ) * disc * crater * 2.4 + vec3( 0.3, 0.55, 1.0 ) * halo;
+					vec3 col = uDisc * disc * crater * 2.4 + uHalo * halo;
 					gl_FragColor = vec4( col, 1.0 );
 				}
 			`
