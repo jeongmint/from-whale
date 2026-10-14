@@ -8,6 +8,7 @@ export const MODEL_FILES = {
 	finn: 'data/finn/Finn.glb',
 	orca: 'data/orca_army/Orca_Army.glb',
 	moby: 'data/moby/Moby.glb',
+	stella: 'data/stella/Stella.glb', // tools/make_stella.py 로 만든 로우폴리 대왕고래
 	bottle: 'data/bottle/Bottle.glb'
 };
 
@@ -369,15 +370,17 @@ export function makePortraits( models ) {
 		finn: [ 'finn', {} ],
 		moby: [ 'moby', {} ],
 		shaman: [ 'orca', { recolor: [ 0x7a1f4f, 0xffb3d1 ], emissive: 0.1 } ],
-		stella: [ 'hazel', { solidColor: 0xffb000, emissiveTint: 0xfff0b0, emissive: 1.2 } ],
+		stella: [ 'stella', { emissive: 1.2 }, 3.4 ], // 몸이 길어서 머리가 가운데 오도록 당긴다
 		orca: [ 'orca', {} ]
 	};
 
-	for ( const [ key, [ model, opt ] ] of Object.entries( shots ) ) {
+	for ( const [ key, [ model, opt, focus = 0 ] ] of Object.entries( shots ) ) {
 
 		const w = new Whale( models[ model ], { length: 10, ...opt } );
 		w.inner.position.y = 0;
 		w.root.rotation.y = - 0.9;
+		// focus: 머리 쪽으로 화면을 옮기는 거리 (머리는 +z를 보다가 -0.9만큼 돈다)
+		w.root.position.set( Math.sin( - 0.9 ), 0, Math.cos( - 0.9 ) ).multiplyScalar( - focus );
 		scene.add( w.root );
 		cam.position.set( 0, 1.2, 13 );
 		cam.lookAt( 0, 0, 0 );

@@ -2302,7 +2302,7 @@ async function boot() {
 	A.luke = new Whale( models.luke, { name: 'luke', length: 11, ride: 0.36, freq: 3.3, amp: 0.07, emissive: 1.4 } );
 	A.finn = new Whale( models.finn, { name: 'finn', length: 10, ride: 0.42, freq: 2.9, amp: 0.06, emissive: 0.55 } );
 	A.moby = new Whale( models.moby, { name: 'moby', length: 46, ride: 0.3, freq: 1.5, amp: 0.05, emissive: 0.6 } );
-	A.stella = new Whale( models.hazel, { name: 'stella', length: 85, ride: 0.26, freq: 1.0, amp: 0.05, solidColor: 0xffb000, emissiveTint: 0xfff0b0, emissive: 1.6 } );
+	A.stella = new Whale( models.stella, { name: 'stella', length: 85, ride: 0.36, freq: 1.0, amp: 0.05, emissive: 1.6 } );
 	A.shaman = new Whale( models.orca, { name: 'shaman', length: 18, ride: 0.42, freq: 2.4, amp: 0.05, recolor: [ 0x7a1f4f, 0xffb3d1 ], emissive: 0.1 } );
 	for ( const a of Object.values( A ) ) scene.add( a.root );
 	A.moby.root.visible = A.stella.root.visible = A.shaman.root.visible = false;

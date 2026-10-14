@@ -59,7 +59,7 @@ WebGL Three.js Project about Blue and Whale
 | 연합군 | 범고래 무리 | `data/orca_army/Orca_Army.glb` |
 | 연합군 대장 · 샤먼 | 분홍 범고래 | `Orca_Army.glb` + `recolor` |
 | 모비 딕 | 향유고래, 마지막 보스 | `data/moby/Moby.glb` |
-| 스텔라 | 노란 대왕고래, 또 하나의 52Hz | 임시 `Hazel.glb` + `solidColor` (예정 `data/stella/Stella.glb`) |
+| 스텔라 | 노란 대왕고래, 또 하나의 52Hz, 등의 별자리 문양 | `data/stella/Stella.glb` (코드로 생성: `tools/make_stella.py`) |
 
 색 옵션 (`game/js/actors.js`의 `Whale`): `solidColor` 단색, `recolor: [ 어두운 색, 밝은 색 ]` 무늬 유지 색 변경
 
@@ -99,6 +99,7 @@ WebGL Three.js Project about Blue and Whale
 | `game/js/i18n.js` | 언어 선택 |
 | `game/js/name.js` | 닉네임, 조사 처리 (`{N은}`, `{N을}`) |
 | `game/js/main.js` | 렌더링, 블룸, 입력, 연합군 AI, 보스전, 갈래 · 엔딩 도감, 에필로그 |
+| `tools/make_stella.py` | 스텔라 모델 생성 (로우폴리 대왕고래, 텍스처 포함). 숫자 수정 후 `python3 tools/make_stella.py` |
 | `scene.html` | 초기 3D 고래 장면 |
 
 ### 개발용 주소 옵션
