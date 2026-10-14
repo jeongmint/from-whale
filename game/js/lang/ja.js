@@ -71,7 +71,8 @@ export default {
 			compassWeak: 'コンパスがかすんでいく… 海藻のそばで歌おう',
 			compassOff: 'コンパスが消えた — 海藻のそばで歌えばまた点く',
 			compassOn: '海藻が壊れたコンパスを直してくれた',
-			lastHeart: '心臓が弱っている — この章でもう一度倒れたら止まってしまう'
+			lastHeart: '心臓が弱っている — この章でもう一度倒れたら止まってしまう',
+			tiltTip: '横向きなら、スティックなしでスマホを傾けて泳ぐこともできます — ポーズ ❚❚ → 実験室'
 		},
 		banner: {
 			objective: 'NEW OBJECTIVE',
