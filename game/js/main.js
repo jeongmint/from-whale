@@ -35,6 +35,7 @@ const EPILOGUE = CHAPTERS.length; // 엔딩 뒤 남은 편지 찾기 (이어하�
 // 갈래 엔딩. 3장 매복까지 연합군에게 한 번도 안 맞으면(LUKE_MAX_HITS) 루크가 살고,
 // 보스전에서 처음 쓰러지면 핀이 대신 맞는다. 루크·핀이 살았는지에 따라 엔딩 넷
 const LUKE_MAX_HITS = 0; // 한 번도 안 맞아야 루크가 산다
+const AMBUSH_HEADSTART = 2.5; // 매복 컷신 뒤 연합군이 물러나 있는 시간 (초)
 const ROUTES = {
 	light: { luke: false, finn: true }, // 꺼지지 않는 빛
 	friends: { luke: true, finn: true }, // 동료의 힘
@@ -649,10 +650,12 @@ Object.assign( G, {
 
 	ambushChase( ring ) {
 
+		// 컷신이 끝난 순간엔 연합군이 헤이즐 바로 옆이라, 잠깐 물러났다가 쫓아온다 (도망칠 틈)
 		ring.forEach( ( o ) => {
 
-			o.state = 'hunt';
-			o.stunT = 0;
+			o.state = 'stun';
+			o.stunT = AMBUSH_HEADSTART;
+			o.after = 'hunt';
 
 		} );
 
@@ -818,7 +821,12 @@ function updateOrcas( dt ) {
 			case 'stun':
 				o.stunT -= dt;
 				steerTo( w, w.pos.x - dx, w.pos.z - dz, 16, dt, 3 );
-				if ( o.stunT <= 0 ) o.state = o.ambush ? 'hold' : ( dP < 110 ? 'chase' : 'return' );
+				if ( o.stunT <= 0 ) {
+
+					o.state = o.after ?? ( o.ambush ? 'hold' : ( dP < 110 ? 'chase' : 'return' ) );
+					o.after = null;
+
+				}
 				break;
 			case 'hold':
 				w.speed *= 0.95;
