@@ -3,9 +3,12 @@ WebGL Three.js Project about Blue and Whale
 
 ## 🐋 From. Whale
 
+[![달빛 윤슬 속에서 반짝이는 고래 헤이즐 — From. Whale](data/res/og.jpg)](https://from-whale.netlify.app/game/)
+
+**[▶ 바로 플레이](https://from-whale.netlify.app/game/)** · [첫 화면](https://from-whale.netlify.app/) · 설치 없이 브라우저에서 (PC · 폰)
+
 52Hz로 노래하는 고래 **헤이즐**의 바다 모험 게임. 이세계의 2066년, 밤바다. (BETA)
 
-- 첫 화면: <https://from-whale.netlify.app/> · 게임: <https://from-whale.netlify.app/game/>
 - 로컬 실행: 저장소 루트에서 `python3 -m http.server` → <http://localhost:8000/game/>
 - 언어: 한국어 · English · 日本語 (기기 언어 자동 선택)
 - 닉네임 설정 (기본: 헤이즐 / Hazel / ヘイゼル)
