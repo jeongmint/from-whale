@@ -1492,7 +1492,7 @@ function songPuzzle( actor, patterns ) {
 // 시계는 오디오 시계에서 출력 지연을 뺀 값이라, 귀에 들리는 박자와 노트가 맞는다
 // ---------------------------------------------------------------
 // 판정 창 (초)과 점수: PERFECT는 거의 정확히 맞힌 것만, EXCELLENT는 조금 어긋난 것, GOOD은 그 밖
-const DUET_PERFECT = 0.035, DUET_EXCELLENT = 0.09, DUET_GOOD = 0.2;
+const DUET_PERFECT = 0.025, DUET_EXCELLENT = 0.06, DUET_GOOD = 0.15;
 const DUET_POINTS = { perfect: 10, excellent: 8, good: 5 };
 const DUET_SPEED = 150; // 노트가 흘러오는 속도 (px/초)
 
@@ -1641,7 +1641,7 @@ function duet( chart ) {
 			G.duetPlay = null;
 			const max = notes.length * DUET_POINTS.perfect;
 			const ratio = score / max;
-			const rank = ratio >= 0.8 ? 'S' : ratio >= 0.55 ? 'A' : 'B';
+			const rank = ratio >= 0.85 ? 'S' : ratio >= 0.6 ? 'A' : 'B';
 			G.flags.duetRank = rank;
 			G.flags.duetScore = score;
 			G.flags.duetMax = max;

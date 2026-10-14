@@ -31,7 +31,7 @@ A sea adventure of **Hazel**, a whale who sings at 52Hz. Another world, the year
 - **6 endings + ending gallery** — 4 decided by Luke's and Finn's fates + The Late Whale + A Whale's Stopped Heart (below). Unseen endings show hints only
 - **Kelp** — signposts with written directions, sing beside them to restore hearts
 - **Moby Dick boss fight** — 6 songs that reach him win him over. Body hits and falling stars cost a heart; stun 1.1 s from stars, 1.5 s from charges (with Finn's Tears, a song clears it at once)
-- **Stella (hidden ending)** — all 6 letters in bottles (Moby's prologue letter included) → 12-bar blues duet (PERFECT ±35 ms · EXCELLENT ±90 ms · GOOD ±200 ms, 450 max, S·A·B rank, a shooting star per jump note) → name the song and leave it with your nickname and score on the shared **Duet TOP 10**. Remaining letters can be found in the epilogue after the ending
+- **Stella (hidden ending)** — all 6 letters in bottles (Moby's prologue letter included) → 12-bar blues duet (PERFECT ±25 ms · EXCELLENT ±60 ms · GOOD ±150 ms, 450 max, S from 85% · A from 60%, a shooting star per jump note) → name the song and leave it with your nickname and score on the shared **Duet TOP 10**. Remaining letters can be found in the epilogue after the ending
 - **Space and sea** — Gerstner waves, glittering ripples, ringed planet, shooting stars, bloom
 - **Retro blue UI** — window-style HUD, sonar minimap, chapter cards, PC controls guide, current objective inside the HAZEL window (top center left clear). One-line dialog at the bottom, two-column title, and the call-and-response window at the bottom left in tilt mode on landscape phones
 - **Light models** — 500–650 vertices per whale, 512px textures. Phone support
