@@ -18,6 +18,8 @@ const BASE = window.FW_ASSET_BASE ?? '../';
 const query = new URLSearchParams( location.search );
 // 테스트 옵션 ?stella: 편지 6통을 다 모은 상태로 엔딩부터 (스텔라 → 듀엣 → 서브 엔딩). 저장은 건드리지 않는다
 const STELLA_TEST = query.has( 'stella' );
+// 테스트 옵션 ?gold: 엔딩 6개 보상(금빛 바다)을 미리 본다. 저장은 건드리지 않는다
+const GOLD_TEST = query.has( 'gold' );
 const LOW = ( query.get( 'q' ) ?? ( matchMedia( '(pointer: coarse)' ).matches ? 'low' : 'high' ) ) === 'low';
 const DT_MAX = Number( query.get( 'dtmax' ) ) || 1 / 20;
 
@@ -234,6 +236,26 @@ function loadEndings() {
 		return [];
 
 	}
+
+}
+
+// 엔딩 6개를 다 모은 보상: 달빛 윤슬이 금빛 → 하늘색으로 번지고, 달이 금빛, 헤이즐의 빛 문양이 더 반짝인다
+function allEndingsSeen() {
+
+	const seen = loadEndings();
+	return ENDING_ORDER.every( ( k ) => seen.includes( k ) );
+
+}
+
+function applyGoldenSea() {
+
+	G.goldenSea = true;
+	G.ocean.uniforms.uMoonColor.value.set( 0xff9a00 ).convertSRGBToLinear(); // 아주 밝아서 하얗게 날아가지 않도록 진한 금빛
+	G.ocean.uniforms.uMoonEdge.value.set( 0x5cc8ff ).convertSRGBToLinear();
+	G.sky.moonUniforms.uDisc.value.set( 0.95, 0.34, 0.0 ); // 윤슬과 같은 금빛 (초록을 낮춰야 레몬빛 · 흰빛으로 날아가지 않는다)
+	G.sky.moonUniforms.uHalo.value.set( 0.45, 0.7, 1.0 );
+	G.sky.moonUniforms.uGold.value = 1;
+	G.sky.capture( renderer ); // 바다에 비치는 하늘(반사)도 다시 찍는다
 
 }
 
@@ -766,8 +788,11 @@ Object.assign( G, {
 
 		const minutes = Math.floor( G.stats.time / 60 ), seconds = Math.floor( G.stats.time % 60 );
 		const key = forced ?? G.endingKey();
+		const hadAll = allEndingsSeen();
 		saveEnding( key );
 		if ( G.flags.subEnding ) saveEnding( 'stella' );
+		const newlyAll = ! hadAll && allEndingsSeen();
+		if ( newlyAll ) applyGoldenSea();
 		$( 'ending-head' ).textContent = `ENDING · ${t( `endings.${key}.name` )}${G.flags.subEnding ? ' · SUB ENDING' : ''}`;
 		renderEndings( $( 'ending-list' ), key );
 		// 스텔라를 만난 적 있으면 여기서 바로 듀엣만 다시
@@ -777,7 +802,8 @@ Object.assign( G, {
 			`PLAY TIME ${minutes}:${String( seconds ).padStart( 2, '0' )}`,
 			`LETTERS ${G.bottleCount()}/${LETTER_TOTAL}`,
 			G.flags.duetRank ? `DUET ${G.flags.duetRank} · ★ ${G.flags.duetStars}` : '',
-			forced ? t( 'ending.heartHint' ) : G.flags.subEnding ? t( 'ending.sub' ) : t( 'ending.hint' )
+			forced ? t( 'ending.heartHint' ) : G.flags.subEnding ? t( 'ending.sub' ) : t( 'ending.hint' ),
+			newlyAll ? `<b class="gold">${t( 'ending.allEndings' )}</b>` : ''
 		].filter( Boolean ).join( '<br>' );
 		$( 'btn-again' ).textContent = t( forced ? 'ending.retry' : 'ending.again' );
 		const left = ! forced && ! G.flags.subEnding && G.bottleCount() < LETTER_TOTAL;
@@ -2465,6 +2491,7 @@ async function boot() {
 
 	G.ocean = new Ocean( { envMap: G.sky.cubeTarget.texture, normalMap: normalTex, fog, moonDir, gridStep: LOW ? 5 : 2.5 } );
 	scene.add( G.ocean.mesh );
+	if ( GOLD_TEST || allEndingsSeen() ) applyGoldenSea();
 	G.targetWaves = 0.65;
 
 	const avoid = [
@@ -2954,6 +2981,13 @@ function updatePlayer( dt ) {
 	}
 
 	h.setGlow( G.dash > 0 ? 0.5 : 0, 0xffb070 );
+	// 엔딩 6개 보상: 빛 문양이 더 밝게, 천천히 반짝인다
+	if ( G.goldenSea ) {
+
+		const k = 2.1 + 0.9 * Math.sin( G.time * 2.4 ) ** 2;
+		for ( const m of h.materials ) m.emissiveIntensity = k;
+
+	}
 	h.speed += ( target - h.speed ) * Math.min( 1, dt * ( G.dash > 0 ? 3 : throttle === 0 ? 0.9 : 1.6 ) );
 
 	// 대화 중에는 상대를 바라본다

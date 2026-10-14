@@ -64,6 +64,7 @@ export default {
 		ending: {
 			search: '残りの手紙を探しに行く · {n}/{total}',
 			again: 'もう一度あそぶ',
+			allEndings: '★ エンディングを6つすべて集めた — 海が金色にきらめく',
 			duet: '♪ もう一度デュエット',
 			quote: '「 海には自由がある<br>誰もが享受すべき自由が 」',
 			sub: 'もうひとつの52Hzに出会った',

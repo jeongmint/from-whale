@@ -64,6 +64,7 @@ export default {
 		ending: {
 			search: '남은 편지 찾으러 가기 · {n}/{total}',
 			again: '다시 하기',
+			allEndings: '★ 엔딩 6개를 모두 모았다 — 이제 바다가 금빛으로 반짝인다',
 			duet: '♪ 듀엣 다시 부르기',
 			quote: '“ 바다에는 자유가 있다<br>누구나 누려야 하는 ”',
 			sub: '또 하나의 52Hz를 만났다',
