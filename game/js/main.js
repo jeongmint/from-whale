@@ -2330,7 +2330,7 @@ async function boot() {
 
 	};
 
-	const normalTex = await new THREE.TextureLoader().loadAsync( BASE + 'examples/textures/waternormals.jpg' );
+	const normalTex = await new THREE.TextureLoader().loadAsync( BASE + 'data/res/textures/waternormals.jpg' );
 	setLoad( 0.15 );
 	const models = await loadModels( BASE, ( p ) => setLoad( 0.15 + p * 0.85 ) );
 	G.models = models;

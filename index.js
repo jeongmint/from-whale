@@ -41,7 +41,7 @@ function init() {
         scene.add( ground );
 
         const textureLoader = new THREE.TextureLoader();
-        textureLoader.load( 'examples/textures/clear_sea.png', function ( map ) {
+        textureLoader.load( 'data/res/textures/clear_sea.png', function ( map ) {
 
             map.wrapS = THREE.RepeatWrapping;
             map.wrapT = THREE.RepeatWrapping;
