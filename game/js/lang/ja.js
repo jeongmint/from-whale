@@ -19,6 +19,25 @@ export default {
 		duet: { title: 'DUET · 52HZ ♥ 52HZ', help: '歌う [E] · ジャンプ [Space]', ready: 'ステラがカウントしてる…', perfect: 'PERFECT', good: 'GOOD', miss: 'MISS', combo: '{n} COMBO', rank: 'RANK {r}', sky: '★ 夜空が完成した!' },
 		feedback: { open: '✉ アイデア · バグを送る', placeholder: 'アイデアやバグを自由に書いてください', send: '送る', sending: '送信中…', thanks: 'ありがとう! 受け取りました。', fail: '今は送れませんでした。下のメールに送ってください。', copy: 'アドレスをコピー', copied: 'コピーしました!', mailApp: 'メールアプリで' },
 		letter: { close: '閉じる <span class="mono tiny">[E]</span>' },
+		// デュエットのスコアボード (歌に名前をつけて TOP 10 に残す)
+		scores: {
+			song: 'SONG',
+			placeholder: '星降るブルース',
+			save: '海に残す',
+			skip: '残さない',
+			close: 'つづける',
+			mine: '{who} · {r} · {s}/{max}',
+			loading: '海の記録を聞いている…',
+			saving: '海に流している…',
+			saved: '海に残した! {p}位',
+			savedOut: '海に残した! (まだ TOP 50 の外)',
+			local: 'いまは海に届かない — この端末の記録',
+			offline: 'いまは海に届かない — この端末にだけ残した',
+			test: 'テストモード — 海には送らない',
+			empty: 'まだ誰も残していない',
+			word: 'その名前は残せないよ。別の名前で!',
+			slow: '少し待ってからもう一度どうぞ'
+		},
 		journal: {
 			title: 'MAILBOX — ボトルレター',
 			close: '閉じる <span class="mono tiny">[L]</span>',
@@ -422,6 +441,7 @@ export default {
 				A: [ [ 'stella', 'いいね、いいね! はじめてなのにすっごく上手!' ] ],
 				B: [ [ 'stella', 'えへへ、リズムはめちゃくちゃだったけど\n今まで聞いた中でいちばん楽しい歌だった!' ] ]
 			},
+			nameSong: [ [ 'stella', 'ねえ、今の歌に名前をつけて!\n海に残しておくね。ほかのクジラたちにも聞こえるように!' ] ],
 			outro: [
 				[ 'stella', 'だからその52ヘルツで、君にしかできないことをやってみて。\nひとりで歌っているクジラたちに、応えてあげるとか!' ],
 				[ 'stella', 'さあ、次の冒険はそれだよ。どう、わくわくするでしょ?!' ]

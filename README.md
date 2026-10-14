@@ -14,7 +14,7 @@ A sea adventure of **Hazel**, a whale who sings at 52Hz. Another world, the year
 | **Duet with Stella · shooting stars** | **Phone, landscape** |
 | ![Rhythm duet with Stella under a shower of shooting stars](data/res/shots/stella.jpg) | ![Landscape phone screen with joystick and buttons](data/res/shots/mobile.jpg) |
 
-- Run locally: `python3 -m http.server` in the repo root → <http://localhost:8000/game/>
+- Run locally: `python3 -m http.server` in the repo root → <http://localhost:8000/game/> (duet scoreboard shows this device only; `npx netlify dev` for the server too)
 - Languages: 한국어 · English · 日本語 (picked from the device language)
 - Custom nickname (default: 헤이즐 / Hazel / ヘイゼル)
 - Saves: continue by chapter, seen endings kept separately
@@ -31,7 +31,7 @@ A sea adventure of **Hazel**, a whale who sings at 52Hz. Another world, the year
 - **6 endings + ending gallery** — 4 decided by Luke's and Finn's fates + The Late Whale + A Whale's Stopped Heart (below). Unseen endings show hints only
 - **Kelp** — signposts with written directions, sing beside them to restore hearts
 - **Moby Dick boss fight** — 6 songs that reach him win him over. Body hits and falling stars cost a heart; stun 1.1 s from stars, 1.5 s from charges (with Finn's Tears, a song clears it at once)
-- **Stella (hidden ending)** — all 6 letters in bottles (Moby's prologue letter included) → 12-bar blues duet (S·A·B rank, a shooting star per jump note). Remaining letters can be found in the epilogue after the ending
+- **Stella (hidden ending)** — all 6 letters in bottles (Moby's prologue letter included) → 12-bar blues duet (S·A·B rank, a shooting star per jump note) → name the song and leave it with your nickname and score on the shared **Duet TOP 10**. Remaining letters can be found in the epilogue after the ending
 - **Space and sea** — Gerstner waves, glittering ripples, ringed planet, shooting stars, bloom
 - **Retro blue UI** — window-style HUD, sonar minimap, chapter cards, PC controls guide, current objective inside the HAZEL window (top center left clear). One-line dialog at the bottom, two-column title, and the call-and-response window at the bottom left in tilt mode on landscape phones
 - **Light models** — 500–650 vertices per whale, 512px textures. Phone support
@@ -100,7 +100,10 @@ Color options (`Whale` in `game/js/actors.js`): `solidColor` for a single color,
 | `game/js/lang/*.js` | Text per language (ko / en / ja) |
 | `game/js/i18n.js` | Language selection |
 | `game/js/name.js` | Nickname, Korean particles (`{N은}`, `{N을}`) |
+| `game/js/scores.js` | Duet scoreboard window (saves on this device only when the server can't be reached) |
 | `game/js/main.js` | Rendering, bloom, input, Alliance AI, boss fight, routes · ending gallery, epilogue |
+| `netlify/functions/duet-scores.mjs` | Duet scoreboard server (Netlify Functions + Blobs). Keeps the TOP 50; checks length, banned words, max score, 20 s between posts. Remove entries in the Netlify dashboard → Blobs → `duet-scores` → `top` |
+| `package.json` | `@netlify/blobs` for the server code |
 | `tools/make_stella.py` | Stella model generator (low-poly blue whale with texture). Edit the numbers, then `python3 tools/make_stella.py` |
 | `scene.html` | Early 3D whale scene |
 

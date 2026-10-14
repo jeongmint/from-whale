@@ -532,6 +532,27 @@ body.singing #stick, body.singing #minimap-wrap { opacity: 0; pointer-events: no
 #ending-list li.star { color: var(--gold); }
 #title-endings { color: var(--gold); letter-spacing: 0.12em; margin: 4px 0 0; }
 
+/* 듀엣 점수판 */
+#scores { z-index: 26; }
+#scores .win { width: min(440px, calc(100vw - 24px)); text-align: center; }
+#scores .win-body { display: grid; gap: 10px; justify-items: center; }
+#score-mine { margin: 0; color: var(--gold); letter-spacing: 0.08em; }
+#score-form { display: grid; gap: 10px; justify-items: center; }
+#song-name { width: 220px; }
+#score-status { margin: 0; min-height: 1em; color: var(--cyan); }
+#score-list { list-style: none; margin: 0; padding: 8px 12px; width: 100%; box-sizing: border-box; display: grid; gap: 4px; text-align: left; border: 1px dashed var(--line); font-size: 13px; max-height: 40vh; overflow-y: auto; }
+#score-list li { display: grid; grid-template-columns: 2em 1fr; column-gap: 6px; color: var(--ink); }
+#score-list li.empty { display: block; text-align: center; color: var(--ink-dim); }
+#score-list li.me { color: var(--gold); }
+#score-list .place { grid-row: span 2; font: 700 15px var(--mono); color: var(--cyan); align-self: center; }
+#score-list li.me .place { color: var(--gold); }
+#score-list b { overflow-wrap: anywhere; }
+#score-list small { color: var(--ink-dim); font-size: 11px; }
+@media (max-height: 520px) {
+	#scores .win-body { gap: 6px; }
+	#score-list { max-height: 34vh; }
+}
+
 /* 부서진 나침반 게이지 (소나 창 제목줄) */
 #compass-meter { display: flex; align-items: center; gap: 5px; }
 #compass-meter[hidden] { display: none; }

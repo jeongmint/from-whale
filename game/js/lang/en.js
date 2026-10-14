@@ -19,6 +19,25 @@ export default {
 		duet: { title: 'DUET · 52HZ ♥ 52HZ', help: 'Sing [E] · Jump [Space]', ready: 'Stella counts you in…', perfect: 'PERFECT', good: 'GOOD', miss: 'MISS', combo: '{n} COMBO', rank: 'RANK {r}', sky: '★ The night sky is complete!' },
 		feedback: { open: '✉ Send an idea or a bug', placeholder: 'Write any idea or bug you found', send: 'Send', sending: 'Sending…', thanks: 'Thank you! Got it.', fail: 'Couldn\'t send it right now. Please email it instead:', copy: 'Copy address', copied: 'Copied!', mailApp: 'Open mail app' },
 		letter: { close: 'Close <span class="mono tiny">[E]</span>' },
+		// Duet scoreboard (name the song and leave it in the TOP 10)
+		scores: {
+			song: 'SONG',
+			placeholder: 'Blues of the Falling Stars',
+			save: 'Leave it in the sea',
+			skip: 'Not this time',
+			close: 'Continue',
+			mine: '{who} · {r} · {s}/{max}',
+			loading: 'Listening to the sea\'s records…',
+			saving: 'Sending it out to sea…',
+			saved: 'Left in the sea! #{p}',
+			savedOut: 'Left in the sea! (not in the TOP 50 yet)',
+			local: 'Can\'t reach the sea right now — records on this device',
+			offline: 'Can\'t reach the sea right now — saved on this device only',
+			test: 'Test mode — not sent to the sea',
+			empty: 'No one has left a song yet',
+			word: 'That name can\'t be left. Try another!',
+			slow: 'Please try again in a moment'
+		},
 		journal: {
 			title: 'MAILBOX — Bottle letters',
 			close: 'Close <span class="mono tiny">[L]</span>',
@@ -422,6 +441,7 @@ export default {
 				A: [ [ 'stella', 'Yes, yes! That was amazing for a first try!' ] ],
 				B: [ [ 'stella', 'Hehe, the beat was all over the place,\nbut that was the most fun song I\'ve ever heard!' ] ]
 			},
+			nameSong: [ [ 'stella', 'Hey, give that song a name!\nI\'ll leave it in the sea so other whales can hear it too!' ] ],
 			outro: [
 				[ 'stella', 'So use that 52 hertz to do something only you can do.\nLike answering the whales who sing alone!' ],
 				[ 'stella', 'There. That\'s your next adventure. Exciting, right?!' ]

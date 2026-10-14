@@ -19,6 +19,25 @@ export default {
 		duet: { title: 'DUET · 52HZ ♥ 52HZ', help: '노래 [E] · 점프 [Space]', ready: '스텔라가 박자를 센다…', perfect: 'PERFECT', good: 'GOOD', miss: 'MISS', combo: '{n} COMBO', rank: 'RANK {r}', sky: '★ 밤하늘 완성!' },
 		feedback: { open: '✉ 아이디어 · 버그 보내기', placeholder: '아이디어나 버그를 자유롭게 적어 주세요', send: '보내기', sending: '보내는 중…', thanks: '고마워요! 잘 받았어요.', fail: '지금은 바로 보내지 못했어요. 아래 메일로 보내 주세요.', copy: '주소 복사', copied: '복사했어요!', mailApp: '메일 앱으로' },
 		letter: { close: '닫기 <span class="mono tiny">[E]</span>' },
+		// 듀엣 점수판 (노래 이름을 붙여 TOP 10에 남긴다)
+		scores: {
+			song: 'SONG',
+			placeholder: '별이 내리는 블루스',
+			save: '바다에 남기기',
+			skip: '안 남길래',
+			close: '계속',
+			mine: '{who} · {r} · {s}/{max}',
+			loading: '바다의 기록을 듣는 중…',
+			saving: '바다에 띄우는 중…',
+			saved: '바다에 남겼다! {p}위',
+			savedOut: '바다에 남겼다! (아직 TOP 50 밖)',
+			local: '지금은 바다에 닿지 않는다 — 이 기기의 기록',
+			offline: '지금은 바다에 닿지 않는다 — 이 기기에만 남겼다',
+			test: '테스트 모드 — 바다에 올리지 않는다',
+			empty: '아직 아무도 남기지 않았다',
+			word: '그 이름은 남길 수 없어요. 다른 이름으로!',
+			slow: '조금 있다가 다시 남겨 주세요'
+		},
 		journal: {
 			title: 'MAILBOX — 유리병 편지함',
 			close: '닫기 <span class="mono tiny">[L]</span>',
@@ -424,6 +443,7 @@ export default {
 				A: [ [ 'stella', '좋아 좋아! 처음치고 완전 잘했어!' ] ],
 				B: [ [ 'stella', '헤헤, 박자는 엉망이었지만\n지금까지 들은 노래 중에 제일 신났어!' ] ]
 			},
+			nameSong: [ [ 'stella', '있지, 방금 그 노래 이름 지어 줘!\n바다에 남겨 둘게. 다른 고래들도 들을 수 있게!' ] ],
 			outro: [
 				[ 'stella', '그러니까 그 52헤르츠로, 너만 할 수 있는 일을 해 봐.\n혼자 노래하는 고래들한테 대답해 주는 거라든가!' ],
 				[ 'stella', '자, 다음 모험은 그거야. 어때, 신나지?!' ]

@@ -1,0 +1,9 @@
+{
+  "name": "from-whale",
+  "private": true,
+  "type": "module",
+  "description": "From. Whale — 듀엣 점수판 서버 코드(netlify/functions)가 쓰는 패키지",
+  "dependencies": {
+    "@netlify/blobs": "^11.1.4"
+  }
+}
