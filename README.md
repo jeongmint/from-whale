@@ -59,7 +59,7 @@ WebGL Three.js Project about Blue and Whale
 | 연합군 | 범고래 무리 | `data/orca_army/Orca_Army.glb` |
 | 연합군 대장 · 샤먼 | 분홍 범고래 | `Orca_Army.glb` + `recolor` |
 | 모비 딕 | 향유고래, 마지막 보스 | `data/moby/Moby.glb` |
-| 스텔라 | 노란 대왕고래, 또 하나의 52Hz, 등의 반짝이는 육각별 문양 | `data/stella/Stella.glb` (코드로 생성: `tools/make_stella.py`) |
+| 스텔라 | 노란 대왕고래, 또 하나의 52Hz, 목주름, 등의 반짝이는 육각별 문양 | `data/stella/Stella.glb` (코드로 생성: `tools/make_stella.py`) |
 
 색 옵션 (`game/js/actors.js`의 `Whale`): `solidColor` 단색, `recolor: [ 어두운 색, 밝은 색 ]` 무늬 유지 색 변경
 
