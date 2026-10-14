@@ -404,12 +404,36 @@ async function meetStella( G ) {
 
 }
 
+// 듀엣 다시 부르기: 스텔라를 만난 적 있으면 타이틀 · 엔딩 화면에서 바로 스텔라와 듀엣만 (점수는 점수판에 정식으로)
+export async function duetAgain( G ) {
+
+	const T = () => lang().story.ending;
+	G.cutscene( true );
+	if ( ! G.actors.stella.root.visible ) {
+
+		G.stellaRise();
+		G.audio.whaleCall( null, 'stella' );
+
+	}
+
+	G.camFocus( G.actors.stella, { side: 1, dist: 185, height: 52 } );
+	await G.wait( 2.5 );
+	await G.say( lines( T().again ) );
+	const rank = await G.duet( DUET_CHART );
+	await G.say( lines( [ ...T().duetEnd[ rank ], ...T().nameSong ] ) );
+	await G.scores();
+	await G.say( lines( T().againBye ) );
+	G.cutscene( false );
+
+}
+
 // 엔딩 뒤: 바다를 계속 헤엄치며 남은 유리병을 찾는다. 다 모으면 스텔라를 만난다
 export async function epilogue( G ) {
 
 	const T = () => lang().story.epilogue;
 	G.setStarfall( false );
-	G.setMusic( { tension: 0, drums: 0.5, bass: 0, melody: 1, piano: 1, sax: 0.9 } );
+	// 핀의 드럼은 핀이 있을 때만 (보스전에서 떠났으면 에필로그에서도 다시 나오지 않는다)
+	G.setMusic( { tension: 0, drums: G.party.finn === 'on' ? 0.5 : 0, bass: 0, melody: 1, piano: 1, sax: 0.9 } );
 	const who = G.party.finn === 'on' ? 'finn' : G.party.luke === 'on' ? 'luke' : 'none';
 	await G.say( lines( T().start[ who ] ) );
 	G.objective( label( T().card ), T().objective );

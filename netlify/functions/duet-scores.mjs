@@ -33,7 +33,7 @@ const banned = ( s ) => {
 const rankOf = ( score ) => {
 
 	const r = score / MAX_SCORE;
-	return r >= 0.8 ? 'S' : r >= 0.55 ? 'A' : 'B';
+	return r >= 0.85 ? 'S' : r >= 0.6 ? 'A' : 'B'; // game/js/main.js 의 듀엣 등급과 같게
 
 };
 

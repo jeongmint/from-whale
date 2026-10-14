@@ -160,6 +160,20 @@
 			</div>
 		</div>
 
+		<!-- 듀엣 다시 부르기가 끝난 뒤: 한 곡 더 / 타이틀로 -->
+		<div id="duet-again" class="overlay hidden">
+			<div class="win">
+				<header class="win-bar"><span>DUET · 52HZ ♥ 52HZ</span><i></i></header>
+				<div class="win-body">
+					<p class="quote big" data-i18n="duetAgain.thanks"></p>
+					<div class="row">
+						<button class="btn" id="btn-duet-more" type="button" data-i18n="duetAgain.more"></button>
+						<button class="btn ghost" id="btn-duet-title" type="button" data-i18n="duetAgain.title"></button>
+					</div>
+				</div>
+			</div>
+		</div>
+
 		<!-- 듀엣 점수판: 노래 이름을 붙여 TOP 10에 남긴다 -->
 		<div id="scores" class="overlay hidden">
 			<div class="win">
@@ -228,6 +242,7 @@
 					<div class="title-row">
 						<button class="btn big" id="btn-start" data-i18n="title.start"></button>
 						<button class="btn ghost hidden" id="btn-continue" data-i18n="title.continue"></button>
+						<button class="btn ghost hidden" id="btn-duet" type="button" data-i18n="title.duet"></button>
 					</div>
 					<p id="title-endings" class="mono tiny hidden"></p>
 				</div>
@@ -248,6 +263,7 @@
 					<div class="row">
 						<button class="btn hidden" id="btn-search"></button>
 						<button class="btn ghost" id="btn-again" data-i18n="ending.again"></button>
+						<button class="btn ghost hidden" id="btn-duet-end" type="button" data-i18n="ending.duet"></button>
 					</div>
 					<!-- 아이디어 · 버그 보내기 (Netlify Forms) -->
 					<button class="chip" id="btn-feedback" type="button" data-i18n="feedback.open"></button>

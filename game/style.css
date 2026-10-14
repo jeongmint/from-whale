@@ -365,7 +365,7 @@ body.singing #stick, body.singing #minimap-wrap { opacity: 0; pointer-events: no
 .duet-note.miss { background: #3b4a78; box-shadow: none; opacity: 0.6; }
 #duet-info { display: flex; justify-content: space-between; margin-top: 6px; font: 700 13px var(--mono); min-height: 16px; }
 #duet-judge.perfect { color: var(--gold); text-shadow: 0 0 14px var(--gold); }
-#duet-judge.excellent { color: #fff2c4; }
+#duet-judge.excellent { color: #fff2c4; text-shadow: 0 0 12px rgba(255, 226, 150, 0.85); }
 #duet-judge.good { color: var(--cyan); }
 #duet-judge.miss { color: var(--warn); }
 #duet-combo { color: var(--ink-dim); }
