@@ -69,7 +69,7 @@ WebGL Three.js Project about Blue and Whale
 
 ### 첫 화면
 
-- PLAY · ABOUT (PITCH / CONCEPT / BGM) · CONTACT
+- PLAY · ABOUT (PITCH / CONCEPT / BGM) · CONTACT (메일 · GitHub 저장소 · LinkedIn)
 - `#pitch`, `#concept`, `#bgm` 주소로 탭 바로 열기
 - 글꼴: Squaredance (`files/SquaredanceFontV1-Regular.ttf`)
 
