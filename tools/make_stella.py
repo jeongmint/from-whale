@@ -221,23 +221,40 @@ def base_texture():
 	return im
 
 
-# 등의 별자리: 빛의 문양 (편지 #05의 S)
-STARS = [ ( 0.17, 0.03, 8 ), ( 0.24, - 0.04, 5 ), ( 0.31, 0.05, 10 ), ( 0.38, - 0.02, 6 ), ( 0.45, 0.04, 9 ), ( 0.52, - 0.05, 5 ), ( 0.58, 0.01, 8 ), ( 0.66, 0.05, 5 ), ( 0.73, - 0.02, 7 ) ]
+# 등의 빛 문양: 등 한가운데의 반짝이는 육각별(✶) 하나 + 둘레의 작은 반짝임
+# 텍스처에서 v(몸 둘레)가 u(몸 길이)보다 촘촘하게 펴지므로, 몸 위에서 동그랗게 보이도록 세로로 ASPECT배 늘려 그린다
+ASPECT = 2.1
+STAR = ( 0.40, 0.0, 24 )  # u, v, 바깥 반지름(px). 꼭짓점이 가늘어야 겹친 삼각형(✡)이 아니라 반짝임으로 보인다
+STAR_INNER = 0.28
+SPARKLES = [ ( 0.24, 0.05, 5 ), ( 0.30, - 0.07, 4 ), ( 0.34, 0.09, 3 ), ( 0.47, - 0.09, 3 ), ( 0.52, 0.06, 5 ), ( 0.58, - 0.05, 4 ), ( 0.66, 0.03, 4 ), ( 0.72, - 0.02, 3 ) ]
+
+
+def star_points( x, y, r, points, inner, rot = 0.0 ):
+
+	out = []
+	for i in range( points * 2 ):
+		a = rot + math.pi * i / points
+		rr = r if i % 2 == 0 else r * inner
+		out.append( ( x + math.cos( a ) * rr, y + math.sin( a ) * rr * ASPECT ) )
+	return out
 
 
 def emissive_texture():
 
-	# 별자리가 등줄기(v=0=1)에 걸쳐 있어서, v -0.5 ~ 1.5 높이로 그린 뒤 0 ~ 1로 접는다
+	# 별이 등줄기(v=0=1)에 걸쳐 있어서, v -0.5 ~ 1.5 높이로 그린 뒤 0 ~ 1로 접는다
 	half = TEX // 2
 	im = Image.new( 'RGB', ( TEX, TEX * 2 ), ( 0, 0, 0 ) )
 	d = ImageDraw.Draw( im )
-	pts = [ ( u * TEX, ( v + 0.5 ) * TEX ) for u, v, _ in STARS ]
-	d.line( pts, fill = ( 120, 96, 40 ), width = 2 )
-	for ( u, v, r ), ( x, y ) in zip( STARS, pts ):
-		d.polygon( [ ( x, y - r * 1.6 ), ( x + r * 0.35, y - r * 0.35 ), ( x + r * 1.6, y ), ( x + r * 0.35, y + r * 0.35 ), ( x, y + r * 1.6 ), ( x - r * 0.35, y + r * 0.35 ), ( x - r * 1.6, y ), ( x - r * 0.35, y - r * 0.35 ) ], fill = ( 255, 236, 170 ) )
-		d.ellipse( ( x - r * 0.45, y - r * 0.45, x + r * 0.45, y + r * 0.45 ), fill = ( 255, 252, 235 ) )
-	glow = im.filter( ImageFilter.GaussianBlur( 3 ) )
-	tall = np.clip( np.asarray( im, float ) + np.asarray( glow, float ) * 0.8, 0, 255 )
+	u, v, r = STAR
+	x, y = u * TEX, ( v + 0.5 ) * TEX
+	d.polygon( star_points( x, y, r, 6, STAR_INNER ), fill = ( 255, 236, 170 ) )  # 꼭짓점 하나가 머리 쪽을 본다
+	d.ellipse( ( x - r * 0.3, y - r * 0.3 * ASPECT, x + r * 0.3, y + r * 0.3 * ASPECT ), fill = ( 255, 252, 236 ) )
+	for u, v, r in SPARKLES:
+		x, y = u * TEX, ( v + 0.5 ) * TEX
+		d.polygon( star_points( x, y, r, 4, 0.3, - math.pi / 2 ), fill = ( 255, 230, 160 ) )
+	halo = im.filter( ImageFilter.GaussianBlur( 7 ) )
+	glow = im.filter( ImageFilter.GaussianBlur( 2.5 ) )
+	tall = np.clip( np.asarray( im, float ) + np.asarray( glow, float ) * 0.7 + np.asarray( halo, float ) * 1.1, 0, 255 )
 	# 밤바다에서도 금빛 고래로 보이게 몸 전체가 은은하게 빛난다 (등 쪽이 조금 더)
 	vv = ( np.arange( TEX * 2 ) + 0.5 ) / TEX - 0.5
 	back = ( 1 + np.cos( 2 * math.pi * vv ) ) / 2
