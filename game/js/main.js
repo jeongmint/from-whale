@@ -35,7 +35,8 @@ const EPILOGUE = CHAPTERS.length; // 엔딩 뒤 남은 편지 찾기 (이어하�
 // 갈래 엔딩. 3장 매복까지 연합군에게 한 번도 안 맞으면(LUKE_MAX_HITS) 루크가 살고,
 // 보스전에서 처음 쓰러지면 핀이 대신 맞는다. 루크·핀이 살았는지에 따라 엔딩 넷
 const LUKE_MAX_HITS = 0; // 한 번도 안 맞아야 루크가 산다
-const AMBUSH_HEADSTART = 2.5; // 매복 컷신 뒤 연합군이 물러나 있는 시간 (초)
+const AMBUSH_HEADSTART = 3; // 매복 컷신 뒤 연합군이 잠수해서 헤이즐 뒤쪽에 모이는 시간 (초)
+const AMBUSH_DASH = 2.2; // 매복 컷신 뒤 헤이즐이 치고 나가는 시간 (초)
 const ROUTES = {
 	light: { luke: false, finn: true }, // 꺼지지 않는 빛
 	friends: { luke: true, finn: true }, // 동료의 힘
@@ -650,14 +651,28 @@ Object.assign( G, {
 
 	ambushChase( ring ) {
 
-		// 컷신이 끝난 순간엔 연합군이 헤이즐 바로 옆이라, 잠깐 물러났다가 쫓아온다 (도망칠 틈)
-		ring.forEach( ( o ) => {
+		// 컷신이 끝난 순간엔 연합군이 헤이즐을 빙 둘러싸고 있다. 잠수해서 헤이즐 뒤쪽(도망칠 방향의 반대)으로 모였다가
+		// AMBUSH_HEADSTART초 뒤 떠올라 쫓아온다. 앞을 막은 채로 쫓으면 피할 길이 없으니까
+		const h = G.actors.hazel;
+		const ex = PLACES.kelp5.x - h.pos.x, ez = PLACES.kelp5.z - h.pos.z;
+		const el = Math.hypot( ex, ez ) || 1;
+		ring.forEach( ( o, i ) => {
 
-			o.state = 'stun';
+			const side = ( i - ( ring.length - 1 ) / 2 ) * 9;
+			o.state = 'regroup';
 			o.stunT = AMBUSH_HEADSTART;
-			o.after = 'hunt';
+			o.goal = { back: 50, side, dx: ex / el, dz: ez / el };
+			o.whale.targetDepth = 9;
 
 		} );
+		// 헤이즐은 도망칠 방향으로 돌아서 잠깐 아주 빠르게 치고 나간다 (그동안은 부딪혀도 괜찮다)
+		h.yaw = Math.atan2( ex, ez );
+		G.camYaw = h.yaw;
+		G.dash = AMBUSH_DASH;
+		G.stamina = 1;
+		G.audio.play( 'dash' );
+		// 매복 전에 들켜서 쫓아오던 순찰대는 제자리로
+		for ( const o of G.orcas ) if ( ! o.ambush && o.state === 'chase' ) o.state = 'return';
 
 	},
 
@@ -827,6 +842,18 @@ function updateOrcas( dt ) {
 					o.after = null;
 
 				}
+				break;
+			case 'regroup':
+				// 헤이즐이 지금 있는 곳의 뒤쪽으로 (치고 나가는 헤이즐을 놓치지 않게)
+				steerTo( w, h.pos.x - o.goal.dx * o.goal.back - o.goal.dz * o.goal.side, h.pos.z - o.goal.dz * o.goal.back + o.goal.dx * o.goal.side, 34, dt, 3 );
+				if ( ! frozen ) o.stunT -= dt;
+				if ( o.stunT <= 0 ) {
+
+					o.state = 'hunt';
+					w.targetDepth = 0;
+
+				}
+
 				break;
 			case 'hold':
 				w.speed *= 0.95;
