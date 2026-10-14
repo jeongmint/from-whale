@@ -299,7 +299,7 @@ async function chapter4( G ) {
 	G.cutscene( true );
 	const moby = G.actors.moby;
 	G.mobyRise();
-	G.camFocus( moby, { side: 1, dist: 90, height: 30 } );
+	G.camFocus( moby, { side: 1, dist: 115, height: 36 } );
 	G.audio.whaleCall( null, 'moby' );
 	await G.wait( 2.5 );
 	await G.say( lines( T().moby ) );
@@ -327,7 +327,7 @@ async function ending( G ) {
 	// 루크·핀이 살았는지에 따라 엔딩이 갈린다: 꺼지지 않는 빛 / 동료의 힘 / 부서진 나침반 / 희생
 	const key = G.endingKey();
 	G.cutscene( true );
-	G.camFocus( G.actors.moby, { side: - 1, dist: 80, height: 22 } );
+	G.camFocus( G.actors.moby, { side: - 1, dist: 100, height: 27 } );
 	// 루크의 베이스는 희생 엔딩에서만 돌아오지 않고, 핀의 드럼은 핀이 있을 때만
 	G.setMusic( { tension: 0, drums: G.route.finn ? 0.3 : 0, bass: key === 'sacrifice' ? 0 : 0.5, melody: 1, piano: 1 } );
 	await G.say( lines( [ ...T().lines, ...T().routes[ key ] ] ) );
@@ -346,7 +346,7 @@ async function meetStella( G ) {
 	const T = () => lang().story.ending;
 	await card( G, T().subCard );
 	G.stellaRise();
-	G.camFocus( G.actors.stella, { side: 1, dist: 140, height: 40 } );
+	G.camFocus( G.actors.stella, { side: 1, dist: 185, height: 52 } );
 	G.audio.whaleCall( null, 'stella' );
 	await G.wait( 3 );
 	await G.say( lines( T().stella ) );

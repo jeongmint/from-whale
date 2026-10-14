@@ -632,9 +632,9 @@ Object.assign( G, {
 		const c = PLACES.moby;
 		const dx = h.pos.x - c.x, dz = h.pos.z - c.z;
 		const d = Math.hypot( dx, dz ) || 1;
-		m.place( c.x + dx / d * 30, c.z + dz / d * 30 );
+		m.place( c.x + dx / d * 40, c.z + dz / d * 40 );
 		m.yaw = Math.atan2( h.pos.x - m.pos.x, h.pos.z - m.pos.z );
-		m.depth = 30;
+		m.depth = 40;
 		m.targetDepth = 0;
 		m.root.visible = true;
 		m.hold = true;
@@ -647,9 +647,9 @@ Object.assign( G, {
 		const s = G.actors.stella;
 		const h = G.actors.hazel;
 		const f = h.forward;
-		s.place( h.pos.x + f.x * 130 - f.z * 40, h.pos.z + f.z * 130 + f.x * 40 );
+		s.place( h.pos.x + f.x * 170 - f.z * 50, h.pos.z + f.z * 170 + f.x * 50 );
 		s.yaw = Math.atan2( h.pos.x - s.pos.x, h.pos.z - s.pos.z ) + 0.6;
-		s.depth = 45;
+		s.depth = 60;
 		s.targetDepth = 0;
 		s.root.visible = true;
 		s.setGlow( 0.12, 0xffb020 );
@@ -1658,7 +1658,7 @@ function mobyBody( frozen ) {
 	const vx = bx - ax, vz = bz - az;
 	const t = Math.max( 0, Math.min( 1, ( ( h.pos.x - ax ) * vx + ( h.pos.z - az ) * vz ) / ( vx * vx + vz * vz ) ) );
 	const px = ax + vx * t, pz = az + vz * t;
-	const radius = 4.5 + 3 * t + 2.5; // 머리 쪽이 더 굵다 + 헤이즐 몸
+	const radius = ( 4.5 + 3 * t ) * m.length / 46 + 2.5; // 머리 쪽이 더 굵다 (몸 크기에 비례) + 헤이즐 몸
 	const dx = h.pos.x - px, dz = h.pos.z - pz;
 	const d = Math.hypot( dx, dz );
 	if ( d >= radius || h.airborne ) return;
@@ -2301,8 +2301,9 @@ async function boot() {
 	A.hazel = new Whale( models.hazel, { name: 'hazel', length: 8, ride: 0.38, freq: 3.8, amp: 0.085, emissive: 1.4 } );
 	A.luke = new Whale( models.luke, { name: 'luke', length: 11, ride: 0.36, freq: 3.3, amp: 0.07, emissive: 1.4 } );
 	A.finn = new Whale( models.finn, { name: 'finn', length: 10, ride: 0.42, freq: 2.9, amp: 0.06, emissive: 0.55 } );
-	A.moby = new Whale( models.moby, { name: 'moby', length: 46, ride: 0.3, freq: 1.5, amp: 0.05, emissive: 0.6 } );
-	A.stella = new Whale( models.stella, { name: 'stella', length: 85, ride: 0.36, freq: 1.0, amp: 0.05, emissive: 1.6 } );
+	// 헤이즐(8)에 비해 커야 압도감이 난다. 실제 비율(상괭이 : 향유고래 : 대왕고래 ≈ 1.8m : 18m : 28m)보다는 작게
+	A.moby = new Whale( models.moby, { name: 'moby', length: 62, ride: 0.3, freq: 1.5, amp: 0.05, emissive: 0.6 } );
+	A.stella = new Whale( models.stella, { name: 'stella', length: 120, ride: 0.36, freq: 1.0, amp: 0.05, emissive: 1.6 } );
 	A.shaman = new Whale( models.orca, { name: 'shaman', length: 18, ride: 0.42, freq: 2.4, amp: 0.05, recolor: [ 0x7a1f4f, 0xffb3d1 ], emissive: 0.1 } );
 	for ( const a of Object.values( A ) ) scene.add( a.root );
 	A.moby.root.visible = A.stella.root.visible = A.shaman.root.visible = false;
