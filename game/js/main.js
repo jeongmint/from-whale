@@ -27,7 +27,8 @@ const MAX_HEARTS = 3;
 const DETECT = 56;
 const DASH_SPEED = 50;
 const REVERSE_SPEED = 9; // 조이스틱을 아래로 당기거나 폰을 뒤로 젖혔을 때 최고 후진 속도
-const STUN_TIME = 1.1;
+const STUN_TIME = 1.1; // 떨어지는 별
+const CHARGE_STUN = 1.5; // 돌진하는 모비에게 받혔을 때
 const SAVE_KEY = 'fromwhale.save.v1';
 const EPILOGUE = CHAPTERS.length; // 엔딩 뒤 남은 편지 찾기 (이어하기 번호)
 
@@ -40,7 +41,7 @@ const ROUTES = {
 	compass: { luke: true, finn: false }, // 부서진 나침반
 	sacrifice: { luke: false, finn: false } // 희생
 };
-const ENDING_ORDER = Object.keys( ROUTES );
+const ENDING_ORDER = [ ...Object.keys( ROUTES ), 'heart' ]; // heart: 한 장에서 두 번 쓰러지면 (멈춘 고래의 심장)
 const ENDINGS_KEY = 'fromwhale.endings';
 // 테스트 옵션 ?route=light|friends|compass|sacrifice: 4장 이후를 그 갈래로 시작 (?chapter와 함께)
 const ROUTE_TEST = ROUTES[ query.get( 'route' ) ] ? query.get( 'route' ) : null;
@@ -632,9 +633,9 @@ Object.assign( G, {
 		const c = PLACES.moby;
 		const dx = h.pos.x - c.x, dz = h.pos.z - c.z;
 		const d = Math.hypot( dx, dz ) || 1;
-		m.place( c.x + dx / d * 30, c.z + dz / d * 30 );
+		m.place( c.x + dx / d * 40, c.z + dz / d * 40 );
 		m.yaw = Math.atan2( h.pos.x - m.pos.x, h.pos.z - m.pos.z );
-		m.depth = 30;
+		m.depth = 40;
 		m.targetDepth = 0;
 		m.root.visible = true;
 		m.hold = true;
@@ -647,9 +648,9 @@ Object.assign( G, {
 		const s = G.actors.stella;
 		const h = G.actors.hazel;
 		const f = h.forward;
-		s.place( h.pos.x + f.x * 130 - f.z * 40, h.pos.z + f.z * 130 + f.x * 40 );
+		s.place( h.pos.x + f.x * 170 - f.z * 50, h.pos.z + f.z * 170 + f.x * 50 );
 		s.yaw = Math.atan2( h.pos.x - s.pos.x, h.pos.z - s.pos.z ) + 0.6;
-		s.depth = 45;
+		s.depth = 60;
 		s.targetDepth = 0;
 		s.root.visible = true;
 		s.setGlow( 0.12, 0xffb020 );
@@ -681,14 +682,20 @@ Object.assign( G, {
 
 	},
 
-	async showEnding() {
+	// forced: 'heart'(멈춘 고래의 심장)처럼 갈래와 상관없는 엔딩
+	async showEnding( forced = null ) {
 
 		G.ended = true;
-		G.save.chapter = 0;
-		G.save.cleared = true;
-		persist();
+		if ( ! forced ) {
+
+			G.save.chapter = 0;
+			G.save.cleared = true;
+			persist();
+
+		}
+
 		const minutes = Math.floor( G.stats.time / 60 ), seconds = Math.floor( G.stats.time % 60 );
-		const key = G.endingKey();
+		const key = forced ?? G.endingKey();
 		saveEnding( key );
 		if ( G.flags.subEnding ) saveEnding( 'stella' );
 		$( 'ending-head' ).textContent = `ENDING · ${t( `endings.${key}.name` )}${G.flags.subEnding ? ' · SUB ENDING' : ''}`;
@@ -698,9 +705,10 @@ Object.assign( G, {
 			`PLAY TIME ${minutes}:${String( seconds ).padStart( 2, '0' )}`,
 			`LETTERS ${G.bottleCount()}/${BOTTLES.length}`,
 			G.flags.duetRank ? `DUET ${G.flags.duetRank} · ★ ${G.flags.duetStars}` : '',
-			G.flags.subEnding ? t( 'ending.sub' ) : t( 'ending.hint' )
+			forced ? t( 'ending.heartHint' ) : G.flags.subEnding ? t( 'ending.sub' ) : t( 'ending.hint' )
 		].filter( Boolean ).join( '<br>' );
-		const left = ! G.flags.subEnding && G.bottleCount() < BOTTLES.length;
+		$( 'btn-again' ).textContent = t( forced ? 'ending.retry' : 'ending.again' );
+		const left = ! forced && ! G.flags.subEnding && G.bottleCount() < BOTTLES.length;
 		$( 'btn-search' ).classList.toggle( 'hidden', ! left );
 		if ( left ) $( 'btn-search' ).textContent = t( 'ending.search', { n: G.bottleCount(), total: BOTTLES.length } );
 		await G.ui.fade( 0.6, 2 );
@@ -1001,6 +1009,9 @@ async function faint() {
 
 	G.fainting = true;
 	G.cutscene( true );
+	// 한 장에서 두 번째로 쓰러지면 심장이 멈춘다 (엔딩). 핀이 대신 맞은 건 세지 않는다
+	G.chapterFaints = ( G.chapterFaints ?? 0 ) + 1;
+	if ( G.chapterFaints >= 2 ) return heartStop();
 	G.ui.toast( t( 'toast.faint' ) );
 	await G.ui.fade( 1, 1.2 );
 	const h = G.actors.hazel;
@@ -1043,9 +1054,40 @@ async function faint() {
 	G.ui.setHearts( G.hearts, MAX_HEARTS );
 	await G.wait( 0.3 );
 	await G.ui.fade( 0, 1 );
-	G.ui.toast( t( 'toast.again' ) );
+	G.ui.toast( t( 'toast.lastHeart' ) );
 	G.cutscene( false );
 	G.fainting = false;
+
+}
+
+// 멈춘 고래의 심장: 헤이즐이 가라앉고 엔딩. 저장은 그 장 그대로라 이어하기로 그 장 처음부터 다시 한다
+async function heartStop() {
+
+	const T = lang().story.heart;
+	const h = G.actors.hazel;
+	if ( G.boss?.active ) {
+
+		clearMeteors();
+		G.ui.setBoss( false );
+
+	}
+
+	G.objectiveTarget = null;
+	G.setMusic( { drums: 0, bass: 0, tension: 0, sax: 0, melody: 0.3, piano: 0.8 } );
+	G.audio.play( 'sad' );
+	G.camFocus( h, { side: 1, dist: 26, height: 10 } );
+	for ( let i = 0; i < 40; i ++ ) {
+
+		h.depth += 0.25;
+		h.speed *= 0.85;
+		h.setOpacity?.( 1 - i / 60 );
+		await G.wait( 0.05 );
+
+	}
+
+	await G.say( T.lines.map( ( [ who, text ] ) => ( { who, text } ) ) );
+	await G.card( ...T.card );
+	await G.showEnding( 'heart' );
 
 }
 
@@ -1585,7 +1627,7 @@ function updateBoss( dt ) {
 
 			}
 
-			if ( b.t > 6 ) {
+			if ( b.t > 3.5 ) {
 
 				b.phase = 'windup';
 				b.t = 0;
@@ -1658,14 +1700,14 @@ function mobyBody( frozen ) {
 	const vx = bx - ax, vz = bz - az;
 	const t = Math.max( 0, Math.min( 1, ( ( h.pos.x - ax ) * vx + ( h.pos.z - az ) * vz ) / ( vx * vx + vz * vz ) ) );
 	const px = ax + vx * t, pz = az + vz * t;
-	const radius = 4.5 + 3 * t + 2.5; // 머리 쪽이 더 굵다 + 헤이즐 몸
+	const radius = ( 4.5 + 3 * t ) * m.length / 46 + 2.5; // 머리 쪽이 더 굵다 (몸 크기에 비례) + 헤이즐 몸
 	const dx = h.pos.x - px, dz = h.pos.z - pz;
 	const d = Math.hypot( dx, dz );
 	if ( d >= radius || h.airborne ) return;
 	const nx = d > 0.01 ? dx / d : - f.z, nz = d > 0.01 ? dz / d : f.x;
 	h.pos.x = px + nx * radius;
 	h.pos.z = pz + nz * radius;
-	if ( ! frozen ) damage( 1, { x: px, z: pz } );
+	if ( ! frozen ) damage( 1, { x: px, z: pz }, G.boss?.phase === 'charge' ? { stun: CHARGE_STUN } : {} );
 
 }
 
@@ -1676,7 +1718,7 @@ async function bossSing() {
 	if ( b.phase !== 'listen' || G.distTo( m.pos ) > b.reach + 4 ) return;
 	b.resonance ++;
 	b.phase = 'rage';
-	b.t = - 1.5;
+	b.t = - 0.5;
 	heal();
 	updateBossHud();
 	G.world.ring( m.pos.x, m.pos.z, { color: 0x7fe9ff, to: 90, life: 1.8, width: 0.2 } );
@@ -1712,7 +1754,7 @@ const meteorHeadMat = new THREE.MeshBasicMaterial( { color: new THREE.Color( 4, 
 
 function spawnMeteor( x, z ) {
 
-	const warnTime = G.party.finn === 'on' ? 2.1 : 1.6;
+	const warnTime = G.party.finn === 'on' ? 1.7 : 1.25;
 	const warn = makeSurfaceDecal( { color: 0xff9a40, inner: 0.85, outer: 1, opacity: 1, fill: 0.5 } );
 	warn.scale.setScalar( 7.5 );
 	warn.position.set( x, 0, z );
@@ -2301,8 +2343,9 @@ async function boot() {
 	A.hazel = new Whale( models.hazel, { name: 'hazel', length: 8, ride: 0.38, freq: 3.8, amp: 0.085, emissive: 1.4 } );
 	A.luke = new Whale( models.luke, { name: 'luke', length: 11, ride: 0.36, freq: 3.3, amp: 0.07, emissive: 1.4 } );
 	A.finn = new Whale( models.finn, { name: 'finn', length: 10, ride: 0.42, freq: 2.9, amp: 0.06, emissive: 0.55 } );
-	A.moby = new Whale( models.moby, { name: 'moby', length: 46, ride: 0.3, freq: 1.5, amp: 0.05, emissive: 0.6 } );
-	A.stella = new Whale( models.stella, { name: 'stella', length: 85, ride: 0.36, freq: 1.0, amp: 0.05, emissive: 1.6 } );
+	// 헤이즐(8)에 비해 커야 압도감이 난다. 실제 비율(상괭이 : 향유고래 : 대왕고래 ≈ 1.8m : 18m : 28m)보다는 작게
+	A.moby = new Whale( models.moby, { name: 'moby', length: 62, ride: 0.3, freq: 1.5, amp: 0.05, emissive: 0.6 } );
+	A.stella = new Whale( models.stella, { name: 'stella', length: 120, ride: 0.36, freq: 1.0, amp: 0.05, emissive: 1.6 } );
 	A.shaman = new Whale( models.orca, { name: 'shaman', length: 18, ride: 0.42, freq: 2.4, amp: 0.05, recolor: [ 0x7a1f4f, 0xffb3d1 ], emissive: 0.1 } );
 	for ( const a of Object.values( A ) ) scene.add( a.root );
 	A.moby.root.visible = A.stella.root.visible = A.shaman.root.visible = false;
@@ -2610,6 +2653,7 @@ async function searchAfterEnding() {
 	G.save.chapter = EPILOGUE;
 	G.save.route = { ...G.route };
 	persist();
+	G.chapterFaints = 0;
 	G.camRelease();
 	setCheckpoint( h.pos.x, h.pos.z );
 	G.ui.show( 'hud' );
@@ -2636,6 +2680,7 @@ async function start( chapter ) {
 
 	if ( chapter >= EPILOGUE ) {
 
+		G.chapterFaints = 0;
 		G.save.chapter = EPILOGUE;
 		G.save.route = { ...G.route };
 		persist();
@@ -2646,6 +2691,7 @@ async function start( chapter ) {
 
 	for ( let i = chapter; i < CHAPTERS.length; i ++ ) {
 
+		G.chapterFaints = 0;
 		G.save.chapter = i;
 		G.save.route = { ...G.route };
 		persist();
