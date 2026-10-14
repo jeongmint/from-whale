@@ -89,7 +89,8 @@ export default {
 			moby: '<kbd>E</kbd> 모비 딕에게 노래하기',
 			recharge: '<kbd>E</kbd> 미역 곁에서 노래하기 — 하트 충전',
 			compass: '<kbd>E</kbd> 미역 곁에서 노래하기 — 나침반 맞추기',
-			jump: '<kbd>Space</kbd> 지금 뛰어올라!'
+			jump: '<kbd>Space</kbd> 지금 뛰어올라!',
+			tears: '<kbd>E</kbd> 핀의 눈물 — 비로 정신 차리기'
 		},
 		kelpReader: { luke: '미역 줄기 · 루크가 읽어 줌', finn: '미역 줄기 · 핀이 읽어 줌', none: '미역 줄기' },
 		bottleReact: { luke: '흥. 별 내용 없네. ...다음 거나 찾아.', finn: '...다 누군가의 노래였구나.' },
@@ -336,7 +337,13 @@ export default {
 			compass: [
 				[ 'narrator', '핀이 가라앉은 자리에서, 부서진 나침반 조각이 반짝였다.' ],
 				[ 'narrator', '이제 길 안내가 점점 흐려진다.\n미역 곁에서 노래하면 다시 맞춰진다.' ]
-			]
+			],
+			// 핀이 떠난 뒤 얻는 능력: 어지러울 때(스턴) 노래하면 비가 내려 바로 풀린다
+			tears: [
+				[ 'narrator', '그때, 바다 위로 보랏빛 비가 내리기 시작했다.' ],
+				[ 'narrator', '안 울겠다던 핀의 눈물이었다.\n어지러울 때 노래하면, 비가 다시 내려 줄 것이다.' ]
+			],
+			bannerTears: [ 'NEW ABILITY', '핀의 눈물', '머리 위로 별이 돌며 어지러울 때 노래하면 비가 내려 바로 정신이 든다' ]
 		},
 
 		epilogue: {

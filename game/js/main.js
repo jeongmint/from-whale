@@ -1193,6 +1193,20 @@ function heal( full = false ) {
 
 }
 
+// 핀의 눈물: 핀이 떠난 뒤, 스턴 중에 노래하면 비가 내려 스턴이 바로 풀린다
+function finnTears() {
+
+	const h = G.actors.hazel;
+	G.stun = 0;
+	G.singCooldown = 0.6;
+	audio.play( 'sob' );
+	audio.play( 'heal' );
+	G.world.rain( h.pos.x, h.pos.z );
+	G.world.ring( h.pos.x, h.pos.z, { color: 0x9d8cff, to: 26, life: 0.9, width: 0.2 } );
+	G.world.splash( h.pos.x, h.root.position.y, h.pos.z, { count: 40, power: 6, color: 0xb9a8ff } );
+
+}
+
 // 보스전에서 처음 쓰러질 때 핀이 대신 맞는다 (부서진 나침반 · 희생 갈래)
 async function finnShield( from ) {
 
@@ -1242,6 +1256,9 @@ async function finnShield( from ) {
 	G.compass = 1;
 	G.ui.setCompass( 1 );
 	finn.root.visible = false;
+	await say( T.tears );
+	G.flags.finnTears = true;
+	G.ui.banner( ...T.bannerTears, 'join', 4.5 );
 	G.boss.phase = 'rage';
 	G.boss.t = - 1;
 	G.boss.meteorT = 2;
@@ -2238,6 +2255,7 @@ window.addEventListener( 'pointerup', () => drag = null );
 // ---------------------------------------------------------------
 function sing() {
 
+	if ( G.stun > 0 && G.flags.finnTears && ! G.cutsceneOn && ! G.ui.dialogOpen ) return finnTears();
 	if ( G.singCooldown > 0 || G.stun > 0 ) return;
 	const h = G.actors.hazel;
 	G.singCooldown = 1.3;
@@ -2654,6 +2672,7 @@ function setupChapter( n ) {
 			G.party.finn = 'gone';
 			G.flags.finnGone = true;
 			A.finn.root.visible = false;
+			G.flags.finnTears = true;
 			G.audio.setMix( { drums: 0 }, 0.1 );
 			G.compass = 1;
 			G.ui.setCompass( 1 );
@@ -3063,6 +3082,7 @@ function updateBottlesAndKelp( dt ) {
 
 	}
 
+	if ( G.stun > 0 && G.flags.finnTears && ! G.cutsceneOn && ! G.ui.dialogOpen ) prompt = t( 'prompt.tears' );
 	if ( G.jumpCueOn ) prompt = t( 'prompt.jump' );
 
 	G.ui.prompt( prompt );
