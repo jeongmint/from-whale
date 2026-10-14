@@ -3,9 +3,18 @@ WebGL Three.js Project about Blue and Whale
 
 ## 🐋 From. Whale
 
+[![달빛 윤슬 속에서 반짝이는 고래 헤이즐 — From. Whale](data/res/og.jpg)](https://from-whale.netlify.app/game/)
+
+**[▶ 바로 플레이](https://from-whale.netlify.app/game/)** · [첫 화면](https://from-whale.netlify.app/) · 설치 없이 브라우저에서 (PC · 폰)
+
 52Hz로 노래하는 고래 **헤이즐**의 바다 모험 게임. 이세계의 2066년, 밤바다. (BETA)
 
-- 첫 화면: <https://from-whale.netlify.app/> · 게임: <https://from-whale.netlify.app/game/>
+| 등대와 고리 행성 | 모비 딕 보스전 |
+| --- | --- |
+| ![등대를 향해 헤엄치는 헤이즐, 하늘의 고리 행성](data/res/shots/play.jpg) | ![떨어지는 별 경고 원 사이의 모비 딕과 루크, 핀](data/res/shots/boss.jpg) |
+| **스텔라와 듀엣 · 별똥별** | **폰 가로 화면** |
+| ![별똥별이 쏟아지는 하늘 아래 스텔라와 듀엣 리듬 게임](data/res/shots/stella.jpg) | ![조이스틱과 버튼이 있는 폰 가로 화면](data/res/shots/mobile.jpg) |
+
 - 로컬 실행: 저장소 루트에서 `python3 -m http.server` → <http://localhost:8000/game/>
 - 언어: 한국어 · English · 日本語 (기기 언어 자동 선택)
 - 닉네임 설정 (기본: 헤이즐 / Hazel / ヘイゼル)
@@ -50,7 +59,7 @@ WebGL Three.js Project about Blue and Whale
 | 연합군 | 범고래 무리 | `data/orca_army/Orca_Army.glb` |
 | 연합군 대장 · 샤먼 | 분홍 범고래 | `Orca_Army.glb` + `recolor` |
 | 모비 딕 | 향유고래, 마지막 보스 | `data/moby/Moby.glb` |
-| 스텔라 | 노란 대왕고래, 또 하나의 52Hz | 임시 `Hazel.glb` + `solidColor` (예정 `data/stella/Stella.glb`) |
+| 스텔라 | 노란 대왕고래, 또 하나의 52Hz, 등의 반짝이는 육각별 문양 | `data/stella/Stella.glb` (코드로 생성: `tools/make_stella.py`) |
 
 색 옵션 (`game/js/actors.js`의 `Whale`): `solidColor` 단색, `recolor: [ 어두운 색, 밝은 색 ]` 무늬 유지 색 변경
 
@@ -69,7 +78,7 @@ WebGL Three.js Project about Blue and Whale
 
 ### 첫 화면
 
-- PLAY · ABOUT (PITCH / CONCEPT / BGM) · CONTACT
+- PLAY · ABOUT (PITCH / CONCEPT / BGM) · CONTACT (메일 · GitHub 저장소 · LinkedIn)
 - `#pitch`, `#concept`, `#bgm` 주소로 탭 바로 열기
 - 글꼴: Squaredance (`files/SquaredanceFontV1-Regular.ttf`)
 
@@ -90,6 +99,7 @@ WebGL Three.js Project about Blue and Whale
 | `game/js/i18n.js` | 언어 선택 |
 | `game/js/name.js` | 닉네임, 조사 처리 (`{N은}`, `{N을}`) |
 | `game/js/main.js` | 렌더링, 블룸, 입력, 연합군 AI, 보스전, 갈래 · 엔딩 도감, 에필로그 |
+| `tools/make_stella.py` | 스텔라 모델 생성 (로우폴리 대왕고래, 텍스처 포함). 숫자 수정 후 `python3 tools/make_stella.py` |
 | `scene.html` | 초기 3D 고래 장면 |
 
 ### 개발용 주소 옵션
