@@ -156,6 +156,9 @@ input { touch-action: manipulation; }
 	text-align: center;
 }
 #hud-objective.pulse { animation: objpulse 1.2s ease-out; }
+#hud-objective.pulse #obj-text { animation: objflash 1.2s ease-out; }
+/* 한국어는 낱말 중간에서 줄을 바꾸지 않는다 */
+html[lang="ko"] #obj-text { word-break: keep-all; }
 #obj-text { font-size: 15px; font-weight: 700; line-height: 1.4; }
 #obj-dist { color: var(--cyan); margin-top: 2px; }
 
@@ -586,6 +589,27 @@ body.tilt #stick { display: none; }
 #touch-buttons small { font-size: 8px; letter-spacing: 0.1em; }
 #touch-buttons button.held { background: var(--sky); }
 
+/* 데스크탑: 목표는 HAZEL 창 안 아래쪽 칸에 (화면 가운데 위를 비운다) */
+@media (min-width: 761px) {
+	body:not(.touch) #hud-status { width: 250px; height: 152px; }
+	body:not(.touch) #hud-objective {
+		top: 100px; left: 16px; right: auto; width: 246px; height: 62px;
+		transform: none; min-width: 0; max-width: none;
+		text-align: left;
+		background: none; border: 0; border-top: 1px dashed rgba(95, 168, 255, 0.45);
+		box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none;
+		animation: none;
+	}
+	body:not(.touch) #hud-objective .win-bar { display: none; }
+	body:not(.touch) #hud-objective .win-body { height: 100%; padding: 4px 10px; display: flex; flex-direction: column; justify-content: center; gap: 2px; }
+	body:not(.touch) #obj-text { font-size: 13px; line-height: 1.35; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+	body:not(.touch) #obj-dist { margin: 0; font-size: 10px; line-height: 1; white-space: nowrap; }
+	body:not(.touch) #obj-dist::before { content: attr(data-chapter) '  '; color: var(--ink-dim); white-space: pre; }
+	body:not(.touch) #hud-keys { top: 174px; width: 250px; }
+	body:not(.touch) #toasts { top: 226px; }
+	body:not(.touch) #hud-boss { top: 14px; }
+}
+
 @media (max-width: 760px) {
 	#hud-status, #hud-party { width: 160px; }
 	#hud-status { top: 8px; left: 8px; }
@@ -645,7 +669,8 @@ body.tilt #stick { display: none; }
 	#hud-boss { top: 78px; }
 	#minimap { width: 110px; height: 110px; }
 	#minimap-wrap { right: 6px; bottom: 6px; }
-	#touch-buttons { grid-auto-flow: column; right: 132px; bottom: 12px; }
+	/* 나침반 게이지가 붙으면 소나 창이 넓어지니까 그만큼 비켜 둔다 */
+	#touch-buttons { grid-auto-flow: column; right: 196px; bottom: 12px; }
 	#touch-buttons button { width: 58px; height: 58px; }
 	#stick { left: 16px; bottom: 16px; width: 120px; height: 120px; }
 	body.talking #touch-buttons { opacity: 0; pointer-events: none; }
@@ -668,6 +693,24 @@ body.tilt #stick { display: none; }
 	#banner { top: 24%; padding: 10px 0 12px; }
 	#card-title { font-size: clamp(34px, 12vh, 64px); }
 	.spectrum { margin-top: 16px; }
+	/* 목표: 데스크탑처럼 HAZEL 창 안 아래쪽 칸에. HAZEL 창과 같은 비율(0.82)로 줄인다 */
+	#hud-status { width: 210px; height: 152px; }
+	#hud-objective {
+		top: 77px; left: 8px; right: auto; width: 206px; height: 62px;
+		transform: scale(0.82); transform-origin: top left;
+		min-width: 0; max-width: none;
+		text-align: left;
+		background: none; border: 0; border-top: 1px dashed rgba(95, 168, 255, 0.45);
+		box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none;
+		animation: none;
+	}
+	#hud-objective .win-bar { display: none; }
+	#hud-objective .win-body { height: 100%; padding: 4px 10px; display: flex; flex-direction: column; justify-content: center; gap: 2px; }
+	#obj-text { font-size: 14px; line-height: 1.35; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+	#obj-dist { margin: 0; font-size: 11px; line-height: 1; white-space: nowrap; }
+	#obj-dist::before { content: attr(data-chapter) '  '; color: var(--ink-dim); white-space: pre; }
+	#toasts { top: 140px; }
+	#hud-boss { top: 6px; }
 }
 
 /* ---------- 애니메이션 ---------- */
@@ -678,6 +721,7 @@ body.tilt #stick { display: none; }
 @keyframes promptbob { 0%, 100% { transform: translateX(-50%); } 50% { transform: translate(-50%, -4px); } }
 @keyframes blink { 50% { opacity: 0; } }
 @keyframes shake { 20%, 60% { transform: translateX(-4px); } 40%, 80% { transform: translateX(4px); } }
+@keyframes objflash { 0% { color: var(--cyan); text-shadow: 0 0 12px var(--cyan); } }
 @keyframes objpulse { 0% { box-shadow: inset 0 0 0 2px #0b1f4d, 0 0 0 0 rgba(127, 233, 255, 0.9); } 100% { box-shadow: inset 0 0 0 2px #0b1f4d, 0 0 0 24px rgba(127, 233, 255, 0); } }
 @keyframes toastin { from { transform: translateX(-20px); opacity: 0; } }
 @keyframes toastout { to { transform: translateX(-20px); opacity: 0; } }
