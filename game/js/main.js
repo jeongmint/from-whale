@@ -32,9 +32,9 @@ const CHARGE_STUN = 1.5; // 돌진하는 모비에게 받혔을 때
 const SAVE_KEY = 'fromwhale.save.v1';
 const EPILOGUE = CHAPTERS.length; // 엔딩 뒤 남은 편지 찾기 (이어하기 번호)
 
-// 갈래 엔딩. 3장 매복까지 연합군에게 맞은 횟수가 LUKE_MAX_HITS 이하면 루크가 살고,
+// 갈래 엔딩. 3장 매복까지 연합군에게 한 번도 안 맞으면(LUKE_MAX_HITS) 루크가 살고,
 // 보스전에서 처음 쓰러지면 핀이 대신 맞는다. 루크·핀이 살았는지에 따라 엔딩 넷
-const LUKE_MAX_HITS = 1;
+const LUKE_MAX_HITS = 0; // 한 번도 안 맞아야 루크가 산다
 const ROUTES = {
 	light: { luke: false, finn: true }, // 꺼지지 않는 빛
 	friends: { luke: true, finn: true }, // 동료의 힘

@@ -240,7 +240,7 @@ async function chapter3( G ) {
 	await G.wait( 0.9 );
 	G.audio.whaleCall( null, 'luke' );
 
-	// 갈림길: 여기까지 연합군에게 한 번까지만 맞았으면, 루크와 함께 뛰어올라 피한다
+	// 갈림길: 여기까지 연합군에게 한 번도 안 맞았으면, 루크와 함께 뛰어올라 피한다
 	const saved = G.lukeCanLive();
 	if ( saved ) {
 
