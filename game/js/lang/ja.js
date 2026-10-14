@@ -10,6 +10,7 @@ export default {
 		title: {
 			tagline: '異世界の2066年、わずかな人間だけが生き残った海。<br>誰にも聞こえない52Hzで歌うクジラがいた。',
 			start: '▶ 冒険をはじめる',
+			duet: '♪ ステラとデュエット',
 			continue: 'つづきから',
 			continueAt: 'つづきから · {ch}',
 			quote: '「 何かをしようと思った、その瞬間から<br>冒険は始まる 」'
@@ -19,6 +20,8 @@ export default {
 		duet: { title: 'DUET · 52HZ ♥ 52HZ', help: '歌う [E] · ジャンプ [Space]', ready: 'ステラがカウントしてる…', perfect: 'PERFECT', excellent: 'EXCELLENT', good: 'GOOD', miss: 'MISS', combo: '{n} COMBO', rank: 'RANK {r}', sky: '★ 夜空が完成した!' },
 		feedback: { open: '✉ アイデア · バグを送る', placeholder: 'アイデアやバグを自由に書いてください', send: '送る', sending: '送信中…', thanks: 'ありがとう! 受け取りました。', fail: '今は送れませんでした。下のメールに送ってください。', copy: 'アドレスをコピー', copied: 'コピーしました!', mailApp: 'メールアプリで' },
 		letter: { close: '閉じる <span class="mono tiny">[E]</span>' },
+		// もう一度デュエット (ステラに会ったことがあれば、タイトル · エンディング画面から)
+		duetAgain: { thanks: 'また一緒に歌ってくれてありがとう!', more: '♪ もう一曲', title: 'タイトルへ' },
 		// デュエットのスコアボード (歌に名前をつけて TOP 10 に残す)
 		scores: {
 			song: 'SONG',
@@ -61,6 +64,7 @@ export default {
 		ending: {
 			search: '残りの手紙を探しに行く · {n}/{total}',
 			again: 'もう一度あそぶ',
+			duet: '♪ もう一度デュエット',
 			quote: '「 海には自由がある<br>誰もが享受すべき自由が 」',
 			sub: 'もうひとつの52Hzに出会った',
 			hint: 'ボトルレターをすべて集めると… もうひとつの52Hzに会えるかも',
@@ -441,6 +445,9 @@ export default {
 				A: [ [ 'stella', 'いいね、いいね! はじめてなのにすっごく上手!' ] ],
 				B: [ [ 'stella', 'えへへ、リズムはめちゃくちゃだったけど\n今まで聞いた中でいちばん楽しい歌だった!' ] ]
 			},
+			// もう一度デュエット
+			again: [ [ 'stella', 'また来てくれたんだ、52ヘルツ!\nよーし、もう一曲! 今度は海をもっと静かにしちゃおう!' ] ],
+			againBye: [ [ 'stella', 'いつでもまた来てね! 私はずっとここで歌ってるから。' ] ],
 			nameSong: [ [ 'stella', 'ねえ、今の歌に名前をつけて!\n海に残しておくね。ほかのクジラたちにも聞こえるように!' ] ],
 			outro: [
 				[ 'stella', 'だからその52ヘルツで、君にしかできないことをやってみて。\nひとりで歌っているクジラたちに、応えてあげるとか!' ],

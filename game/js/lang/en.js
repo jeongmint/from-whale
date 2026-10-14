@@ -10,6 +10,7 @@ export default {
 		title: {
 			tagline: 'Another world, the year 2066. A sea where only a few humans remain.<br>There was a whale who sang at 52Hz, a song no one could hear.',
 			start: '▶ Begin the journey',
+			duet: '♪ Duet with Stella',
 			continue: 'Continue',
 			continueAt: 'Continue · {ch}',
 			quote: '“ Adventure begins<br>with the very thought of doing something ”'
@@ -19,6 +20,8 @@ export default {
 		duet: { title: 'DUET · 52HZ ♥ 52HZ', help: 'Sing [E] · Jump [Space]', ready: 'Stella counts you in…', perfect: 'PERFECT', excellent: 'EXCELLENT', good: 'GOOD', miss: 'MISS', combo: '{n} COMBO', rank: 'RANK {r}', sky: '★ The night sky is complete!' },
 		feedback: { open: '✉ Send an idea or a bug', placeholder: 'Write any idea or bug you found', send: 'Send', sending: 'Sending…', thanks: 'Thank you! Got it.', fail: 'Couldn\'t send it right now. Please email it instead:', copy: 'Copy address', copied: 'Copied!', mailApp: 'Open mail app' },
 		letter: { close: 'Close <span class="mono tiny">[E]</span>' },
+		// Sing the duet again (from the title or ending screen once you've met Stella)
+		duetAgain: { thanks: 'Thanks for singing with me again!', more: '♪ One more song', title: 'Back to title' },
 		// Duet scoreboard (name the song and leave it in the TOP 10)
 		scores: {
 			song: 'SONG',
@@ -61,6 +64,7 @@ export default {
 		ending: {
 			search: 'Find the rest of the letters · {n}/{total}',
 			again: 'Play again',
+			duet: '♪ Sing the duet again',
 			quote: '“ The sea holds a freedom<br>that everyone deserves ”',
 			sub: 'You met another 52Hz',
 			hint: 'Find every bottle… and you might meet another 52Hz',
@@ -441,6 +445,9 @@ export default {
 				A: [ [ 'stella', 'Yes, yes! That was amazing for a first try!' ] ],
 				B: [ [ 'stella', 'Hehe, the beat was all over the place,\nbut that was the most fun song I\'ve ever heard!' ] ]
 			},
+			// Sing the duet again
+			again: [ [ 'stella', 'You came back, 52Hz!\nAlright, one more song! Let\'s make the whole sea go quiet this time!' ] ],
+			againBye: [ [ 'stella', 'Come back anytime! I\'ll always be singing right here.' ] ],
 			nameSong: [ [ 'stella', 'Hey, give that song a name!\nI\'ll leave it in the sea so other whales can hear it too!' ] ],
 			outro: [
 				[ 'stella', 'So use that 52 hertz to do something only you can do.\nLike answering the whales who sing alone!' ],

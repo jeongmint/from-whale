@@ -10,6 +10,7 @@ export default {
 		title: {
 			tagline: '이세계의 2066년, 소수의 인간만이 살아남은 바다.<br>아무도 듣지 못하는 52Hz로 노래하는 고래가 있었다.',
 			start: '▶ 모험 시작',
+			duet: '♪ 스텔라와 듀엣',
 			continue: '이어하기',
 			continueAt: '이어하기 · {ch}',
 			quote: '“ 무언가를 한다는 생각 자체부터<br>모험은 시작된다 ”'
@@ -19,6 +20,8 @@ export default {
 		duet: { title: 'DUET · 52HZ ♥ 52HZ', help: '노래 [E] · 점프 [Space]', ready: '스텔라가 박자를 센다…', perfect: 'PERFECT', excellent: 'EXCELLENT', good: 'GOOD', miss: 'MISS', combo: '{n} COMBO', rank: 'RANK {r}', sky: '★ 밤하늘 완성!' },
 		feedback: { open: '✉ 아이디어 · 버그 보내기', placeholder: '아이디어나 버그를 자유롭게 적어 주세요', send: '보내기', sending: '보내는 중…', thanks: '고마워요! 잘 받았어요.', fail: '지금은 바로 보내지 못했어요. 아래 메일로 보내 주세요.', copy: '주소 복사', copied: '복사했어요!', mailApp: '메일 앱으로' },
 		letter: { close: '닫기 <span class="mono tiny">[E]</span>' },
+		// 듀엣 다시 부르기 (스텔라를 만난 적 있으면 타이틀 · 엔딩 화면에서)
+		duetAgain: { thanks: '또 같이 불러 줘서 고마워!', more: '♪ 한 곡 더', title: '타이틀로' },
 		// 듀엣 점수판 (노래 이름을 붙여 TOP 10에 남긴다)
 		scores: {
 			song: 'SONG',
@@ -61,6 +64,7 @@ export default {
 		ending: {
 			search: '남은 편지 찾으러 가기 · {n}/{total}',
 			again: '다시 하기',
+			duet: '♪ 듀엣 다시 부르기',
 			quote: '“ 바다에는 자유가 있다<br>누구나 누려야 하는 ”',
 			sub: '또 하나의 52Hz를 만났다',
 			hint: '모든 유리병을 모으면… 또 하나의 52Hz를 만날지도',
@@ -443,6 +447,9 @@ export default {
 				A: [ [ 'stella', '좋아 좋아! 처음치고 완전 잘했어!' ] ],
 				B: [ [ 'stella', '헤헤, 박자는 엉망이었지만\n지금까지 들은 노래 중에 제일 신났어!' ] ]
 			},
+			// 듀엣 다시 부르기
+			again: [ [ 'stella', '또 왔구나, 52헤르츠!\n좋아, 한 곡 더! 이번엔 바다를 더 조용하게 만들어 보자!' ] ],
+			againBye: [ [ 'stella', '언제든 또 와! 난 늘 여기서 노래하고 있을게.' ] ],
 			nameSong: [ [ 'stella', '있지, 방금 그 노래 이름 지어 줘!\n바다에 남겨 둘게. 다른 고래들도 들을 수 있게!' ] ],
 			outro: [
 				[ 'stella', '그러니까 그 52헤르츠로, 너만 할 수 있는 일을 해 봐.\n혼자 노래하는 고래들한테 대답해 주는 거라든가!' ],

@@ -10,7 +10,7 @@ import { loadModels, Whale, followSlot, idleCircle, steerTo, updateSwimTime, mak
 import { UI } from './ui.js';
 import { AudioEngine } from './audio.js';
 import { cleanName, loadName, saveName } from './name.js';
-import { CHAPTERS, PLACES, BOTTLES, LETTER_TOTAL, ORCA_PACKS, KELP_GROVES, scramble, epilogue, lukeLateFall } from './story.js';
+import { CHAPTERS, PLACES, BOTTLES, LETTER_TOTAL, ORCA_PACKS, KELP_GROVES, scramble, epilogue, lukeLateFall, duetAgain } from './story.js';
 import { lang, t, setLang, applyStatic } from './i18n.js';
 import { openScores } from './scores.js';
 
@@ -47,6 +47,8 @@ const ROUTES = {
 };
 const ENDING_ORDER = [ ...Object.keys( ROUTES ), 'heart' ]; // heart: 한 장에서 두 번 쓰러지면 (멈춘 고래의 심장)
 const ENDINGS_KEY = 'fromwhale.endings';
+// 듀엣 다시 부르기 (?duet 또는 타이틀 버튼): 스텔라를 만난 적 있을 때만. 이어하기 저장은 건드리지 않는다
+let duetMode = query.has( 'duet' ) && loadEndings().includes( 'stella' );
 // 테스트 옵션 ?route=light|friends|compass|sacrifice|late: 4장 이후를 그 갈래로 시작 (?chapter와 함께)
 const ROUTE_TEST = ROUTES[ query.get( 'route' ) ] ? query.get( 'route' ) : null;
 const newRoute = ( key ) => ( { hits: 0, luke: true, finn: true, late: false, ...ROUTES[ key ] } );
@@ -237,7 +239,7 @@ function loadEndings() {
 
 function saveEnding( key ) {
 
-	if ( STELLA_TEST ) return;
+	if ( STELLA_TEST || duetMode ) return;
 	const seen = loadEndings();
 	if ( seen.includes( key ) ) return;
 	seen.push( key );
@@ -272,7 +274,7 @@ function loadSave() {
 
 function persist() {
 
-	if ( STELLA_TEST ) return;
+	if ( STELLA_TEST || duetMode ) return;
 	try {
 
 		localStorage.setItem( SAVE_KEY, JSON.stringify( G.save ) );
@@ -768,6 +770,8 @@ Object.assign( G, {
 		if ( G.flags.subEnding ) saveEnding( 'stella' );
 		$( 'ending-head' ).textContent = `ENDING · ${t( `endings.${key}.name` )}${G.flags.subEnding ? ' · SUB ENDING' : ''}`;
 		renderEndings( $( 'ending-list' ), key );
+		// 스텔라를 만난 적 있으면 여기서 바로 듀엣만 다시
+		$( 'btn-duet-end' ).classList.toggle( 'hidden', !! forced || ! loadEndings().includes( 'stella' ) );
 		$( 'ending-quote' ).innerHTML = t( 'ending.quote' );
 		$( 'ending-stats' ).innerHTML = [
 			`PLAY TIME ${minutes}:${String( seconds ).padStart( 2, '0' )}`,
@@ -2476,7 +2480,7 @@ async function boot() {
 	A.luke = new Whale( models.luke, { name: 'luke', length: 11, ride: 0.36, freq: 3.3, amp: 0.07, emissive: 1.4 } );
 	A.finn = new Whale( models.finn, { name: 'finn', length: 10, ride: 0.42, freq: 2.9, amp: 0.06, emissive: 0.55 } );
 	// 헤이즐(8)에 비해 커야 압도감이 난다. 실제 비율(상괭이 : 향유고래 : 대왕고래 ≈ 1.8m : 18m : 28m)보다는 작게
-	A.moby = new Whale( models.moby, { name: 'moby', length: 62, ride: 0.3, freq: 1.5, amp: 0.05, emissive: 0.6 } );
+	A.moby = new Whale( models.moby, { name: 'moby', length: 54, ride: 0.3, freq: 1.5, amp: 0.05, emissive: 0.6 } );
 	A.stella = new Whale( models.stella, { name: 'stella', length: 120, ride: 0.36, freq: 1.0, amp: 0.05, emissive: 1.6 } );
 	A.shaman = new Whale( models.orca, { name: 'shaman', length: 18, ride: 0.42, freq: 2.4, amp: 0.05, recolor: [ 0x7a1f4f, 0xffb3d1 ], emissive: 0.1 } );
 	for ( const a of Object.values( A ) ) scene.add( a.root );
@@ -2520,7 +2524,7 @@ async function boot() {
 	setupTouch();
 	$( 'loading' ).classList.add( 'hidden' );
 	$( 'title-buttons' ).classList.remove( 'hidden' );
-	const debugChapter = query.has( 'chapter' ) ? Number( query.get( 'chapter' ) ) : STELLA_TEST ? 5 : null;
+	const debugChapter = query.has( 'chapter' ) ? Number( query.get( 'chapter' ) ) : STELLA_TEST || duetMode ? 5 : null;
 	const continueBtn = $( 'btn-continue' );
 	const showContinue = () => {
 
@@ -2540,6 +2544,23 @@ async function boot() {
 
 	}
 
+	// 스텔라를 만난 적 있으면 타이틀에서 바로 듀엣. ?duet 으로 들어왔으면 시작 버튼 자체가 듀엣
+	const duetTitle = () => {
+
+		if ( duetMode ) $( 'btn-start' ).textContent = t( 'title.duet' );
+		$( 'btn-duet' ).classList.toggle( 'hidden', duetMode || ! seen.includes( 'stella' ) );
+
+	};
+
+	duetTitle();
+	$( 'btn-duet' ).onclick = () => {
+
+		setName( $( 'nickname' ).value );
+		duetMode = true;
+		start( 5 );
+
+	};
+
 	continueBtn.onclick = () => {
 
 		setName( $( 'nickname' ).value );
@@ -2552,6 +2573,7 @@ async function boot() {
 
 		setLang( btn.dataset.lang );
 		showContinue();
+		duetTitle();
 		G.ui.setPlayerName( G.playerName, ! G.customName );
 
 	} ) );
@@ -2593,6 +2615,7 @@ async function boot() {
 	$( 'btn-start' ).onclick = () => {
 
 		setName( $( 'nickname' ).value );
+		if ( duetMode ) return start( 5 ); // 듀엣만: 지난 판의 루크 · 핀 그대로
 		if ( debugChapter === null ) G.save = { chapter: 0, bottles: [], read: [], kelps: [] };
 		G.route = newRoute( ROUTE_TEST ?? ( debugChapter >= 4 ? 'light' : null ) );
 		if ( STELLA_TEST ) G.save = { ...G.save, bottles: [ 0, ...BOTTLES.map( ( b ) => b.id ) ], read: [ 0, ...BOTTLES.map( ( b ) => b.id ) ] };
@@ -2610,6 +2633,14 @@ async function boot() {
 	};
 
 	$( 'btn-again' ).onclick = () => location.reload();
+	$( 'btn-duet-end' ).onclick = () => location.href = `${location.pathname}?duet`;
+	$( 'btn-duet-more' ).onclick = () => {
+
+		G.ui.show( 'duet-again', false );
+		runDuetAgain();
+
+	};
+	$( 'btn-duet-title' ).onclick = () => location.href = location.pathname;
 	$( 'btn-search' ).onclick = () => searchAfterEnding();
 	setupFeedback();
 	$( 'btn-journal' ).onclick = () => ! G.cutsceneOn && ! G.ui.dialogOpen && openJournal();
@@ -2812,6 +2843,8 @@ async function start( chapter ) {
 	if ( G.touch && view.w < view.h ) G.ui.toast( t( 'toast.rotate' ) );
 	G.stats.time = 0;
 
+	if ( duetMode ) return runDuetAgain();
+
 	if ( chapter >= EPILOGUE ) {
 
 		G.chapterFaints = 0;
@@ -2832,6 +2865,14 @@ async function start( chapter ) {
 		await CHAPTERS[ i ]( G );
 
 	}
+
+}
+
+// 듀엣 다시 부르기: 스텔라와 듀엣 → 점수판 → 한 곡 더 / 타이틀로
+async function runDuetAgain() {
+
+	await duetAgain( G );
+	G.ui.show( 'duet-again' );
 
 }
 

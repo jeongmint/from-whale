@@ -404,6 +404,29 @@ async function meetStella( G ) {
 
 }
 
+// 듀엣 다시 부르기: 스텔라를 만난 적 있으면 타이틀 · 엔딩 화면에서 바로 스텔라와 듀엣만 (점수는 점수판에 정식으로)
+export async function duetAgain( G ) {
+
+	const T = () => lang().story.ending;
+	G.cutscene( true );
+	if ( ! G.actors.stella.root.visible ) {
+
+		G.stellaRise();
+		G.audio.whaleCall( null, 'stella' );
+
+	}
+
+	G.camFocus( G.actors.stella, { side: 1, dist: 185, height: 52 } );
+	await G.wait( 2.5 );
+	await G.say( lines( T().again ) );
+	const rank = await G.duet( DUET_CHART );
+	await G.say( lines( [ ...T().duetEnd[ rank ], ...T().nameSong ] ) );
+	await G.scores();
+	await G.say( lines( T().againBye ) );
+	G.cutscene( false );
+
+}
+
 // 엔딩 뒤: 바다를 계속 헤엄치며 남은 유리병을 찾는다. 다 모으면 스텔라를 만난다
 export async function epilogue( G ) {
 
