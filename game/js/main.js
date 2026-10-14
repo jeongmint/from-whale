@@ -10,7 +10,7 @@ import { loadModels, Whale, followSlot, idleCircle, steerTo, updateSwimTime, mak
 import { UI } from './ui.js';
 import { AudioEngine } from './audio.js';
 import { cleanName, loadName, saveName } from './name.js';
-import { CHAPTERS, PLACES, BOTTLES, ORCA_PACKS, KELP_GROVES, scramble, epilogue } from './story.js';
+import { CHAPTERS, PLACES, BOTTLES, LETTER_TOTAL, ORCA_PACKS, KELP_GROVES, scramble, epilogue } from './story.js';
 import { lang, t, setLang, applyStatic } from './i18n.js';
 
 const BASE = window.FW_ASSET_BASE ?? '../';
@@ -250,7 +250,15 @@ function loadSave() {
 	try {
 
 		const s = JSON.parse( localStorage.getItem( SAVE_KEY ) );
-		if ( s && typeof s.chapter === 'number' ) return s;
+		if ( s && typeof s.chapter === 'number' ) {
+
+			const ids = [ 0, ...BOTTLES.map( ( b ) => b.id ) ];
+			s.bottles = ( s.bottles ?? [] ).filter( ( id ) => ids.includes( id ) );
+			s.read = ( s.read ?? [] ).filter( ( id ) => ids.includes( id ) );
+			if ( ( s.chapter > 0 || s.cleared ) && ! s.bottles.includes( 0 ) ) s.bottles.push( 0 );
+			return s;
+
+		}
 
 	} catch ( e ) { /* 저장 없음 */ }
 
@@ -411,7 +419,7 @@ Object.assign( G, {
 
 	unreadCount() {
 
-		return G.save.bottles.filter( ( id ) => ! G.save.read.includes( id ) ).length;
+		return G.save.bottles.filter( ( id ) => id !== 0 && ! G.save.read.includes( id ) ).length;
 
 	},
 
@@ -703,14 +711,14 @@ Object.assign( G, {
 		$( 'ending-quote' ).innerHTML = t( 'ending.quote' );
 		$( 'ending-stats' ).innerHTML = [
 			`PLAY TIME ${minutes}:${String( seconds ).padStart( 2, '0' )}`,
-			`LETTERS ${G.bottleCount()}/${BOTTLES.length}`,
+			`LETTERS ${G.bottleCount()}/${LETTER_TOTAL}`,
 			G.flags.duetRank ? `DUET ${G.flags.duetRank} · ★ ${G.flags.duetStars}` : '',
 			forced ? t( 'ending.heartHint' ) : G.flags.subEnding ? t( 'ending.sub' ) : t( 'ending.hint' )
 		].filter( Boolean ).join( '<br>' );
 		$( 'btn-again' ).textContent = t( forced ? 'ending.retry' : 'ending.again' );
-		const left = ! forced && ! G.flags.subEnding && G.bottleCount() < BOTTLES.length;
+		const left = ! forced && ! G.flags.subEnding && G.bottleCount() < LETTER_TOTAL;
 		$( 'btn-search' ).classList.toggle( 'hidden', ! left );
-		if ( left ) $( 'btn-search' ).textContent = t( 'ending.search', { n: G.bottleCount(), total: BOTTLES.length } );
+		if ( left ) $( 'btn-search' ).textContent = t( 'ending.search', { n: G.bottleCount(), total: LETTER_TOTAL } );
 		await G.ui.fade( 0.6, 2 );
 		G.ui.show( 'hud', false );
 		G.ui.show( 'ending' );
@@ -1993,14 +2001,14 @@ function setPaused( on ) {
 
 function openJournal() {
 
-	const entries = G.save.bottles.slice().sort( ( a, b ) => a - b ).map( ( id ) => {
+	const entries = G.save.bottles.filter( ( id ) => id !== 0 ).sort( ( a, b ) => a - b ).map( ( id ) => {
 
 		const l = lang().letters.find( ( x ) => x.id === id );
 		return { ...l, read: G.save.read.includes( id ), scrambled: scramble( l.body ) };
 
 	} );
 	if ( G.flags.letter0Read ) entries.unshift( { ...lang().mobyLetter, head: t( 'journal.mobyHead' ), read: true } );
-	G.ui.journal( entries, BOTTLES.length + ( G.flags.letter0Read ? 1 : 0 ) );
+	G.ui.journal( entries, LETTER_TOTAL );
 
 }
 
@@ -2266,6 +2274,10 @@ async function collectBottle( b ) {
 	G.world.ring( b.x, b.z, { color: 0x7fe9ff, to: 20, life: 0.9 } );
 	if ( b.id === 0 ) {
 
+		// 모비의 편지도 6통 중 한 통
+		if ( ! G.save.bottles.includes( 0 ) ) G.save.bottles.push( 0 );
+		persist();
+		G.ui.setBottles( G.bottleCount(), LETTER_TOTAL );
 		G.emit( 'bottle0' );
 		return;
 
@@ -2273,7 +2285,7 @@ async function collectBottle( b ) {
 
 	if ( ! G.save.bottles.includes( b.id ) ) G.save.bottles.push( b.id );
 	heal();
-	G.ui.setBottles( G.bottleCount(), BOTTLES.length );
+	G.ui.setBottles( G.bottleCount(), LETTER_TOTAL );
 	const reader = G.reader();
 	const letter = lang().letters.find( ( l ) => l.id === b.id );
 	if ( reader ) {
@@ -2286,11 +2298,11 @@ async function collectBottle( b ) {
 	} else {
 
 		persist();
-		G.ui.toast( t( 'toast.unreadBottle', { n: G.bottleCount(), total: BOTTLES.length } ) );
+		G.ui.toast( t( 'toast.unreadBottle', { n: G.bottleCount(), total: LETTER_TOTAL } ) );
 
 	}
 
-	if ( G.bottleCount() === BOTTLES.length ) G.ui.banner( ...t( 'banner.allLetters' ), 'join', 3.5 );
+	if ( G.bottleCount() === LETTER_TOTAL ) G.ui.banner( ...t( 'banner.allLetters' ), 'join', 3.5 );
 
 }
 
@@ -2383,7 +2395,7 @@ async function boot() {
 	A.finn.place( PLACES.finn.x, PLACES.finn.z );
 	G.ui.setParty( partyList() );
 	G.ui.setHearts( G.hearts, MAX_HEARTS );
-	G.ui.setBottles( 0, BOTTLES.length );
+	G.ui.setBottles( 0, LETTER_TOTAL );
 
 	setupTouch();
 	$( 'loading' ).classList.add( 'hidden' );
@@ -2463,7 +2475,7 @@ async function boot() {
 		setName( $( 'nickname' ).value );
 		if ( debugChapter === null ) G.save = { chapter: 0, bottles: [], read: [], kelps: [] };
 		G.route = newRoute( ROUTE_TEST ?? ( debugChapter >= 4 ? 'light' : null ) );
-		if ( STELLA_TEST ) G.save = { ...G.save, bottles: BOTTLES.map( ( b ) => b.id ), read: BOTTLES.map( ( b ) => b.id ) };
+		if ( STELLA_TEST ) G.save = { ...G.save, bottles: [ 0, ...BOTTLES.map( ( b ) => b.id ) ], read: [ 0, ...BOTTLES.map( ( b ) => b.id ) ] };
 		start( debugChapter ?? 0 );
 
 	};
@@ -2570,11 +2582,12 @@ function setupChapter( n ) {
 
 	}
 
+	if ( n >= 1 && ! G.save.bottles.includes( 0 ) ) G.save.bottles.push( 0 ); // 프롤로그의 모비 편지
 	for ( const k of G.save.kelps ) if ( G.kelps[ k ] ) G.kelps[ k ].read = true;
 	for ( const b of G.bottles ) if ( G.save.bottles.includes( b.id ) ) b.remove( scene );
 
 	G.ui.setParty( partyList() );
-	G.ui.setBottles( G.bottleCount(), BOTTLES.length );
+	G.ui.setBottles( G.bottleCount(), LETTER_TOTAL );
 	setCheckpoint( at.x, at.z );
 	placeCompanions();
 

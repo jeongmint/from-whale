@@ -71,7 +71,8 @@ export default {
 			compassWeak: '나침반이 흐려진다… 미역 곁에서 노래하자',
 			compassOff: '나침반이 꺼졌다 — 미역 곁에서 노래하면 다시 켜진다',
 			compassOn: '미역 줄기가 부서진 나침반을 다시 맞춰 줬다',
-			lastHeart: '심장이 약해졌다 — 이 장에서 한 번 더 쓰러지면 멈춰 버린다'
+			lastHeart: '심장이 약해졌다 — 이 장에서 한 번 더 쓰러지면 멈춰 버린다',
+			tiltTip: '가로 모드에서는 조이스틱 없이 폰을 기울여서도 헤엄칠 수 있어요 — 일시정지 ❚❚ → 실험실'
 		},
 		banner: {
 			objective: 'NEW OBJECTIVE',

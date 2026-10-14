@@ -71,7 +71,8 @@ export default {
 			compassWeak: 'The compass is fading… sing beside some kelp',
 			compassOff: 'The compass went dark — sing beside kelp to bring it back',
 			compassOn: 'The kelp set the broken compass right again',
-			lastHeart: 'Your heart is weak — fall once more in this chapter and it stops'
+			lastHeart: 'Your heart is weak — fall once more in this chapter and it stops',
+			tiltTip: 'In landscape you can also swim by tilting the phone — Pause ❚❚ → LAB'
 		},
 		banner: {
 			objective: 'NEW OBJECTIVE',

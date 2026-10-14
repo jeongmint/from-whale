@@ -30,15 +30,16 @@ export const PLACES = {
 	moby: { x: 180, z: 770 }
 };
 
-// 1·3번은 이야기 길 위(시작 → 등대, 미역 2 → 3), 2·4·6번은 길에서 조금 벗어난 곳, 5번만 연합군 근처에 숨겨 둔다
+// 프롤로그에서 줍는 모비의 편지(0)도 한 통으로 센다. 그래서 바다에 흩어진 병은 다섯 개
+// 1·3번은 이야기 길 위(시작 → 등대, 미역 2 → 3), 4·6번은 길에서 조금 벗어난 곳, 5번만 연합군 근처에 숨겨 둔다
 export const BOTTLES = [
 	{ id: 1, x: - 26, z: - 200 },
-	{ id: 2, x: - 200, z: - 410 },
 	{ id: 3, x: 310, z: - 472 },
 	{ id: 4, x: 560, z: - 480 },
 	{ id: 5, x: 560, z: 190 },
 	{ id: 6, x: - 120, z: - 380 }
 ];
+export const LETTER_TOTAL = BOTTLES.length + 1; // 모비의 편지 포함 6통
 
 // 스텔라와 듀엣: 12마디 블루스 한 바퀴. [ 박, 줄('S' 노래 · 'J' 점프), 음(MIDI) ]. 2/3박은 셔플의 엇박
 const T3 = 2 / 3;
@@ -116,6 +117,8 @@ async function prologue( G ) {
 	await G.say( lines( T.intro ) );
 
 	G.objective( label( T.card ), T.objSwim );
+	// 폰: 가로 모드에서는 기울기로도 헤엄칠 수 있다고 알려 준다 (일시정지 → 실험실)
+	if ( G.touch ) G.toast( lang().ui.toast.tiltTip );
 	await G.until( () => G.stats.swum > 45 );
 
 	G.objective( label( T.card ), T.objSing );
@@ -333,7 +336,7 @@ async function ending( G ) {
 	await G.say( lines( [ ...T().lines, ...T().routes[ key ] ] ) );
 	await card( G, T().cards[ key ] );
 
-	if ( G.bottleCount() >= BOTTLES.length ) await meetStella( G );
+	if ( G.bottleCount() >= LETTER_TOTAL ) await meetStella( G );
 
 	G.cutscene( false );
 	await G.showEnding();
@@ -368,7 +371,7 @@ export async function epilogue( G ) {
 	G.objective( label( T().card ), T().objective );
 	G.ui.toast( T().hint );
 
-	await G.until( () => G.bottleCount() >= BOTTLES.length && ! G.ui.overlay && ! G.ui.dialogOpen );
+	await G.until( () => G.bottleCount() >= LETTER_TOTAL && ! G.ui.overlay && ! G.ui.dialogOpen );
 	await G.wait( 1.2 );
 	G.cutscene( true );
 	await meetStella( G );
