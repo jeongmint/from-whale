@@ -160,6 +160,29 @@
 			</div>
 		</div>
 
+		<!-- 듀엣 점수판: 노래 이름을 붙여 TOP 10에 남긴다 -->
+		<div id="scores" class="overlay hidden">
+			<div class="win">
+				<header class="win-bar"><span>DUET · TOP 10</span><i></i></header>
+				<div class="win-body">
+					<p id="score-mine" class="mono tiny"></p>
+					<form id="score-form" autocomplete="off">
+						<label class="name-field" for="song-name">
+							<span class="mono tiny" data-i18n="scores.song"></span>
+							<input id="song-name" type="text" maxlength="24" spellcheck="false" enterkeyhint="done">
+						</label>
+						<div class="title-row">
+							<button class="btn" id="score-save" type="submit" data-i18n="scores.save"></button>
+							<button class="btn ghost" type="button" data-close data-i18n="scores.skip"></button>
+						</div>
+					</form>
+					<p id="score-status" class="mono tiny"></p>
+					<ol id="score-list"></ol>
+					<button class="btn hidden" id="score-close" type="button" data-close data-i18n="scores.close"></button>
+				</div>
+			</div>
+		</div>
+
 		<!-- 일시정지 -->
 		<div id="pause" class="overlay hidden">
 			<div class="win">

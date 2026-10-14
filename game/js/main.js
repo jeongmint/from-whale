@@ -12,6 +12,7 @@ import { AudioEngine } from './audio.js';
 import { cleanName, loadName, saveName } from './name.js';
 import { CHAPTERS, PLACES, BOTTLES, LETTER_TOTAL, ORCA_PACKS, KELP_GROVES, scramble, epilogue, lukeLateFall } from './story.js';
 import { lang, t, setLang, applyStatic } from './i18n.js';
+import { openScores } from './scores.js';
 
 const BASE = window.FW_ASSET_BASE ?? '../';
 const query = new URLSearchParams( location.search );
@@ -715,6 +716,13 @@ Object.assign( G, {
 		s.root.visible = true;
 		s.setGlow( 0.12, 0xffb020 );
 		G.world.ring( s.pos.x, s.pos.z, { color: 0xffd36b, to: 160, life: 3 } );
+
+	},
+
+	// 듀엣이 끝난 뒤 점수판 (노래 이름을 붙여 TOP 10에 남긴다)
+	scores() {
+
+		return openScores( G.ui, { name: G.playerName, score: G.flags.duetScore ?? 0, max: G.flags.duetMax ?? 0, rank: G.flags.duetRank ?? 'B', test: STELLA_TEST } );
 
 	},
 
@@ -1630,6 +1638,8 @@ function duet( chart ) {
 			const ratio = score / ( notes.length * 2 );
 			const rank = ratio >= 0.85 ? 'S' : ratio >= 0.6 ? 'A' : 'B';
 			G.flags.duetRank = rank;
+			G.flags.duetScore = score;
+			G.flags.duetMax = notes.length * 2;
 			G.flags.duetStars = `${stars}/${starTotal}`;
 			judgeEl.textContent = t( 'duet.rank', { r: rank } );
 			judgeEl.className = 'perfect';

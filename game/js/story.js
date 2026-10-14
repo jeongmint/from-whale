@@ -396,7 +396,10 @@ async function meetStella( G ) {
 	await G.say( lines( G.route.late ? [ ...T().stellaLate, ...T().stella ] : T().stella ) );
 	// 또 하나의 52Hz와 함께 부르는 듀엣 (리듬 게임). 실패는 없고 등급에 따라 스텔라의 반응이 달라진다
 	const rank = await G.duet( DUET_CHART );
-	await G.say( lines( [ ...T().duetEnd[ rank ], ...T().outro ] ) );
+	await G.say( lines( [ ...T().duetEnd[ rank ], ...T().nameSong ] ) );
+	// 노래 이름을 붙여 점수판에 남긴다
+	await G.scores();
+	await G.say( lines( T().outro ) );
 	G.flags.subEnding = true;
 
 }
