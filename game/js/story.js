@@ -277,14 +277,48 @@ async function chapter3( G ) {
 	G.cutscene( false );
 	G.ambushChase( ring );
 	G.objective( label( T().card ), saved ? T().objEscapeSaved : T().objEscape, PLACES.kelp5 );
-	await G.until( () => G.distTo( PLACES.kelp5 ) < 60 );
+	G.flags.escaping = true;
+	await G.until( () => G.distTo( PLACES.kelp5 ) < 60 && ! G.lukeFalling );
+	G.flags.escaping = false;
 	G.ambushRetreat( ring, shaman );
 	G.toast( T().toastStop );
 	G.setMusic( { tension: 0, drums: 0.6, melody: 1 } );
 
-	await G.say( lines( saved ? T().afterEscapeSaved : T().afterEscape ) );
+	// 도망치는 동안 맞아서 루크가 떠났을 수도 있다
+	await G.say( lines( G.party.luke === 'on' ? T().afterEscapeSaved : T().afterEscape ) );
 	G.objective( label( T().card ), T().objKelp5, PLACES.kelp5 );
 	await G.readKelp( 'kelp5' );
+
+}
+
+// 매복을 함께 넘긴 뒤 모비 딕에게 닿기 전에 연합군에게 맞으면, 루크가 대신 들이받고 떠난다
+export async function lukeLateFall( G, orca ) {
+
+	const T = () => lang().story.ch3;
+	G.lukeFalling = true;
+	G.cutscene( true );
+	G.camFocus( G.actors.hazel, { side: - 1, dist: 34, height: 14 } );
+	await G.say( lines( T().lukeCry ) );
+	await G.lukeBlock( orca );
+	await G.wait( 0.8 );
+	await G.say( lines( [ ...T().lukeLate, ...T().lukeLast ] ) );
+
+	G.lukeFall();
+	G.audio.play( 'sad' );
+	await G.wait( 3.2 );
+	G.banner( ...T().bannerLuke, 'sad', 4 );
+	await G.wait( 2.5 );
+	G.scatterLukeLight();
+	await G.wait( 2.4 );
+	await G.say( lines( T().lightScatter ) );
+	G.banner( ...T().bannerAbility, 'join', 4.5 );
+	await G.wait( 1 );
+	await G.say( lines( T().go ) );
+	if ( G.flags.escaping ) G.objective( label( T().card ), T().objEscape, PLACES.kelp5 );
+
+	G.camRelease();
+	G.cutscene( false );
+	G.lukeFalling = false;
 
 }
 
@@ -297,7 +331,8 @@ async function chapter4( G ) {
 	await card( G, T().card );
 	G.setStarfall( true );
 	G.objective( label( T().card ), T().objMoby, PLACES.moby );
-	await G.until( () => G.distTo( PLACES.moby ) < 175 );
+	await G.until( () => G.distTo( PLACES.moby ) < 175 && ! G.lukeFalling );
+	G.flags.mobyMet = true; // 여기부터는 맞아도 루크가 대신 들이받지 않는다
 
 	// 모비 딕을 만나기 전에 편지를 다 모았으면 지각한 고래 엔딩으로 간다. 모비는 한참 기다렸다
 	if ( G.bottleCount() >= LETTER_TOTAL ) G.route.late = true;
