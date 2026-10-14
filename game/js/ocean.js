@@ -254,7 +254,7 @@ export class Ocean {
 					vec3 col = mix( water, refl, fres );
 
 					float spec = pow( max( dot( R, uMoonDir ), 0.0 ), 420.0 );
-					vec3 glint = mix( uMoonEdge, uMoonColor, smoothstep( 0.03, 0.45, spec ) );
+					vec3 glint = mix( uMoonEdge, uMoonColor, smoothstep( 0.008, 0.1, spec ) ); // 아주 희미한 반짝임만 가장자리 색
 					col += glint * spec * 5.0;
 
 					// 파도 마루의 포말: 수면이 압축되는 곳(Jacobian < 1)

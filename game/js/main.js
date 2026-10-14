@@ -250,9 +250,9 @@ function allEndingsSeen() {
 function applyGoldenSea() {
 
 	G.goldenSea = true;
-	G.ocean.uniforms.uMoonColor.value.set( 0xff8c14 ).convertSRGBToLinear(); // 아주 밝아서 하얗게 날아가지 않도록 진한 금빛
+	G.ocean.uniforms.uMoonColor.value.set( 0xff9a00 ).convertSRGBToLinear(); // 아주 밝아서 하얗게 날아가지 않도록 진한 금빛
 	G.ocean.uniforms.uMoonEdge.value.set( 0x5cc8ff ).convertSRGBToLinear();
-	G.sky.moonUniforms.uDisc.value.set( 0.85, 0.5, 0.02 ); // 밝기를 낮춰야 하얗게 날아가지 않고 금빛으로 보인다
+	G.sky.moonUniforms.uDisc.value.set( 0.95, 0.34, 0.0 ); // 윤슬과 같은 금빛 (초록을 낮춰야 레몬빛 · 흰빛으로 날아가지 않는다)
 	G.sky.moonUniforms.uHalo.value.set( 0.45, 0.7, 1.0 );
 	G.sky.moonUniforms.uGold.value = 1;
 	G.sky.capture( renderer ); // 바다에 비치는 하늘(반사)도 다시 찍는다
