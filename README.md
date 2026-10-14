@@ -9,6 +9,12 @@ WebGL Three.js Project about Blue and Whale
 
 52Hz로 노래하는 고래 **헤이즐**의 바다 모험 게임. 이세계의 2066년, 밤바다. (BETA)
 
+| 등대와 고리 행성 | 모비 딕 보스전 |
+| --- | --- |
+| ![등대를 향해 헤엄치는 헤이즐, 하늘의 고리 행성](data/res/shots/play.jpg) | ![떨어지는 별 경고 원 사이의 모비 딕과 루크, 핀](data/res/shots/boss.jpg) |
+| **스텔라와 듀엣 · 별똥별** | **폰 가로 화면** |
+| ![별똥별이 쏟아지는 하늘 아래 스텔라와 듀엣 리듬 게임](data/res/shots/stella.jpg) | ![조이스틱과 버튼이 있는 폰 가로 화면](data/res/shots/mobile.jpg) |
+
 - 로컬 실행: 저장소 루트에서 `python3 -m http.server` → <http://localhost:8000/game/>
 - 언어: 한국어 · English · 日本語 (기기 언어 자동 선택)
 - 닉네임 설정 (기본: 헤이즐 / Hazel / ヘイゼル)
