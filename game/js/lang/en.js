@@ -89,7 +89,8 @@ export default {
 			moby: '<kbd>E</kbd> Sing to Moby Dick',
 			recharge: '<kbd>E</kbd> Sing beside the kelp — refill hearts',
 			compass: '<kbd>E</kbd> Sing beside the kelp — fix the compass',
-			jump: '<kbd>Space</kbd> Jump now!'
+			jump: '<kbd>Space</kbd> Jump now!',
+			tears: '<kbd>E</kbd> Finn\'s tears — rain away the dizziness'
 		},
 		kelpReader: { luke: 'Kelp · read by Luke', finn: 'Kelp · read by Finn', none: 'Kelp' },
 		bottleReact: { luke: 'Hmph. Nothing special. ...Go find the next one.', finn: '...Every one of these was somebody\'s song.' },
@@ -334,7 +335,13 @@ export default {
 			compass: [
 				[ 'narrator', 'Where Finn sank, pieces of a broken compass glittered.' ],
 				[ 'narrator', 'From now on, the guidance slowly fades.\nSing beside some kelp to set it right again.' ]
-			]
+			],
+			// Ability after Finn leaves: sing while dizzy (stunned) and rain clears it at once
+			tears: [
+				[ 'narrator', 'Then a violet rain began to fall over the sea.' ],
+				[ 'narrator', 'Finn\'s tears, after promising not to cry.\nSing when you\'re dizzy, and the rain will fall again.' ]
+			],
+			bannerTears: [ 'NEW ABILITY', 'Finn\'s Tears', 'Sing while stars spin over your head and the rain snaps you out of it' ]
 		},
 
 		epilogue: {

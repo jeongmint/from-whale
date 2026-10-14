@@ -577,6 +577,54 @@ export class World {
 
 	}
 
+	// 핀의 눈물: 둘레에서 빗방울이 떨어진다
+	rain( x, z, { count = 260, radius = 16, height = 30, color = 0xb9a8ff, size = 0.28, life = 1.6 } = {} ) {
+
+		const pos = new Float32Array( count * 3 );
+		const speed = [];
+		for ( let i = 0; i < count; i ++ ) {
+
+			const a = Math.random() * Math.PI * 2, r = Math.sqrt( Math.random() ) * radius;
+			pos.set( [ x + Math.cos( a ) * r, height * ( 0.4 + Math.random() * 0.8 ), z + Math.sin( a ) * r ], i * 3 );
+			speed.push( 38 + Math.random() * 18 );
+
+		}
+
+		const geo = new THREE.BufferGeometry();
+		geo.setAttribute( 'position', new THREE.BufferAttribute( pos, 3 ) );
+		const mat = new THREE.PointsMaterial( { color, size, transparent: true, opacity: 1, depthWrite: false, blending: THREE.AdditiveBlending } );
+		const pts = new THREE.Points( geo, mat );
+		pts.frustumCulled = false;
+		pts.renderOrder = 4;
+		this.scene.add( pts );
+		this.effects.push( {
+			age: 0, update( dt ) {
+
+				this.age += dt;
+				const a = geo.attributes.position;
+				for ( let i = 0; i < count; i ++ ) {
+
+					let y = a.getY( i ) - speed[ i ] * dt;
+					if ( y < 0 && this.age < life * 0.6 ) y += height; // 처음 얼마 동안은 계속 내린다
+					a.setY( i, y );
+
+				}
+
+				a.needsUpdate = true;
+				mat.opacity = Math.max( 0, Math.min( 1, ( life - this.age ) / 0.5 ) );
+				return this.age < life;
+
+			}, dispose: () => {
+
+				this.scene.remove( pts );
+				geo.dispose();
+				mat.dispose();
+
+			}
+		} );
+
+	}
+
 	update( dt, t ) {
 
 		this.time = t;
