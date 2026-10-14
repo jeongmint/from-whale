@@ -49,8 +49,8 @@ export default {
 			heartHint: 'Press Continue to swim this chapter again from the start'
 		},
 		endings: {
-			light: { name: 'The Light That Never Fades', hint: 'Get hit by the Alliance more than once, but never fall before Moby Dick' },
-			friends: { name: 'The Strength of Friends', hint: 'Get hit by the Alliance once at most, and never fall before Moby Dick' },
+			light: { name: 'The Light That Never Fades', hint: 'Get hit by the Alliance even once, but never fall before Moby Dick' },
+			friends: { name: 'The Strength of Friends', hint: 'Never get hit by the Alliance, and never fall before Moby Dick' },
 			compass: { name: 'The Broken Compass', hint: 'Keep Luke safe, then fall before Moby Dick' },
 			sacrifice: { name: 'Sacrifice', hint: 'If both Luke and Finn take the blow for {N}' },
 			heart: { name: 'A Whale\'s Stopped Heart', hint: 'If you fall twice in one chapter…' },
