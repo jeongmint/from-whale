@@ -73,8 +73,8 @@ export default {
 			heartHint: 'Press Continue to swim this chapter again from the start'
 		},
 		endings: {
-			light: { name: 'The Light That Never Fades', hint: 'Get hit by the Alliance even once, but never fall before Moby Dick' },
-			friends: { name: 'The Strength of Friends', hint: 'Never get hit by the Alliance, and never fall before Moby Dick' },
+			light: { name: 'The Light That Never Fades', hint: 'Get hit by the Alliance twice, but never fall before Moby Dick' },
+			friends: { name: 'The Strength of Friends', hint: 'Never get hit by the Alliance twice, and never fall before Moby Dick' },
 			compass: { name: 'The Broken Compass', hint: 'Keep Luke safe, then fall before Moby Dick' },
 			sacrifice: { name: 'Sacrifice', hint: 'If both Luke and Finn take the blow for {N}' },
 			late: { name: 'The Late Whale', hint: 'If you gather every letter in a bottle before meeting Moby Dick' },
@@ -96,6 +96,7 @@ export default {
 			compassWeak: 'The compass is fading… sing beside some kelp',
 			compassOff: 'The compass went dark — sing beside kelp to bring it back',
 			compassOn: 'The kelp set the broken compass right again',
+			lukeWarn: 'Luke: ...Get hit once more, and I\'m ramming in.',
 			lastHeart: 'Your heart is weak — fall once more in this chapter and it stops',
 			tiltTip: 'In landscape you can also swim by tilting the phone — Pause ❚❚ → LAB'
 		},

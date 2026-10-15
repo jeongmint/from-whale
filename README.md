@@ -38,7 +38,7 @@ A sea adventure of **Hazel**, a whale who sings at 52Hz. Another world, the year
 
 ### Branching endings
 
-- Luke: never hit by the Alliance until reaching Moby Dick → Luke lives, Luke's lantern (wider song range in the boss fight). Hit before the ch. 3 ambush → Luke's sacrifice at the ambush; hit after getting through it together → Luke rams in and falls on the spot. Either way, light shards (speed boost)
+- Luke: hit by the Alliance at most once until reaching Moby Dick (Luke warns you after the first) → Luke lives, Luke's lantern (wider song range in the boss fight). Hit twice before the ch. 3 ambush → Luke's sacrifice at the ambush; the second hit after getting through it together → Luke rams in and falls on the spot. Either way, light shards (speed boost)
 - Boss fight: Finn takes the first fall → broken compass (directions fade and go dark, restored by singing beside kelp) + Finn's Tears (sing while stunned → violet rain, stun cleared at once)
 - All 6 letters before meeting Moby Dick: **The Late Whale** (regardless of Luke and Finn, Moby grumbles, Stella is late too) → Stella's duet follows, 2 endings in one run
 - Two falls in one chapter: **A Whale's Stopped Heart** → Continue restarts that chapter (Finn's fall does not count)
