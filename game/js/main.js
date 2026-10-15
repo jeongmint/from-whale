@@ -35,9 +35,9 @@ const CHARGE_STUN = 1.5; // 돌진하는 모비에게 받혔을 때
 const SAVE_KEY = 'fromwhale.save.v1';
 const EPILOGUE = CHAPTERS.length; // 엔딩 뒤 남은 편지 찾기 (이어하기 번호)
 
-// 갈래 엔딩. 3장 매복까지 연합군에게 한 번도 안 맞으면(LUKE_MAX_HITS) 루크가 살고,
+// 갈래 엔딩. 3장 매복까지 연합군에게 LUKE_MAX_HITS번 넘게 맞지 않으면 루크가 살고,
 // 보스전에서 처음 쓰러지면 핀이 대신 맞는다. 루크·핀이 살았는지에 따라 엔딩 넷
-const LUKE_MAX_HITS = 0; // 한 번도 안 맞아야 루크가 산다
+const LUKE_MAX_HITS = 1; // 한 번까지는 봐준다 (처음 맞으면 루크가 경고, 두 번째에 대신 들이받는다)
 const AMBUSH_HEADSTART = 3; // 매복 컷신 뒤 연합군이 잠수해서 헤이즐 뒤쪽에 모이는 시간 (초)
 const AMBUSH_DASH = 2.2; // 매복 컷신 뒤 헤이즐이 치고 나가는 시간 (초)
 const ROUTES = {
@@ -860,7 +860,7 @@ function updateOrcas( dt ) {
 				if ( ! frozen && dP < DETECT && ! h.airborne && G.started ) alertOrca( o );
 				break;
 			case 'chase':
-				steerTo( w, h.pos.x, h.pos.z, 20.5, dt, 2.4 );
+				steerTo( w, h.pos.x, h.pos.z, 19.8, dt, 2.4 );
 				if ( fromHome > 220 || dP > 120 ) o.state = 'return';
 				break;
 			case 'hunt':
@@ -920,7 +920,7 @@ function updateOrcas( dt ) {
 		if ( hostile && ! frozen && dP < 7.5 ) {
 
 			// 매복을 함께 넘긴 뒤에도, 모비 딕에게 닿기 전에 맞으면 루크가 대신 들이받고 떠난다
-			if ( lukeGuards() ) {
+			if ( lukeGuards() && G.route.hits >= LUKE_MAX_HITS ) {
 
 				G.route.hits ++;
 				o.state = 'stun';
@@ -932,6 +932,8 @@ function updateOrcas( dt ) {
 				G.route.hits ++;
 				o.state = 'stun';
 				o.stunT = 1.6;
+				// 처음 맞으면 루크가 경고한다 (한 번만 더 맞으면 루크가 대신 들이받는다)
+				if ( G.route.hits === LUKE_MAX_HITS && G.party.luke === 'on' && ! G.flags.mobyMet ) G.ui.toast( t( 'toast.lukeWarn' ) );
 
 			}
 
