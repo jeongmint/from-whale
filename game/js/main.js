@@ -860,10 +860,12 @@ function updateOrcas( dt ) {
 				if ( ! frozen && dP < DETECT && ! h.airborne && G.started ) alertOrca( o );
 				break;
 			case 'chase':
+				if ( frozen ) { w.speed *= 0.9; break; } // 대화 · 컷신 중엔 쫓지 않고 멈춰 기다린다
 				steerTo( w, h.pos.x, h.pos.z, 19.8, dt, 2.4 );
 				if ( fromHome > 220 || dP > 120 ) o.state = 'return';
 				break;
 			case 'hunt':
+				if ( frozen ) { w.speed *= 0.9; break; }
 				steerTo( w, h.pos.x, h.pos.z, 19.5, dt, 2.2 );
 				if ( dP > 180 ) o.state = 'retreat';
 				break;
@@ -876,7 +878,7 @@ function updateOrcas( dt ) {
 				steerTo( w, w.pos.x - dx, w.pos.z - dz, 16, dt, 3 );
 				if ( o.stunT <= 0 ) {
 
-					o.state = o.after ?? ( o.ambush ? 'hold' : ( dP < 110 ? 'chase' : 'return' ) );
+					o.state = o.after ?? ( o.ambush ? ( G.flags.escaping ? 'hunt' : 'hold' ) : ( dP < 110 ? 'chase' : 'return' ) ); // 매복 추격 중에 부딪힌 녀석은 다시 쫓아온다
 					o.after = null;
 
 				}
