@@ -860,10 +860,12 @@ function updateOrcas( dt ) {
 				if ( ! frozen && dP < DETECT && ! h.airborne && G.started ) alertOrca( o );
 				break;
 			case 'chase':
+				if ( frozen ) { w.speed *= 0.9; break; } // 대화 · 컷신 중엔 쫓지 않고 멈춰 기다린다
 				steerTo( w, h.pos.x, h.pos.z, 19.8, dt, 2.4 );
 				if ( fromHome > 220 || dP > 120 ) o.state = 'return';
 				break;
 			case 'hunt':
+				if ( frozen ) { w.speed *= 0.9; break; }
 				steerTo( w, h.pos.x, h.pos.z, 19.5, dt, 2.2 );
 				if ( dP > 180 ) o.state = 'retreat';
 				break;
@@ -876,7 +878,7 @@ function updateOrcas( dt ) {
 				steerTo( w, w.pos.x - dx, w.pos.z - dz, 16, dt, 3 );
 				if ( o.stunT <= 0 ) {
 
-					o.state = o.after ?? ( o.ambush ? 'hold' : ( dP < 110 ? 'chase' : 'return' ) );
+					o.state = o.after ?? ( o.ambush ? ( G.flags.escaping ? 'hunt' : 'hold' ) : ( dP < 110 ? 'chase' : 'return' ) ); // 매복 추격 중에 부딪힌 녀석은 다시 쫓아온다
 					o.after = null;
 
 				}
@@ -2509,7 +2511,7 @@ async function boot() {
 	A.luke = new Whale( models.luke, { name: 'luke', length: 11, ride: 0.36, freq: 3.3, amp: 0.07, emissive: 1.4 } );
 	A.finn = new Whale( models.finn, { name: 'finn', length: 10, ride: 0.42, freq: 2.9, amp: 0.06, emissive: 0.55 } );
 	// 헤이즐(8)에 비해 커야 압도감이 난다. 실제 비율(상괭이 : 향유고래 : 대왕고래 ≈ 1.8m : 18m : 28m)보다는 작게
-	A.moby = new Whale( models.moby, { name: 'moby', length: 54, ride: 0.3, freq: 1.5, amp: 0.05, emissive: 0.6 } );
+	A.moby = new Whale( models.moby, { name: 'moby', length: 48, ride: 0.3, freq: 1.5, amp: 0.05, emissive: 0.6 } );
 	A.stella = new Whale( models.stella, { name: 'stella', length: 120, ride: 0.36, freq: 1.0, amp: 0.05, emissive: 1.6 } );
 	A.shaman = new Whale( models.orca, { name: 'shaman', length: 18, ride: 0.42, freq: 2.4, amp: 0.05, recolor: [ 0x7a1f4f, 0xffb3d1 ], emissive: 0.1 } );
 	for ( const a of Object.values( A ) ) scene.add( a.root );
