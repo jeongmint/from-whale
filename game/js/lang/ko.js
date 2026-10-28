@@ -20,6 +20,17 @@ export default {
 		duet: { title: 'DUET · 52HZ ♥ 52HZ', help: '노래 [E] · 점프 [Space]', ready: '스텔라가 박자를 센다…', perfect: 'PERFECT', excellent: 'EXCELLENT', good: 'GOOD', miss: 'MISS', combo: '{n} COMBO', rank: 'RANK {r}', sky: '★ 밤하늘 완성!' },
 		feedback: { open: '✉ 아이디어 · 버그 보내기', placeholder: '아이디어나 버그를 자유롭게 적어 주세요', send: '보내기', sending: '보내는 중…', thanks: '고마워요! 잘 받았어요.', fail: '지금은 바로 보내지 못했어요. 아래 메일로 보내 주세요.', copy: '주소 복사', copied: '복사했어요!', mailApp: '메일 앱으로' },
 		letter: { close: '닫기 <span class="mono tiny">[E]</span>' },
+		// MAP 2 미리보기: 포털 → 바닷속
+		dive: {
+			label: 'MAP 2 · 바닷속',
+			objPortal: '빛나는 소용돌이로 들어가기',
+			objSwim: '바닷속을 헤엄쳐 보기',
+			card: [ 'MAP 2', '바닷속으로', '미리보기 · 개발 중' ],
+			hint: '[Space] 위로 · [C] 아래로 · [E] 노래로 둘레 밝히기 — 여기부터는 개발 중인 MAP 2예요',
+			zones: [ '햇빛층', '어스름층', '한밤층', '해구' ],
+			zoneSub: [ '빛줄기가 닿는 곳', '빛이 희미해진다 — 등의 빛 문양이 길을 비춘다', '깜깜하다 — 노래하면 소나처럼 둘레가 밝아진다', '좁은 협곡의 끝 — 저 아래에 무언가 있다' ],
+			bottom: '더 깊은 곳은 아직 만드는 중이에요 (MAP 2 개발 중)'
+		},
 		// 듀엣 다시 부르기 (스텔라를 만난 적 있으면 타이틀 · 엔딩 화면에서)
 		duetAgain: { thanks: '또 같이 불러 줘서 고마워!', more: '♪ 한 곡 더', title: '타이틀로' },
 		// 듀엣 점수판 (노래 이름을 붙여 TOP 10에 남긴다)
@@ -64,6 +75,7 @@ export default {
 		ending: {
 			search: '남은 편지 찾으러 가기 · {n}/{total}',
 			again: '다시 하기',
+			dive: '▼ 바닷속으로 (MAP 2 미리보기)',
 			allEndings: '★ 엔딩 6개를 모두 모았다 — 이제 바다가 금빛으로 반짝인다',
 			duet: '♪ 듀엣 다시 부르기',
 			quote: '“ 바다에는 자유가 있다<br>누구나 누려야 하는 ”',
@@ -449,6 +461,9 @@ export default {
 				A: [ [ 'stella', '좋아 좋아! 처음치고 완전 잘했어!' ] ],
 				B: [ [ 'stella', '헤헤, 박자는 엉망이었지만\n지금까지 들은 노래 중에 제일 신났어!' ] ]
 			},
+			// MAP 2 미리보기: 듀엣이 끝나고 열리는 포털
+			portal: [ [ 'stella', '...어? 저 아래에서 내 노래에 답하는 신호가 있어.\n52헤르츠, 같이 내려가 볼래?' ] ],
+			portalNone: [ [ 'narrator', '수면 아래에서, 52Hz에 답하듯 빛이 소용돌이쳤다.' ] ],
 			// 듀엣 다시 부르기
 			again: [ [ 'stella', '또 왔구나, 52헤르츠!\n좋아, 한 곡 더! 이번엔 바다를 더 조용하게 만들어 보자!' ] ],
 			againBye: [ [ 'stella', '언제든 또 와! 난 늘 여기서 노래하고 있을게.' ] ],

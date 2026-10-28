@@ -34,7 +34,7 @@ export class UI {
 		if ( ! this.game.touch || ! s ) return s;
 		for ( const [ keys, touch ] of lang().ui.touchKeys ) s = s.split( keys ).join( touch );
 		return s
-			.replace( /\[E\]/g, '[♪]' ).replace( /\[Space\]/g, '[⤴]' ).replace( /\[L\]/g, '[✉]' )
+			.replace( /\[E\]/g, '[♪]' ).replace( /\[Space\]/g, '[⤴]' ).replace( /\[L\]/g, '[✉]' ).replace( /\[C\]/g, '[⤵]' )
 			.replace( /<kbd>E<\/kbd>/g, '<kbd>♪</kbd>' ).replace( /<kbd>Space<\/kbd>/g, '<kbd>⤴</kbd>' );
 
 	}

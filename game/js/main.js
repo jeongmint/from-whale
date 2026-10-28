@@ -13,6 +13,7 @@ import { cleanName, loadName, saveName } from './name.js';
 import { CHAPTERS, PLACES, BOTTLES, LETTER_TOTAL, ORCA_PACKS, KELP_GROVES, scramble, epilogue, lukeLateFall, duetAgain } from './story.js';
 import { lang, t, setLang, applyStatic } from './i18n.js';
 import { openScores } from './scores.js';
+import { Dive, DIVE_TOP, DIVE_BOTTOM, ZONES, zoneAt } from './dive.js';
 
 const BASE = window.FW_ASSET_BASE ?? '../';
 const query = new URLSearchParams( location.search );
@@ -20,6 +21,8 @@ const query = new URLSearchParams( location.search );
 const STELLA_TEST = query.has( 'stella' );
 // 테스트 옵션 ?gold: 엔딩 6개 보상(금빛 바다)을 미리 본다. 저장은 건드리지 않는다
 const GOLD_TEST = query.has( 'gold' );
+// 테스트 옵션 ?dive: MAP 2 미리보기 (포털 → 바닷속)부터 시작. 저장은 건드리지 않는다
+const DIVE_TEST = query.has( 'dive' );
 const LOW = ( query.get( 'q' ) ?? ( matchMedia( '(pointer: coarse)' ).matches ? 'low' : 'high' ) ) === 'low';
 const DT_MAX = Number( query.get( 'dtmax' ) ) || 1 / 20;
 
@@ -261,7 +264,7 @@ function applyGoldenSea() {
 
 function saveEnding( key ) {
 
-	if ( STELLA_TEST || duetMode ) return;
+	if ( STELLA_TEST || duetMode || DIVE_TEST ) return;
 	const seen = loadEndings();
 	if ( seen.includes( key ) ) return;
 	seen.push( key );
@@ -296,7 +299,7 @@ function loadSave() {
 
 function persist() {
 
-	if ( STELLA_TEST || duetMode ) return;
+	if ( STELLA_TEST || duetMode || DIVE_TEST ) return;
 	try {
 
 		localStorage.setItem( SAVE_KEY, JSON.stringify( G.save ) );
@@ -797,6 +800,8 @@ Object.assign( G, {
 		renderEndings( $( 'ending-list' ), key );
 		// 스텔라를 만난 적 있으면 여기서 바로 듀엣만 다시
 		$( 'btn-duet-end' ).classList.toggle( 'hidden', !! forced || ! loadEndings().includes( 'stella' ) );
+		// 스텔라를 만난 적 있으면 MAP 2 미리보기 (포털 → 바닷속)
+		$( 'btn-dive' ).classList.toggle( 'hidden', !! forced || ! loadEndings().includes( 'stella' ) );
 		$( 'ending-quote' ).innerHTML = t( 'ending.quote' );
 		$( 'ending-stats' ).innerHTML = [
 			`PLAY TIME ${minutes}:${String( seconds ).padStart( 2, '0' )}`,
@@ -841,7 +846,7 @@ function makeOrcaAgent( whale, pack, state = 'patrol' ) {
 function updateOrcas( dt ) {
 
 	const h = G.actors.hazel;
-	const frozen = G.cutsceneOn || G.ui.dialogOpen;
+	const frozen = G.cutsceneOn || G.ui.dialogOpen || G.diving; // 바닷속(MAP 2 미리보기)에선 수면의 연합군이 쫓지 않는다
 	const showRings = G.party.finn === 'on';
 
 	for ( const o of G.orcas ) {
@@ -1990,7 +1995,7 @@ function clearMeteors() {
 // 입력
 // ---------------------------------------------------------------
 const keys = new Set();
-const touch = { x: 0, y: 0, boost: false, active: false };
+const touch = { x: 0, y: 0, boost: false, up: false, down: false, active: false };
 
 // 기울기 조종 (일시정지 메뉴의 실험실): 가로로 든 폰을 앞으로 눕히면 앞으로, 뒤로 젖히면 천천히 뒤로, 좌우로 기울이면 방향 전환.
 // 켤 때, 계속하기를 누를 때, 대화가 끝나 다시 움직일 수 있을 때 들고 있던 자세를 기준(0)으로 삼는다.
@@ -2228,6 +2233,7 @@ function setupTouch() {
 			e.preventDefault();
 			btn.classList.add( 'held' );
 			if ( act === 'boost' ) touch.boost = true;
+			else if ( G.diving && ! G.ui.dialogOpen && ! G.ui.overlay && ( act === 'jump' || act === 'down' ) ) touch[ act === 'jump' ? 'up' : 'down' ] = true;
 			else if ( G.ui.dialogOpen || G.ui.overlay ) onAction( 'KeyE' );
 			else onAction( act === 'sing' ? 'KeyE' : 'Space' );
 
@@ -2236,6 +2242,8 @@ function setupTouch() {
 
 			btn.classList.remove( 'held' );
 			if ( act === 'boost' ) touch.boost = false;
+			if ( act === 'jump' ) touch.up = false;
+			if ( act === 'down' ) touch.down = false;
 
 		};
 
@@ -2310,7 +2318,8 @@ function sing() {
 	const h = G.actors.hazel;
 	G.singCooldown = 1.3;
 	audio.play( 'sing' );
-	for ( let i = 0; i < 3; i ++ ) G.world.ring( h.pos.x, h.pos.z, { color: 0x7fe9ff, to: 58, life: 1.6, delay: i * 0.28 } );
+	if ( G.diving ) G.dive.pulse( h.root.position ); // 바닷속: 노래가 소나처럼 둘레를 밝힌다
+	else for ( let i = 0; i < 3; i ++ ) G.world.ring( h.pos.x, h.pos.z, { color: 0x7fe9ff, to: 58, life: 1.6, delay: i * 0.28 } );
 	G.emit( 'sing' );
 
 	let revealed = 0;
@@ -2399,6 +2408,7 @@ async function doReadKelp( key ) {
 
 function jump() {
 
+	if ( G.diving ) return false; // 바닷속에선 Space가 위로 헤엄치기
 	const h = G.actors.hazel;
 	if ( G.jumpCooldown > 0 || h.airborne || G.stun > 0 ) return false;
 	if ( h.breach( 12 + Math.min( h.speed, BOOST_SPEED ) * 0.12 ) ) {
@@ -2495,6 +2505,7 @@ async function boot() {
 
 	G.ocean = new Ocean( { envMap: G.sky.cubeTarget.texture, normalMap: normalTex, fog, moonDir, gridStep: LOW ? 5 : 2.5 } );
 	scene.add( G.ocean.mesh );
+	G.dive = new Dive( { scene, camera, fog, sky: G.sky, ocean: G.ocean } );
 	if ( GOLD_TEST || allEndingsSeen() ) applyGoldenSea();
 	G.targetWaves = 0.65;
 
@@ -2505,6 +2516,7 @@ async function boot() {
 		...KELP_GROVES.map( ( g ) => ( { ...g, r: 30 } ) )
 	];
 	G.world = new World( { scene, fog, places: { lighthouse: PLACES.lighthouse }, avoid, models } );
+	G.dive.world = G.world; // 잠수할 때 맵 1의 얕은 해저를 치운다
 
 	const A = G.actors;
 	A.hazel = new Whale( models.hazel, { name: 'hazel', length: 8, ride: 0.38, freq: 3.8, amp: 0.085, emissive: 1.4 } );
@@ -2555,7 +2567,7 @@ async function boot() {
 	setupTouch();
 	$( 'loading' ).classList.add( 'hidden' );
 	$( 'title-buttons' ).classList.remove( 'hidden' );
-	const debugChapter = query.has( 'chapter' ) ? Number( query.get( 'chapter' ) ) : STELLA_TEST || duetMode ? 5 : null;
+	const debugChapter = query.has( 'chapter' ) ? Number( query.get( 'chapter' ) ) : STELLA_TEST || duetMode || DIVE_TEST ? 5 : null;
 	const continueBtn = $( 'btn-continue' );
 	const showContinue = () => {
 
@@ -2646,7 +2658,7 @@ async function boot() {
 	$( 'btn-start' ).onclick = () => {
 
 		setName( $( 'nickname' ).value );
-		if ( duetMode ) return start( 5 ); // 듀엣만: 지난 판의 루크 · 핀 그대로
+		if ( duetMode || DIVE_TEST ) return start( 5 ); // 듀엣만 · MAP 2 미리보기: 지난 판의 루크 · 핀 그대로
 		if ( debugChapter === null ) G.save = { chapter: 0, bottles: [], read: [], kelps: [] };
 		G.route = newRoute( ROUTE_TEST ?? ( debugChapter >= 4 ? 'light' : null ) );
 		if ( STELLA_TEST ) G.save = { ...G.save, bottles: [ 0, ...BOTTLES.map( ( b ) => b.id ) ], read: [ 0, ...BOTTLES.map( ( b ) => b.id ) ] };
@@ -2665,6 +2677,16 @@ async function boot() {
 
 	$( 'btn-again' ).onclick = () => location.reload();
 	$( 'btn-duet-end' ).onclick = () => location.href = `${location.pathname}?duet`;
+	$( 'btn-dive' ).onclick = async () => {
+
+		G.ui.show( 'ending', false );
+		G.ended = false;
+		G.camRelease();
+		G.ui.show( 'hud' );
+		await G.ui.fade( 0, 1.2 );
+		openDivePortal();
+
+	};
 	$( 'btn-duet-more' ).onclick = () => {
 
 		G.ui.show( 'duet-again', false );
@@ -2875,6 +2897,7 @@ async function start( chapter ) {
 	G.stats.time = 0;
 
 	if ( duetMode ) return runDuetAgain();
+	if ( DIVE_TEST ) return openDivePortal();
 
 	if ( chapter >= EPILOGUE ) {
 
@@ -2896,6 +2919,71 @@ async function start( chapter ) {
 		await CHAPTERS[ i ]( G );
 
 	}
+
+}
+
+// MAP 2 미리보기: 헤이즐 앞 수면에 포털이 열리고, 들어가면 바닷속으로
+async function openDivePortal() {
+
+	const h = G.actors.hazel;
+	const T = lang().story.ending;
+	const f = h.forward;
+	const portal = { x: h.pos.x + f.x * 45, z: h.pos.z + f.z * 45 };
+	G.cutscene( true );
+	G.setStarfall( false );
+	G.dive.openPortal( portal.x, portal.z );
+	G.world.ring( portal.x, portal.z, { color: 0xb9a8ff, to: 40, life: 1.6 } );
+	G.audio.play( 'join' );
+	const said = G.actors.stella.root.visible ? T.portal : T.portalNone;
+	await G.say( said.map( ( [ who, text ] ) => ( { who, text } ) ) );
+	G.cutscene( false );
+	G.objective( t( 'dive.label' ), t( 'dive.objPortal' ), portal );
+	await G.until( () => G.distTo( portal ) < 9 && ! G.ui.dialogOpen );
+	await enterDive();
+
+}
+
+// 깊이계 · 층이 바뀌면 배너 · 바닥(미리보기의 끝)에 닿으면 안내
+function updateDepth() {
+
+	const d = - G.diveY;
+	const zi = zoneAt( d ).i;
+	$( 'depth-meter' ).textContent = `▼ ${Math.round( d )}m · ${t( 'dive.zones' )[ zi ]}`;
+	if ( zi !== G.diveZone ) {
+
+		if ( G.diveZone !== undefined ) G.ui.banner( `▼ ${ZONES[ zi ].depth}m`, t( 'dive.zones' )[ zi ], t( 'dive.zoneSub' )[ zi ], 'join', 3.5 );
+		G.diveZone = zi;
+
+	}
+
+	if ( G.diveY <= DIVE_BOTTOM + 0.5 && ! G.flags.diveBottom ) {
+
+		G.flags.diveBottom = true;
+		G.ui.toast( t( 'dive.bottom' ) );
+
+	}
+
+}
+
+async function enterDive() {
+
+	const h = G.actors.hazel;
+	G.cutscene( true );
+	G.world.splash( h.pos.x, h.root.position.y, h.pos.z, { count: 90, power: 10, color: 0xb9a8ff } );
+	G.audio.play( 'splash' );
+	await G.ui.fade( 1, 0.8 );
+	G.diving = true;
+	G.diveY = - 6;
+	G.diveVy = 0;
+	G.dive.enter();
+	document.body.classList.add( 'diving' );
+	G.setMusic( { tension: 0, drums: 0, bass: 0, melody: 0.6, piano: 1, sax: 0 } );
+	camera.position.set( h.pos.x - Math.sin( G.camYaw ) * 20, G.diveY + 4.5, h.pos.z - Math.cos( G.camYaw ) * 20 );
+	await G.ui.fade( 0, 1.2 );
+	await G.card( ...t( 'dive.card' ) );
+	G.cutscene( false );
+	G.objective( t( 'dive.label' ), t( 'dive.objSwim' ) );
+	G.ui.toast( t( 'dive.hint' ) );
 
 }
 
@@ -3033,6 +3121,17 @@ function updatePlayer( dt ) {
 
 	}
 
+	// 바닷속: Space · ⤴ 위로, C · ⤵ 아래로. 손을 떼면 그 깊이를 유지한다
+	if ( G.diving ) {
+
+		const v = control ? ( keys.has( 'Space' ) || touch.up ? 1 : 0 ) - ( keys.has( 'KeyC' ) || touch.down ? 1 : 0 ) : 0;
+		G.diveVy += ( v * ( boost ? 18 : 9 ) - G.diveVy ) * Math.min( 1, dt * 3 ); // 가속 중엔 위아래도 빠르게
+		G.diveY = THREE.MathUtils.clamp( G.diveY + G.diveVy * dt, DIVE_BOTTOM, DIVE_TOP );
+		if ( G.diveY === DIVE_BOTTOM || G.diveY === DIVE_TOP ) G.diveVy *= 0.5;
+		h.depth = h.surfaceY - G.diveY;
+
+	}
+
 	G.stats.swum += Math.abs( h.speed ) * dt;
 	if ( h.update( dt ) ) {
 
@@ -3042,6 +3141,7 @@ function updatePlayer( dt ) {
 
 	}
 
+	if ( G.diving ) h.root.rotateX( - THREE.MathUtils.clamp( G.diveVy * 0.06, - 0.5, 0.5 ) ); // 오르내릴 때 머리를 든다 · 숙인다
 	G.invuln = Math.max( 0, G.invuln - dt );
 	h.root.visible = G.invuln <= 0 || Math.floor( G.time * 14 ) % 2 === 0 || G.cutsceneOn;
 	G.singCooldown = Math.max( 0, G.singCooldown - dt );
@@ -3226,16 +3326,31 @@ function updateCamera( dt ) {
 
 		const yaw = G.camYaw;
 		const dist = 24 + Math.abs( h.speed ) * 0.28;
-		desired.set( h.pos.x - Math.sin( yaw ) * dist, h.root.position.y * 0.4 + 8.5 + Math.abs( h.speed ) * 0.05, h.pos.z - Math.cos( yaw ) * dist );
 		const f = h.forward;
-		look = new THREE.Vector3( h.pos.x + f.x * 5, h.root.position.y * 0.5 + 4.2, h.pos.z + f.z * 5 );
+		if ( G.diving ) {
+
+			// 바닷속: 헤이즐 뒤 살짝 위에서, 같은 깊이를 따라간다
+			desired.set( h.pos.x - Math.sin( yaw ) * dist * 0.8, G.diveY + 4.5 + G.diveVy * 0.15, h.pos.z - Math.cos( yaw ) * dist * 0.8 );
+			look = new THREE.Vector3( h.pos.x + f.x * 6, G.diveY + 1 + G.diveVy * 0.2, h.pos.z + f.z * 6 );
+
+		} else {
+
+			desired.set( h.pos.x - Math.sin( yaw ) * dist, h.root.position.y * 0.4 + 8.5 + Math.abs( h.speed ) * 0.05, h.pos.z - Math.cos( yaw ) * dist );
+			look = new THREE.Vector3( h.pos.x + f.x * 5, h.root.position.y * 0.5 + 4.2, h.pos.z + f.z * 5 );
+
+		}
 
 	}
 
 	const k = 1 - Math.exp( - dt * ( G.camTarget ? 1.6 : 3.2 ) );
 	camera.position.lerp( desired, k );
-	const floor = sampleOcean( camera.position.x, camera.position.z ) + 2.8;
-	if ( camera.position.y < floor ) camera.position.y = floor;
+	if ( G.diving ) camera.position.y = THREE.MathUtils.clamp( camera.position.y, DIVE_BOTTOM - 4, - 1.2 ); // 물 밖으로 나가지 않게
+	else {
+
+		const floor = sampleOcean( camera.position.x, camera.position.z ) + 2.8;
+		if ( camera.position.y < floor ) camera.position.y = floor;
+
+	}
 	camLook.lerp( look, 1 - Math.exp( - dt * 5 ) );
 	camera.lookAt( camLook );
 
@@ -3340,9 +3455,13 @@ function update( dt ) {
 	G.ocean.update( G.time, G.actors.hazel.pos );
 	G.sky.update( dt, camera.position );
 	G.world.update( dt, G.time );
+	G.dive.update( dt, G.time, G.diving ? - G.diveY : 0 );
+	if ( G.diving ) updateDepth();
 
 	updatePlayer( dt );
 	updateCompass( dt );
+	// 바닷속에선 동료도 같은 깊이로
+	if ( G.diving ) for ( const key of [ 'luke', 'finn' ] ) if ( G.party[ key ] === 'on' ) G.actors[ key ].targetDepth = G.actors[ key ].surfaceY - G.diveY;
 	updateCompanions( dt );
 	updateOrcas( dt );
 	updateBottlesAndKelp( dt );

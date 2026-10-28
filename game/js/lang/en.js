@@ -20,6 +20,17 @@ export default {
 		duet: { title: 'DUET · 52HZ ♥ 52HZ', help: 'Sing [E] · Jump [Space]', ready: 'Stella counts you in…', perfect: 'PERFECT', excellent: 'EXCELLENT', good: 'GOOD', miss: 'MISS', combo: '{n} COMBO', rank: 'RANK {r}', sky: '★ The night sky is complete!' },
 		feedback: { open: '✉ Send an idea or a bug', placeholder: 'Write any idea or bug you found', send: 'Send', sending: 'Sending…', thanks: 'Thank you! Got it.', fail: 'Couldn\'t send it right now. Please email it instead:', copy: 'Copy address', copied: 'Copied!', mailApp: 'Open mail app' },
 		letter: { close: 'Close <span class="mono tiny">[E]</span>' },
+		// MAP 2 preview: portal → under the sea
+		dive: {
+			label: 'MAP 2 · THE DEEP',
+			objPortal: 'Swim into the glowing whirlpool',
+			objSwim: 'Try swimming under the sea',
+			card: [ 'MAP 2', 'Into the Deep', 'Preview · in development' ],
+			hint: '[Space] up · [C] down · [E] sing to light the dark — MAP 2 is still in development from here',
+			zones: [ 'Sunlight zone', 'Twilight zone', 'Midnight zone', 'The trench' ],
+			zoneSub: [ 'Where the light shafts reach', 'The light fades — the glow on your back lights the way', 'Pitch dark — sing and the dark lights up like sonar', 'The end of a narrow canyon — something waits below' ],
+			bottom: 'The deeper sea is still being built (MAP 2 in development)'
+		},
 		// Sing the duet again (from the title or ending screen once you've met Stella)
 		duetAgain: { thanks: 'Thanks for singing with me again!', more: '♪ One more song', title: 'Back to title' },
 		// Duet scoreboard (name the song and leave it in the TOP 10)
@@ -64,6 +75,7 @@ export default {
 		ending: {
 			search: 'Find the rest of the letters · {n}/{total}',
 			again: 'Play again',
+			dive: '▼ Into the deep (MAP 2 preview)',
 			allEndings: '★ All 6 endings found — the sea now glitters gold',
 			duet: '♪ Sing the duet again',
 			quote: '“ The sea holds a freedom<br>that everyone deserves ”',
@@ -447,6 +459,9 @@ export default {
 				A: [ [ 'stella', 'Yes, yes! That was amazing for a first try!' ] ],
 				B: [ [ 'stella', 'Hehe, the beat was all over the place,\nbut that was the most fun song I\'ve ever heard!' ] ]
 			},
+			// MAP 2 preview: the portal that opens after the duet
+			portal: [ [ 'stella', '...Huh? Something down there is answering my song.\n52Hz, want to go down and see?' ] ],
+			portalNone: [ [ 'narrator', 'Beneath the surface, light swirled as if answering 52Hz.' ] ],
 			// Sing the duet again
 			again: [ [ 'stella', 'You came back, 52Hz!\nAlright, one more song! Let\'s make the whole sea go quiet this time!' ] ],
 			againBye: [ [ 'stella', 'Come back anytime! I\'ll always be singing right here.' ] ],
