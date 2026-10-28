@@ -33,7 +33,7 @@ A sea adventure of **Hazel**, a whale who sings at 52Hz. Another world, the year
 - **Moby Dick boss fight** — 6 songs that reach him win him over. Body hits and falling stars cost a heart; stun 1.1 s from stars, 1.5 s from charges (with Finn's Tears, a song clears it at once)
 - **Stella (hidden ending)** — all 6 letters in bottles (Moby's prologue letter included) → 12-bar blues duet (PERFECT ±25 ms · EXCELLENT ±60 ms · GOOD ±150 ms, 450 max, S from 85% · A from 60%, a shooting star per jump note) → name the song and leave it with your nickname and score on the shared **Duet TOP 10**. After meeting Stella, "Sing the duet again" on the title or ending screen replays just the duet (save data untouched). Remaining letters can be found in the epilogue after the ending
 - **Space and sea** — Gerstner waves, glittering ripples, ringed planet, shooting stars, bloom
-- **MAP 2 preview (in development)** — after meeting Stella, "Into the deep" on the ending screen → a portal on the surface → dive. No floor, keep descending: sunlight zone → twilight (40 m) → midnight (120 m) → trench (250 m), the water darkening with each layer, a banner per layer and a depth meter; deep down a song lights the dark like sonar (the preview goes to 300 m). Planned story: the Alliance's origin and the 52Hz stop code
+- **MAP 2 · Under the sea (BETA)** — after meeting Stella, "Into the deep" on the ending screen → a portal on the surface → dive. Keep descending a trench: sunlight zone → twilight (40 m) → midnight (120 m) → trench (250 m) → the Doctor's base at the bottom (318 m). The deeper you go the more the moonlight fades; Hazel's glowing pattern and her song (sonar) light the way. Six research logs, one per layer (wrecked sub, lab, red terminal, whale bones, grad student J's record, the Doctor's memo); the current blocks the way down until each is read. Luke translates the writing, or you get only the drawings; Finn's fate changes the stop-device scene. Sing the stop code at the base door → MAP 2 ending "A Song Heard"
 - **Retro blue UI** — window-style HUD, sonar minimap, chapter cards, PC controls guide, current objective inside the HAZEL window (top center left clear). One-line dialog at the bottom, two-column title, and the call-and-response window at the bottom left in tilt mode on landscape phones
 - **Light models** — 500–650 vertices per whale, 512px textures. Phone support
 
@@ -98,11 +98,12 @@ Color options (`Whale` in `game/js/actors.js`): `solidColor` for a single color,
 | `game/js/actors.js` | Whale models, swim shader, recoloring, portraits |
 | `game/js/audio.js` | Synthesized music, sound effects |
 | `game/js/ui.js` | HUD, dialog box, chapter cards, sonar |
-| `game/js/story.js` | Chapter flow, branching endings, map coordinates |
+| `game/js/story.js` | Chapter flow, branching endings, map coordinates, MAP 2 story · stop code |
 | `game/js/lang/*.js` | Text per language (ko / en / ja) |
 | `game/js/i18n.js` | Language selection |
 | `game/js/name.js` | Nickname, Korean particles (`{N은}`, `{N을}`) |
-| `game/js/dive.js` | MAP 2 preview: portal, underwater view (water ceiling, particles, light shafts, fog) |
+| `game/js/dive.js` | MAP 2: portal, underwater view (water ceiling, particles, light shafts, depth layers, sonar) |
+| `game/js/map2.js` | MAP 2: trench terrain, landmarks per layer (sub · lab · terminal · whale bones · base), research log positions |
 | `game/js/scores.js` | Duet scoreboard window (saves on this device only when the server can't be reached) |
 | `game/js/main.js` | Rendering, bloom, input, Alliance AI, boss fight, routes · ending gallery, epilogue |
 | `netlify/functions/duet-scores.mjs` | Duet scoreboard server (Netlify Functions + Blobs). Keeps the TOP 50; checks length, banned words, score matching the judgment counts, 20 s between posts. Remove entries in the Netlify dashboard → Blobs → `duet-scores` → `top-v2` |

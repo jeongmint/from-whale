@@ -20,6 +20,15 @@ export default {
 		duet: { title: 'DUET · 52HZ ♥ 52HZ', help: 'Sing [E] · Jump [Space]', ready: 'Stella counts you in…', perfect: 'PERFECT', excellent: 'EXCELLENT', good: 'GOOD', miss: 'MISS', combo: '{n} COMBO', rank: 'RANK {r}', sky: '★ The night sky is complete!' },
 		feedback: { open: '✉ Send an idea or a bug', placeholder: 'Write any idea or bug you found', send: 'Send', sending: 'Sending…', thanks: 'Thank you! Got it.', fail: 'Couldn\'t send it right now. Please email it instead:', copy: 'Copy address', copied: 'Copied!', mailApp: 'Open mail app' },
 		letter: { close: 'Close <span class="mono tiny">[E]</span>' },
+		// MAP 2 · Under the sea
+		map2: {
+			label: 'MAP 2 · THE DEEP',
+			obj: [ 'Find the wrecked submersible · Sunlight zone', 'Find the undersea lab · Twilight zone', 'Find the red terminal · Midnight zone', 'Find the whale bones · Midnight zone', 'Find the last record · The trench', 'Find the base door · The bottom' ],
+			objBase: 'Sing the stop code at the base door',
+			current: 'The current holds you back — find this layer\'s record first',
+			stopTitle: 'STOP CODE · 52HZ ♥ 52HZ',
+			logs: 'LOGS {n}/6'
+		},
 		// MAP 2 preview: portal → under the sea
 		dive: {
 			label: 'MAP 2 · THE DEEP',
@@ -28,8 +37,7 @@ export default {
 			card: [ 'MAP 2', 'Into the Deep', 'Preview · in development' ],
 			hint: '[Space] up · [C] down · [E] sing to light the dark — MAP 2 is still in development from here',
 			zones: [ 'Sunlight zone', 'Twilight zone', 'Midnight zone', 'The trench' ],
-			zoneSub: [ 'Where the light shafts reach', 'The light fades — the glow on your back lights the way', 'Pitch dark — sing and the dark lights up like sonar', 'The end of a narrow canyon — something waits below' ],
-			bottom: 'The deeper sea is still being built (MAP 2 in development)'
+			zoneSub: [ 'Where the light shafts reach', 'The light fades — the glow on your back lights the way', 'Pitch dark — sing and the dark lights up like sonar', 'The end of a narrow canyon — something waits below' ]
 		},
 		// Sing the duet again (from the title or ending screen once you've met Stella)
 		duetAgain: { thanks: 'Thanks for singing with me again!', more: '♪ One more song', title: 'Back to title' },
@@ -75,6 +83,7 @@ export default {
 		ending: {
 			search: 'Find the rest of the letters · {n}/{total}',
 			again: 'Play again',
+			deepHint: 'MAP 2 is still being built — the controls and the story will keep getting better',
 			dive: '▼ Into the deep (MAP 2 preview)',
 			allEndings: '★ All 6 endings found — the sea now glitters gold',
 			duet: '♪ Sing the duet again',
@@ -91,6 +100,7 @@ export default {
 			sacrifice: { name: 'Sacrifice', hint: 'If both Luke and Finn take the blow for {N}' },
 			late: { name: 'The Late Whale', hint: 'If you gather every letter in a bottle before meeting Moby Dick' },
 			heart: { name: 'A Whale\'s Stopped Heart', hint: 'If you fall twice in one chapter…' },
+			deep: { name: 'A Song Heard', hint: 'If you sing the stop code at the very bottom of the sea' },
 			stella: 'Another 52Hz'
 		},
 		toast: {
@@ -150,7 +160,8 @@ export default {
 		shaman: 'Alliance Leader · Shaman',
 		stella: 'Stella',
 		orca: 'Alliance orca',
-		kelp: 'Written on the kelp'
+		kelp: 'Written on the kelp',
+		ai: 'The Doctor\'s AI',
 	},
 
 	mobyLetter: {
@@ -381,6 +392,74 @@ export default {
 			bannerTears: [ 'NEW ABILITY', 'Finn\'s Tears', 'Sing while stars spin over your head and the rain snaps you out of it' ]
 		},
 
+		// MAP 2 · Under the sea. The third slot of a line is its condition (see map2 in story.js)
+		map2: {
+			intro: [
+				[ 'narrator', 'Down past where the light could reach, the sea was far deeper than it looked.' ],
+				[ 'luke', 'Down there... things humans made have sunk. Metal, glass, writing.', 'luke' ],
+				[ 'luke', 'Writing\'s my department. Let\'s go down, {N}.', 'luke' ],
+				[ 'finn', 'I think... I\'ve been here before.\nI don\'t remember, but the water tastes familiar.', 'finn' ],
+				[ 'hazel', '( sings a short 52Hz note and tilts downward )', 'none' ]
+			],
+			logs: [
+				{ head: 'Research sub ALLY-3 · Logbook', body: 'March 2041. Subjects 7 through 12 delivered to the trench base.\nThe Doctor calls them "the Alliance."\nAn army to protect the whales, he says. I wonder.', short: '… ALLY-3 … 2041 … 7 → 12 …\n( six drawings of orcas and an arrow pointing down )', from: '— from the wrecked sub' },
+				{ head: 'Undersea Lab 1 · Research notes', body: 'Alliance project, year three. AI chips implanted in the orcas\' heads.\nThe Doctor says that if war comes, humans will need an army in the sea.\nI just wish these kids could live as whales.', short: '… AI … chip …\n( a small square over an orca\'s head; a human and an orca side by side )', from: '— Grad student J' },
+				{ head: 'Alliance core commands · Terminal screen', body: '1. Whales are friendly to humans.\n2. Whales do not kill humans.\n3. Whales that are not friendly to humans are killed.', short: '1. whale ♡ human\n2. whale ✕ human\n3. whale ✕ whale', from: '— a terminal blinking red' },
+				{ head: 'Alliance patrol record · Purification', body: 'Targets: 41 individuals not friendly to humans. Purified.\nWitness: 1 white sperm whale. Escaped, shielded by its mother.\nEnd of record.', short: '( forty-one whale drawings, crossed out.\nAt the very end, one white whale, not crossed out )', from: '— a recorder buried among whale bones' },
+				{ head: 'Grad student J · Last record', body: 'The Doctor won\'t stop. So I built a stop device.\nThe signal that stops the Alliance is a rhythm centered on 52Hz. No whale makes that sound, so it can never trigger by accident.\nI hung the device on the gentlest one, Crybaby No. 7. May that child get away.', short: '( a little crying orca; a round device on its neck.\nNext to it, a big number 52 )', from: '— Grad student J' },
+				{ head: 'Base door · The Doctor\'s memo', body: '52Hz individuals are designated top-priority purification targets.\nStated reason: uninterpretable signal.\nActual reason: not recorded.', short: '( the number 52 above the door, with a large ✕ )', from: '— The Doctor' }
+			],
+			react: [
+				[
+					[ 'narrator', 'The Alliance was something humans made.' ],
+					[ 'luke', '"An army to protect the whales"... Nothing like the Alliance we know.', 'luke' ],
+					[ 'finn', 'Subject... No. 7...', 'finn' ]
+				],
+				[
+					[ 'luke', 'This J was on the whales\' side, I think. Let\'s read it all.', 'luke' ],
+					[ 'narrator', 'The writing was unreadable, but the drawings were clear.', 'lukeGone' ]
+				],
+				[
+					[ 'narrator', 'The third command blinked red.' ],
+					[ 'luke', 'Built to protect humans... and it ended up with whales killing whales.', 'luke' ],
+					[ 'finn', '...I\'ve heard this. It\'s the sound that kept ringing in my head.', 'finn' ]
+				],
+				[
+					[ 'narrator', 'Among the whale bones, an old song still drifted.' ],
+					[ 'moby', '...My mother pushed me away and said, "Run."' ],
+					[ 'narrator', 'On the night the stars fell, this is what Moby Dick saw.' ]
+				],
+				[
+					[ 'finn', '......Crybaby No. 7.', 'finn' ],
+					[ 'finn', 'This... it\'s on my neck. I thought it was a compass.', 'finn' ],
+					[ 'finn', 'So that\'s why. That\'s how someone from the Alliance could follow you.', 'finn' ],
+					[ 'narrator', '{N} remembered the broken compass Finn left behind.', 'finnGone' ],
+					[ 'narrator', 'It was never a compass. It was the stop device Finn had guarded to the end.', 'finnGone' ]
+				],
+				[
+					[ 'luke', '"Uninterpretable"... No. He understood it too well, so he tried to erase it.', 'luke' ],
+					[ 'hazel', '( sings at 52Hz. From behind the door, something answers )' ]
+				]
+			],
+			base: [
+				[ 'ai', 'Approaching individual detected. Frequency 52Hz. Purification priority one.' ],
+				[ 'ai', 'Warning. This door will not open. Warning. Warning.' ],
+				[ 'stella', '52Hz! I can hear everything from up here!\nI\'ll sing with you. You remember our rhythm, right?' ],
+				[ 'finn', 'My device will catch your song. This time... I won\'t cry.', 'finn' ],
+				[ 'narrator', 'The broken compass began to tremble faintly.', 'finnGone' ],
+				[ 'luke', 'Thinking comes later. Sing, {N}!', 'luke' ]
+			],
+			stop: [
+				[ 'ai', 'Stop code confirmed. ...All Alliance units, commands released.' ],
+				[ 'narrator', 'All across the sea, the Alliance\'s red eyes went dark, one by one.' ],
+				[ 'narrator', 'Behind the base windows, a small light came on. Humans.' ],
+				[ 'narrator', 'A child holding a hydrophone pressed a hand to the glass and said something.' ],
+				[ 'luke', '...Want me to translate? "I can hear the whale\'s song."', 'luke' ],
+				[ 'narrator', '{N} couldn\'t hear it, but knew all the same.', 'lukeGone' ],
+				[ 'narrator', 'For the first time, someone who was not a whale heard 52Hz.' ]
+			],
+			card: [ 'MAP 2 ENDING', 'A Song Heard', 'For the first time, someone else heard' ]
+		},
 		epilogue: {
 			card: [ 'EPILOGUE', 'Looking for Stella' ],
 			start: {

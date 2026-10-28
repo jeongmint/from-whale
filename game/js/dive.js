@@ -2,9 +2,9 @@
 // 바닷속에서는 하늘과 수면 대신, 위에서 빛이 비치는 물 천장 · 떠다니는 입자 · 빛줄기 · 짙은 안개를 보여 준다
 import * as THREE from 'three';
 
-// 헤이즐이 오갈 수 있는 높이. 맵 2는 바닥 없이 계속 내려가는 구조 (지금 미리보기는 -300m까지)
+// 헤이즐이 오갈 수 있는 높이. 맵 2는 계속 내려가는 구조, 맨 밑은 박사의 기지
 export const DIVE_TOP = - 3;
-export const DIVE_BOTTOM = - 300;
+export const DIVE_BOTTOM = - 322; // 맵 2 기지 문 앞 (map2.js BASE_DEPTH + 4)
 
 // 깊이 층: [ 시작 깊이(m), 안개 · 배경색, 안개 밀도, 입자 색 ]. 내려갈수록 어둡고 짙어진다
 export const ZONES = [
