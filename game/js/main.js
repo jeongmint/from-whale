@@ -10,10 +10,11 @@ import { loadModels, Whale, followSlot, idleCircle, steerTo, updateSwimTime, mak
 import { UI } from './ui.js';
 import { AudioEngine } from './audio.js';
 import { cleanName, loadName, saveName } from './name.js';
-import { CHAPTERS, PLACES, BOTTLES, LETTER_TOTAL, ORCA_PACKS, KELP_GROVES, scramble, epilogue, lukeLateFall, duetAgain } from './story.js';
+import { CHAPTERS, PLACES, BOTTLES, LETTER_TOTAL, ORCA_PACKS, KELP_GROVES, scramble, epilogue, lukeLateFall, duetAgain, map2 } from './story.js';
 import { lang, t, setLang, applyStatic } from './i18n.js';
 import { openScores } from './scores.js';
 import { Dive, DIVE_TOP, DIVE_BOTTOM, ZONES, zoneAt } from './dive.js';
+import { buildTrench, trenchCenter, trenchRadius } from './map2.js';
 
 const BASE = window.FW_ASSET_BASE ?? '../';
 const query = new URLSearchParams( location.search );
@@ -96,11 +97,16 @@ const camera = new THREE.PerspectiveCamera( 55, innerWidth / innerHeight, 0.5, 4
 camera.position.set( 0, 10, 30 );
 
 const moonDir = new THREE.Vector3( 0.42, 0.17, - 0.89 ).normalize();
-scene.add( new THREE.HemisphereLight( 0x5f8dff, 0x041030, 0.75 ) );
+const hemiLight = new THREE.HemisphereLight( 0x5f8dff, 0x041030, 0.75 );
+scene.add( hemiLight );
 const moonLight = new THREE.DirectionalLight( 0xc4dcff, 1.15 );
 moonLight.position.copy( moonDir ).multiplyScalar( 100 );
 scene.add( moonLight );
-scene.add( new THREE.AmbientLight( 0x26407a, 0.35 ) );
+const ambientLight = new THREE.AmbientLight( 0x26407a, 0.35 );
+scene.add( ambientLight );
+// 바닷속: 깊어질수록 달빛이 사라지고, 헤이즐 등의 빛 문양이 둘레를 비춘다
+const hazelLamp = new THREE.PointLight( 0x7fe9ff, 0, 40, 1.6 );
+scene.add( hazelLamp );
 
 const FinalShader = {
 	uniforms: {
@@ -746,6 +752,38 @@ Object.assign( G, {
 
 	},
 
+	// --- MAP 2 ---
+
+	// 이 깊이(m)보다 아래는 물살이 막는다 (null = 기지까지 열림)
+	setDiveFloor( depth ) {
+
+		G.diveFloor = depth === null ? DIVE_BOTTOM : - depth;
+		G.diveFloorWarned = false;
+
+	},
+
+	nearLog( log ) {
+
+		const h = G.actors.hazel;
+		return Math.hypot( h.pos.x - log.pos.x, h.pos.z - log.pos.z ) < 13 && Math.abs( G.diveY - log.pos.y ) < 9;
+
+	},
+
+	// 정지 코드가 통하면 기지 창에 불이 켜진다
+	openBase() {
+
+		const door = G.map2.logs[ G.map2.logs.length - 1 ];
+		G.dive.pulse( door.pos );
+		G.world.splash( door.pos.x, door.pos.y, door.pos.z, { count: 120, power: 12, color: 0xffd36b } );
+		G.audio.play( 'join' );
+		G.map2.group.traverse( ( o ) => {
+
+			if ( o.material?.emissive && o.material.emissive.getHex() === 0xff3355 ) o.material.emissive.set( 0x7fe9ff );
+
+		} );
+
+	},
+
 	// 듀엣이 끝난 뒤 점수판 (노래 이름을 붙여 TOP 10에 남긴다)
 	scores() {
 
@@ -753,9 +791,9 @@ Object.assign( G, {
 
 	},
 
-	duet( chart ) {
+	duet( chart, title ) {
 
-		return duet( chart );
+		return duet( chart, title );
 
 	},
 
@@ -781,6 +819,7 @@ Object.assign( G, {
 	async showEnding( forced = null ) {
 
 		G.ended = true;
+		if ( forced === 'deep' ) return showMap2Ending();
 		if ( ! forced ) {
 
 			G.save.chapter = 0;
@@ -822,6 +861,28 @@ Object.assign( G, {
 
 } );
 
+// MAP 2 엔딩 화면
+async function showMap2Ending() {
+
+	const minutes = Math.floor( G.stats.time / 60 ), seconds = Math.floor( G.stats.time % 60 );
+	saveEnding( 'deep' );
+	$( 'ending-head' ).textContent = `MAP 2 ENDING · ${t( 'endings.deep.name' )}`;
+	renderEndings( $( 'ending-list' ), 'deep' );
+	for ( const id of [ 'btn-duet-end', 'btn-dive', 'btn-search' ] ) $( id ).classList.add( 'hidden' );
+	$( 'ending-quote' ).innerHTML = t( 'ending.quote' );
+	$( 'ending-stats' ).innerHTML = [
+		`PLAY TIME ${minutes}:${String( seconds ).padStart( 2, '0' )}`,
+		`LOGS ${G.map2.logs.filter( ( l ) => l.read ).length}/${G.map2.logs.length}`,
+		G.flags.duetRank ? `STOP CODE ${G.flags.duetRank}` : '',
+		t( 'ending.deepHint' )
+	].filter( Boolean ).join( '<br>' );
+	$( 'btn-again' ).textContent = t( 'ending.again' );
+	await G.ui.fade( 0.6, 2 );
+	G.ui.show( 'hud', false );
+	G.ui.show( 'ending' );
+
+}
+
 function partyList() {
 
 	return [
@@ -844,6 +905,8 @@ function makeOrcaAgent( whale, pack, state = 'patrol' ) {
 }
 
 function updateOrcas( dt ) {
+
+	if ( G.diving ) return; // MAP 2엔 연합군이 없다 (맵 1의 연합군은 숨겨 둔다)
 
 	const h = G.actors.hazel;
 	const frozen = G.cutsceneOn || G.ui.dialogOpen || G.diving; // 바닷속(MAP 2 미리보기)에선 수면의 연합군이 쫓지 않는다
@@ -1358,6 +1421,7 @@ function renderEndings( el, current ) {
 		? `<li class="seen${k === current ? ' now' : ''}">◆ ${t( `endings.${k}.name` )}</li>`
 		: `<li>◇ ??? <small>${G.ui.dev( t( `endings.${k}.hint` ) )}</small></li>` );
 	if ( seen.includes( 'stella' ) ) items.push( `<li class="seen star">★ ${t( 'endings.stella' )}</li>` );
+	if ( seen.includes( 'deep' ) ) items.push( `<li class="seen star${current === 'deep' ? ' now' : ''}">◈ MAP 2 · ${t( 'endings.deep.name' )}</li>` );
 	el.innerHTML = `<li class="head">ENDINGS ${count}/${ENDING_ORDER.length}</li>${items.join( '' )}`;
 
 }
@@ -1535,7 +1599,7 @@ const DUET_PERFECT = 0.025, DUET_EXCELLENT = 0.06, DUET_GOOD = 0.15;
 const DUET_POINTS = { perfect: 10, excellent: 8, good: 5 };
 const DUET_SPEED = 150; // 노트가 흘러오는 속도 (px/초)
 
-function duet( chart ) {
+function duet( chart, title = null ) {
 
 	return new Promise( ( resolve ) => {
 
@@ -1566,7 +1630,7 @@ function duet( chart ) {
 		const counts = { perfect: 0, excellent: 0, good: 0 };
 		const flashT = {};
 
-		$( 'duet-title' ).textContent = t( 'duet.title' );
+		$( 'duet-title' ).textContent = title ?? t( 'duet.title' );
 		$( 'duet-help' ).textContent = G.ui.dev( t( 'duet.help' ) );
 		judgeEl.textContent = t( 'duet.ready' );
 		judgeEl.className = '';
@@ -2956,13 +3020,6 @@ function updateDepth() {
 
 	}
 
-	if ( G.diveY <= DIVE_BOTTOM + 0.5 && ! G.flags.diveBottom ) {
-
-		G.flags.diveBottom = true;
-		G.ui.toast( t( 'dive.bottom' ) );
-
-	}
-
 }
 
 async function enterDive() {
@@ -2976,14 +3033,18 @@ async function enterDive() {
 	G.diveY = - 6;
 	G.diveVy = 0;
 	G.dive.enter();
+	if ( ! G.map2 ) G.map2 = { ...buildTrench( scene, { x: h.pos.x, z: h.pos.z } ), entry: { x: h.pos.x, z: h.pos.z } };
+	// MAP 2는 다른 맵: 맵 1의 것들(등대, 미역, 유리병, 연합군, 모비 딕, 스텔라, 빛 조각...)은 모두 치운다
+	const keep = new Set( [ h.root, G.actors.luke.root, G.actors.finn.root, G.dive.group, G.map2.group, hemiLight, moonLight, ambientLight, hazelLamp, stunStars ] );
+	for ( const o of scene.children ) if ( ! keep.has( o ) ) o.visible = false;
 	document.body.classList.add( 'diving' );
 	G.setMusic( { tension: 0, drums: 0, bass: 0, melody: 0.6, piano: 1, sax: 0 } );
 	camera.position.set( h.pos.x - Math.sin( G.camYaw ) * 20, G.diveY + 4.5, h.pos.z - Math.cos( G.camYaw ) * 20 );
 	await G.ui.fade( 0, 1.2 );
 	await G.card( ...t( 'dive.card' ) );
 	G.cutscene( false );
-	G.objective( t( 'dive.label' ), t( 'dive.objSwim' ) );
 	G.ui.toast( t( 'dive.hint' ) );
+	map2( G );
 
 }
 
@@ -3126,8 +3187,31 @@ function updatePlayer( dt ) {
 
 		const v = control ? ( keys.has( 'Space' ) || touch.up ? 1 : 0 ) - ( keys.has( 'KeyC' ) || touch.down ? 1 : 0 ) : 0;
 		G.diveVy += ( v * ( boost ? 18 : 9 ) - G.diveVy ) * Math.min( 1, dt * 3 ); // 가속 중엔 위아래도 빠르게
-		G.diveY = THREE.MathUtils.clamp( G.diveY + G.diveVy * dt, DIVE_BOTTOM, DIVE_TOP );
-		if ( G.diveY === DIVE_BOTTOM || G.diveY === DIVE_TOP ) G.diveVy *= 0.5;
+		const floor = G.diveFloor ?? DIVE_BOTTOM;
+		G.diveY = THREE.MathUtils.clamp( G.diveY + G.diveVy * dt, floor, DIVE_TOP );
+		if ( G.diveY === floor || G.diveY === DIVE_TOP ) G.diveVy *= 0.5;
+		// 이 층의 기록을 아직 못 읽었으면 물살이 막는다
+		if ( G.map2 && G.diveY <= floor + 0.3 && v < 0 && floor > DIVE_BOTTOM && ! G.diveFloorWarned ) {
+
+			G.diveFloorWarned = true;
+			G.ui.toast( t( 'map2.current' ) );
+
+		}
+
+		// 협곡 벽 밖으로는 못 나간다
+		if ( G.map2 ) {
+
+			const c = trenchCenter( G.map2.entry, - G.diveY );
+			const R = trenchRadius( - G.diveY ) - 5;
+			const dx = h.pos.x - c.x, dz = h.pos.z - c.y, d = Math.hypot( dx, dz );
+			if ( d > R ) {
+
+				h.pos.x = c.x + dx / d * R;
+				h.pos.z = c.y + dz / d * R;
+
+			}
+
+		}
 		h.depth = h.surfaceY - G.diveY;
 
 	}
@@ -3248,6 +3332,8 @@ function updateCompanions( dt ) {
 
 function updateBottlesAndKelp( dt ) {
 
+	if ( G.diving ) return G.ui.prompt( null ); // MAP 2엔 맵 1의 유리병 · 미역 · 빛 조각이 없다
+
 	for ( const b of G.bottles ) {
 
 		if ( b.collected ) continue;
@@ -3344,7 +3430,19 @@ function updateCamera( dt ) {
 
 	const k = 1 - Math.exp( - dt * ( G.camTarget ? 1.6 : 3.2 ) );
 	camera.position.lerp( desired, k );
-	if ( G.diving ) camera.position.y = THREE.MathUtils.clamp( camera.position.y, DIVE_BOTTOM - 4, - 1.2 ); // 물 밖으로 나가지 않게
+	if ( G.diving ) {
+
+		camera.position.y = THREE.MathUtils.clamp( camera.position.y, DIVE_BOTTOM - 4, - 1.2 ); // 물 밖으로 나가지 않게
+		if ( G.map2 ) {
+
+			const c = trenchCenter( G.map2.entry, - camera.position.y );
+			const R = trenchRadius( - camera.position.y ) - 1;
+			const dx = camera.position.x - c.x, dz = camera.position.z - c.y, d = Math.hypot( dx, dz );
+			if ( d > R ) camera.position.set( c.x + dx / d * R, camera.position.y, c.y + dz / d * R );
+
+		}
+
+	}
 	else {
 
 		const floor = sampleOcean( camera.position.x, camera.position.z ) + 2.8;
@@ -3392,6 +3490,17 @@ function updateHud() {
 	if ( G.mapTimer % 2 ) return;
 	const h = G.actors.hazel;
 	const points = [];
+	// MAP 2: 소나엔 연구 일지와 동료만 (맵 1의 바위 · 미역 · 등대는 없다)
+	if ( G.diving && G.map2 ) {
+
+		const next = G.map2.logs.find( ( l ) => ! l.read );
+		for ( const l of G.map2.logs ) points.push( l === next ? { x: l.pos.x, z: l.pos.z, color: '#7fe9ff', size: 4, shape: 'diamond' } : { x: l.pos.x, z: l.pos.z, color: l.read ? 'rgba(185,168,255,0.6)' : 'rgba(127,233,255,0.35)', size: 2.5 } );
+		for ( const key of [ 'luke', 'finn' ] ) if ( G.party[ key ] === 'on' ) points.push( { x: G.actors[ key ].pos.x, z: G.actors[ key ].pos.z, color: '#eaf6ff', size: 3 } );
+		G.ui.drawMinimap( { px: h.pos.x, pz: h.pos.z, yaw: G.camYaw, heading: h.yaw - G.camYaw, range: 140, time: G.time, rocks: [], points, objective: t, signal: 1 } );
+		return;
+
+	}
+
 	for ( const b of G.bottles ) {
 
 		if ( ! b.collected && ( b.reveal > 0 || G.distTo( b ) < 110 ) ) points.push( { x: b.x, z: b.z, color: '#7fe9ff', size: 3 } );
@@ -3457,6 +3566,21 @@ function update( dt ) {
 	G.world.update( dt, G.time );
 	G.dive.update( dt, G.time, G.diving ? - G.diveY : 0 );
 	if ( G.diving ) updateDepth();
+	{
+
+		// 깊을수록 달빛이 사라진다 (수면 위에선 원래대로)
+		const depth = G.diving ? - G.diveY : 0;
+		const k = Math.max( 0.04, Math.exp( - depth / 35 ) );
+		hemiLight.intensity = 0.75 * k;
+		ambientLight.intensity = 0.35 * k;
+		moonLight.intensity = 1.15 * k;
+		const flash = G.dive.flash ?? 0;
+		hazelLamp.intensity = G.diving ? ( 1 - k ) * 2.4 + flash * 5 : 0;
+		hazelLamp.distance = 40 + flash * 70;
+		hazelLamp.position.copy( G.actors.hazel.root.position ).y += 3;
+		if ( G.map2 ) G.map2.update( G.time );
+
+	}
 
 	updatePlayer( dt );
 	updateCompass( dt );

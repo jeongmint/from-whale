@@ -11,7 +11,8 @@ export const SPEAKERS = {
 	shaman: { portrait: 'shaman', bar: 'linear-gradient(90deg,#5a1030,#ff6b8b)' },
 	stella: { portrait: 'stella', bar: 'linear-gradient(90deg,#a87a10,#ffd36b)' },
 	orca: { portrait: 'orca', bar: 'linear-gradient(90deg,#5a1030,#ff6b8b)' },
-	kelp: { portrait: null, bar: 'linear-gradient(90deg,#0c6b5a,#6dffe0)' }
+	kelp: { portrait: null, bar: 'linear-gradient(90deg,#0c6b5a,#6dffe0)' },
+	ai: { portrait: null, bar: 'linear-gradient(90deg,#5a1020,#ff3355)' } // MAP 2: 박사의 AI
 };
 
 // 지도 (x, z). 북쪽 = -z
@@ -56,6 +57,14 @@ export const DUET_CHART = [
 	[ 32, 'S', 72 ], [ 33, 'S', 75 ], [ 34, 'S', 77 ], [ 35, 'S', 75 ], [ 36, 'S', 76 ], [ 36 + T3, 'S', 74 ], [ 37, 'S', 71 ], [ 38, 'J' ],
 	// 11~12마디 Am → E7
 	[ 40, 'S', 69 ], [ 41, 'S', 72 ], [ 42, 'J' ], [ 44, 'S', 76 ], [ 45, 'S', 79 ], [ 46, 'S', 81 ], [ 47, 'J' ]
+];
+
+// MAP 2 정지 코드: 헤이즐과 스텔라의 52Hz 리듬 (듀엣보다 짧은 4마디). 52 → 5박 · 2박 묶음이 되풀이된다
+export const STOP_CHART = [
+	[ 0, 'S', 69 ], [ 1, 'S', 69 ], [ 2, 'S', 72 ], [ 3, 'S', 74 ], [ 4, 'S', 76 ], [ 5, 'J' ], [ 6, 'J' ],
+	[ 8, 'S', 76 ], [ 9, 'S', 74 ], [ 10, 'S', 72 ], [ 11, 'S', 74 ], [ 12, 'S', 76 ], [ 13, 'J' ], [ 14, 'J' ],
+	[ 16, 'S', 81 ], [ 17, 'S', 79 ], [ 18, 'S', 76 ], [ 19, 'S', 74 ], [ 20, 'S', 72 ], [ 21, 'J' ], [ 22, 'J' ],
+	[ 24, 'S', 69 ], [ 25, 'S', 72 ], [ 26, 'S', 76 ], [ 27, 'S', 81 ], [ 28, 'S', 84 ], [ 29, 'J' ], [ 30, 'J' ]
 ];
 
 // 작은 미역 숲: 근처에서 노래하면 하트가 가득 찬다
@@ -444,6 +453,53 @@ export async function epilogue( G ) {
 	await meetStella( G );
 	G.cutscene( false );
 	await G.showEnding();
+
+}
+
+// ---------------------------------------------------------------
+// MAP 2 · 바닷속: 층마다 연구 일지를 찾으며 내려가 연합군의 진실을 알고, 기지 문 앞에서 정지 코드를 부른다
+// 대사의 세 번째 칸은 조건: 'luke' · 'lukeGone' · 'finn' · 'finnGone' · 'none'(둘 다 없음). 없으면 언제나
+// ---------------------------------------------------------------
+export async function map2( G ) {
+
+	const T = () => lang().story.map2;
+	const U = () => lang().ui.map2;
+	const on = {
+		luke: G.party.luke === 'on', lukeGone: G.party.luke !== 'on',
+		finn: G.party.finn === 'on', finnGone: G.party.finn !== 'on',
+		none: G.party.luke !== 'on' && G.party.finn !== 'on'
+	};
+	const pick = ( arr ) => lines( ( arr ?? [] ).filter( ( [ , , c ] ) => ! c || on[ c ] ).map( ( [ who, text ] ) => [ who, text ] ) );
+
+	await G.say( pick( T().intro ) );
+	for ( const log of G.map2.logs ) {
+
+		// 이 층의 기록을 읽기 전엔 물살이 더 아래를 막는다
+		G.setDiveFloor( log.depth + 14 );
+		G.objective( U().label, U().obj[ log.index ], log.pos );
+		await G.until( () => G.nearLog( log ) && ! G.ui.dialogOpen && ! G.ui.overlay );
+		log.read = true;
+		G.cutscene( true );
+		const L = T().logs[ log.index ];
+		// 인간의 글자는 루크가 읽어 준다. 루크가 없으면 그림과 숫자만
+		await G.letter( { head: L.head, body: on.luke ? L.body : L.short, from: L.from } );
+		await G.say( pick( T().react[ log.index ] ) );
+		G.ui.toast( U().logs.replace( '{n}', log.index + 1 ) );
+		G.cutscene( false );
+
+	}
+
+	// 기지 문 앞: 박사의 AI, 그리고 정지 코드
+	G.setDiveFloor( null );
+	G.cutscene( true );
+	await G.say( pick( T().base ) );
+	G.objective( U().label, U().objBase );
+	await G.duet( STOP_CHART, U().stopTitle );
+	G.openBase();
+	await G.say( pick( T().stop ) );
+	await card( G, T().card );
+	G.cutscene( false );
+	await G.showEnding( 'deep' );
 
 }
 
