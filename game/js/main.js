@@ -906,6 +906,8 @@ function makeOrcaAgent( whale, pack, state = 'patrol' ) {
 
 function updateOrcas( dt ) {
 
+	if ( G.diving ) return; // MAP 2엔 연합군이 없다 (맵 1의 연합군은 숨겨 둔다)
+
 	const h = G.actors.hazel;
 	const frozen = G.cutsceneOn || G.ui.dialogOpen || G.diving; // 바닷속(MAP 2 미리보기)에선 수면의 연합군이 쫓지 않는다
 	const showRings = G.party.finn === 'on';
@@ -3032,6 +3034,9 @@ async function enterDive() {
 	G.diveVy = 0;
 	G.dive.enter();
 	if ( ! G.map2 ) G.map2 = { ...buildTrench( scene, { x: h.pos.x, z: h.pos.z } ), entry: { x: h.pos.x, z: h.pos.z } };
+	// MAP 2는 다른 맵: 맵 1의 것들(등대, 미역, 유리병, 연합군, 모비 딕, 스텔라, 빛 조각...)은 모두 치운다
+	const keep = new Set( [ h.root, G.actors.luke.root, G.actors.finn.root, G.dive.group, G.map2.group, hemiLight, moonLight, ambientLight, hazelLamp, stunStars ] );
+	for ( const o of scene.children ) if ( ! keep.has( o ) ) o.visible = false;
 	document.body.classList.add( 'diving' );
 	G.setMusic( { tension: 0, drums: 0, bass: 0, melody: 0.6, piano: 1, sax: 0 } );
 	camera.position.set( h.pos.x - Math.sin( G.camYaw ) * 20, G.diveY + 4.5, h.pos.z - Math.cos( G.camYaw ) * 20 );
@@ -3327,6 +3332,8 @@ function updateCompanions( dt ) {
 
 function updateBottlesAndKelp( dt ) {
 
+	if ( G.diving ) return G.ui.prompt( null ); // MAP 2엔 맵 1의 유리병 · 미역 · 빛 조각이 없다
+
 	for ( const b of G.bottles ) {
 
 		if ( b.collected ) continue;
@@ -3483,6 +3490,17 @@ function updateHud() {
 	if ( G.mapTimer % 2 ) return;
 	const h = G.actors.hazel;
 	const points = [];
+	// MAP 2: 소나엔 연구 일지와 동료만 (맵 1의 바위 · 미역 · 등대는 없다)
+	if ( G.diving && G.map2 ) {
+
+		const next = G.map2.logs.find( ( l ) => ! l.read );
+		for ( const l of G.map2.logs ) points.push( l === next ? { x: l.pos.x, z: l.pos.z, color: '#7fe9ff', size: 4, shape: 'diamond' } : { x: l.pos.x, z: l.pos.z, color: l.read ? 'rgba(185,168,255,0.6)' : 'rgba(127,233,255,0.35)', size: 2.5 } );
+		for ( const key of [ 'luke', 'finn' ] ) if ( G.party[ key ] === 'on' ) points.push( { x: G.actors[ key ].pos.x, z: G.actors[ key ].pos.z, color: '#eaf6ff', size: 3 } );
+		G.ui.drawMinimap( { px: h.pos.x, pz: h.pos.z, yaw: G.camYaw, heading: h.yaw - G.camYaw, range: 140, time: G.time, rocks: [], points, objective: t, signal: 1 } );
+		return;
+
+	}
+
 	for ( const b of G.bottles ) {
 
 		if ( ! b.collected && ( b.reveal > 0 || G.distTo( b ) < 110 ) ) points.push( { x: b.x, z: b.z, color: '#7fe9ff', size: 3 } );
