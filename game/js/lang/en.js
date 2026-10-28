@@ -26,7 +26,10 @@ export default {
 			objPortal: 'Swim into the glowing whirlpool',
 			objSwim: 'Try swimming under the sea',
 			card: [ 'MAP 2', 'Into the Deep', 'Preview · in development' ],
-			hint: '[Space] up · [C] down — MAP 2 is still in development from here'
+			hint: '[Space] up · [C] down · [E] sing to light the dark — MAP 2 is still in development from here',
+			zones: [ 'Sunlight zone', 'Twilight zone', 'Midnight zone', 'The trench' ],
+			zoneSub: [ 'Where the light shafts reach', 'The light fades — the glow on your back lights the way', 'Pitch dark — sing and the dark lights up like sonar', 'The end of a narrow canyon — something waits below' ],
+			bottom: 'The deeper sea is still being built (MAP 2 in development)'
 		},
 		// Sing the duet again (from the title or ending screen once you've met Stella)
 		duetAgain: { thanks: 'Thanks for singing with me again!', more: '♪ One more song', title: 'Back to title' },

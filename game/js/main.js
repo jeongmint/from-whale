@@ -13,7 +13,7 @@ import { cleanName, loadName, saveName } from './name.js';
 import { CHAPTERS, PLACES, BOTTLES, LETTER_TOTAL, ORCA_PACKS, KELP_GROVES, scramble, epilogue, lukeLateFall, duetAgain } from './story.js';
 import { lang, t, setLang, applyStatic } from './i18n.js';
 import { openScores } from './scores.js';
-import { Dive, DIVE_TOP, DIVE_BOTTOM } from './dive.js';
+import { Dive, DIVE_TOP, DIVE_BOTTOM, ZONES, zoneAt } from './dive.js';
 
 const BASE = window.FW_ASSET_BASE ?? '../';
 const query = new URLSearchParams( location.search );
@@ -2318,7 +2318,8 @@ function sing() {
 	const h = G.actors.hazel;
 	G.singCooldown = 1.3;
 	audio.play( 'sing' );
-	for ( let i = 0; i < 3; i ++ ) G.world.ring( h.pos.x, h.pos.z, { color: 0x7fe9ff, to: 58, life: 1.6, delay: i * 0.28 } );
+	if ( G.diving ) G.dive.pulse( h.root.position ); // 바닷속: 노래가 소나처럼 둘레를 밝힌다
+	else for ( let i = 0; i < 3; i ++ ) G.world.ring( h.pos.x, h.pos.z, { color: 0x7fe9ff, to: 58, life: 1.6, delay: i * 0.28 } );
 	G.emit( 'sing' );
 
 	let revealed = 0;
@@ -2515,6 +2516,7 @@ async function boot() {
 		...KELP_GROVES.map( ( g ) => ( { ...g, r: 30 } ) )
 	];
 	G.world = new World( { scene, fog, places: { lighthouse: PLACES.lighthouse }, avoid, models } );
+	G.dive.world = G.world; // 잠수할 때 맵 1의 얕은 해저를 치운다
 
 	const A = G.actors;
 	A.hazel = new Whale( models.hazel, { name: 'hazel', length: 8, ride: 0.38, freq: 3.8, amp: 0.085, emissive: 1.4 } );
@@ -2941,6 +2943,28 @@ async function openDivePortal() {
 
 }
 
+// 깊이계 · 층이 바뀌면 배너 · 바닥(미리보기의 끝)에 닿으면 안내
+function updateDepth() {
+
+	const d = - G.diveY;
+	const zi = zoneAt( d ).i;
+	$( 'depth-meter' ).textContent = `▼ ${Math.round( d )}m · ${t( 'dive.zones' )[ zi ]}`;
+	if ( zi !== G.diveZone ) {
+
+		if ( G.diveZone !== undefined ) G.ui.banner( `▼ ${ZONES[ zi ].depth}m`, t( 'dive.zones' )[ zi ], t( 'dive.zoneSub' )[ zi ], 'join', 3.5 );
+		G.diveZone = zi;
+
+	}
+
+	if ( G.diveY <= DIVE_BOTTOM + 0.5 && ! G.flags.diveBottom ) {
+
+		G.flags.diveBottom = true;
+		G.ui.toast( t( 'dive.bottom' ) );
+
+	}
+
+}
+
 async function enterDive() {
 
 	const h = G.actors.hazel;
@@ -3101,7 +3125,7 @@ function updatePlayer( dt ) {
 	if ( G.diving ) {
 
 		const v = control ? ( keys.has( 'Space' ) || touch.up ? 1 : 0 ) - ( keys.has( 'KeyC' ) || touch.down ? 1 : 0 ) : 0;
-		G.diveVy += ( v * 9 - G.diveVy ) * Math.min( 1, dt * 3 );
+		G.diveVy += ( v * ( boost ? 18 : 9 ) - G.diveVy ) * Math.min( 1, dt * 3 ); // 가속 중엔 위아래도 빠르게
 		G.diveY = THREE.MathUtils.clamp( G.diveY + G.diveVy * dt, DIVE_BOTTOM, DIVE_TOP );
 		if ( G.diveY === DIVE_BOTTOM || G.diveY === DIVE_TOP ) G.diveVy *= 0.5;
 		h.depth = h.surfaceY - G.diveY;
@@ -3320,7 +3344,7 @@ function updateCamera( dt ) {
 
 	const k = 1 - Math.exp( - dt * ( G.camTarget ? 1.6 : 3.2 ) );
 	camera.position.lerp( desired, k );
-	if ( G.diving ) camera.position.y = THREE.MathUtils.clamp( camera.position.y, - 25, - 1.2 ); // 물 밖으로 나가지 않게
+	if ( G.diving ) camera.position.y = THREE.MathUtils.clamp( camera.position.y, DIVE_BOTTOM - 4, - 1.2 ); // 물 밖으로 나가지 않게
 	else {
 
 		const floor = sampleOcean( camera.position.x, camera.position.z ) + 2.8;
@@ -3431,7 +3455,8 @@ function update( dt ) {
 	G.ocean.update( G.time, G.actors.hazel.pos );
 	G.sky.update( dt, camera.position );
 	G.world.update( dt, G.time );
-	G.dive.update( dt, G.time );
+	G.dive.update( dt, G.time, G.diving ? - G.diveY : 0 );
+	if ( G.diving ) updateDepth();
 
 	updatePlayer( dt );
 	updateCompass( dt );

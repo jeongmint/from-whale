@@ -774,3 +774,11 @@ body.tilt #stick { display: none; }
 
 /* MAP 2 미리보기 (바닷속): 아래로 버튼은 잠수할 때만 */
 body:not(.diving) #touch-buttons button[data-act="down"] { display: none; }
+/* 깊이계 (바닷속에서만) */
+#depth-meter {
+	position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+	padding: 4px 10px; font-size: 13px; letter-spacing: 0.08em;
+	color: var(--cyan); background: rgba(2, 10, 31, 0.6); border: 1px solid var(--line);
+	text-shadow: 0 0 8px rgba(127, 233, 255, 0.6); pointer-events: none;
+}
+body:not(.diving) #depth-meter { display: none; }

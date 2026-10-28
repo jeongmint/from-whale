@@ -2,25 +2,46 @@
 // 바닷속에서는 하늘과 수면 대신, 위에서 빛이 비치는 물 천장 · 떠다니는 입자 · 빛줄기 · 짙은 안개를 보여 준다
 import * as THREE from 'three';
 
-// 헤이즐이 오갈 수 있는 높이 (해저 바닥은 -26)
+// 헤이즐이 오갈 수 있는 높이. 맵 2는 바닥 없이 계속 내려가는 구조 (지금 미리보기는 -300m까지)
 export const DIVE_TOP = - 3;
-export const DIVE_BOTTOM = - 23;
+export const DIVE_BOTTOM = - 300;
 
-const WATER = new THREE.Color( 0x06306a ); // 바닷속 안개 · 배경색
+// 깊이 층: [ 시작 깊이(m), 안개 · 배경색, 안개 밀도, 입자 색 ]. 내려갈수록 어둡고 짙어진다
+export const ZONES = [
+	[ 0, 0x0a4a8a, 0.02, 0xbfe8ff ], // 햇빛층
+	[ 40, 0x05285c, 0.026, 0x9fd0ff ], // 어스름층
+	[ 120, 0x02122e, 0.032, 0xa98cff ], // 한밤층
+	[ 250, 0x01060f, 0.04, 0x7fffd4 ] // 해구
+].map( ( [ depth, fog, density, mote ] ) => ( { depth, fog: new THREE.Color( fog ).convertSRGBToLinear(), density, mote: new THREE.Color( mote ) } ) );
+
+// 깊이 d(m)의 층 번호와, 다음 층으로 넘어가는 비율 (경계에서 부드럽게 섞는다)
+export function zoneAt( d ) {
+
+	let i = 0;
+	while ( i < ZONES.length - 1 && d >= ZONES[ i + 1 ].depth ) i ++;
+	const next = ZONES[ i + 1 ];
+	const k = next ? THREE.MathUtils.smoothstep( d, next.depth - 15, next.depth ) : 0;
+	return { i, k };
+
+}
+
+const _c = new THREE.Color();
 const PARTICLES = 520;
 const SHAFTS = 9;
 const SPAN = 70; // 입자 · 빛줄기가 카메라 둘레에 퍼지는 범위
 
 export class Dive {
 
-	constructor( { scene, camera, fog, sky, ocean } ) {
+	constructor( { scene, camera, fog, sky, ocean, world } ) {
 
 		this.scene = scene;
 		this.camera = camera;
 		this.fog = fog;
 		this.sky = sky;
 		this.ocean = ocean;
+		this.world = world;
 		this.active = false;
+		this.pulses = [];
 		this.portal = null;
 
 		this.group = new THREE.Group();
@@ -38,7 +59,7 @@ export class Dive {
 
 		// 떠다니는 입자
 		const pos = new Float32Array( PARTICLES * 3 );
-		for ( let i = 0; i < PARTICLES; i ++ ) pos.set( [ ( Math.random() - 0.5 ) * SPAN, - 1 - Math.random() * 24, ( Math.random() - 0.5 ) * SPAN ], i * 3 );
+		for ( let i = 0; i < PARTICLES; i ++ ) pos.set( [ ( Math.random() - 0.5 ) * SPAN, ( Math.random() - 0.5 ) * SPAN, ( Math.random() - 0.5 ) * SPAN ], i * 3 );
 		const geo = new THREE.BufferGeometry();
 		geo.setAttribute( 'position', new THREE.BufferAttribute( pos, 3 ) );
 		this.motes = new THREE.Points( geo, new THREE.PointsMaterial( { color: 0xbfe8ff, size: 0.16, transparent: true, opacity: 0.7, depthWrite: false } ) );
@@ -98,11 +119,12 @@ export class Dive {
 		if ( this.active ) return;
 		this.active = true;
 		this.saved = { color: this.fog.color.clone(), density: this.fog.density, background: this.scene.background };
-		this.fog.color.copy( WATER ).convertSRGBToLinear();
-		this.fog.density = 0.024;
+		this.fog.color.copy( ZONES[ 0 ].fog );
+		this.fog.density = ZONES[ 0 ].density;
 		this.scene.background = this.fog.color.clone();
 		this.sky.group.visible = false;
 		this.ocean.mesh.visible = false;
+		this.world.seabed.visible = false; // 맵 1의 얕은 해저는 치우고 계속 내려간다
 		this.group.visible = true;
 		this.closePortal();
 
@@ -117,11 +139,26 @@ export class Dive {
 		this.scene.background = this.saved.background;
 		this.sky.group.visible = true;
 		this.ocean.mesh.visible = true;
+		this.world.seabed.visible = true;
 		this.group.visible = false;
 
 	}
 
-	update( dt, t ) {
+	// 52Hz 노래: 깊은 곳에선 소나처럼 둘레를 잠깐 밝힌다 (퍼지는 빛의 공)
+	pulse( pos ) {
+
+		const m = new THREE.Mesh(
+			new THREE.SphereGeometry( 1, 24, 16 ),
+			new THREE.MeshBasicMaterial( { color: 0x7fe9ff, transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.BackSide, fog: false } )
+		);
+		m.position.copy( pos );
+		this.scene.add( m );
+		this.pulses.push( { m, age: 0 } );
+		this.flash = 1;
+
+	}
+
+	update( dt, t, depth = 0 ) {
 
 		if ( this.portal ) {
 
@@ -132,8 +169,36 @@ export class Dive {
 
 		}
 
+		for ( let i = this.pulses.length - 1; i >= 0; i -- ) {
+
+			const p = this.pulses[ i ];
+			p.age += dt;
+			p.m.scale.setScalar( 2 + p.age * 55 );
+			p.m.material.opacity = 0.35 * Math.max( 0, 1 - p.age / 1.4 );
+			if ( p.age > 1.4 ) {
+
+				this.scene.remove( p.m );
+				p.m.geometry.dispose();
+				p.m.material.dispose();
+				this.pulses.splice( i, 1 );
+
+			}
+
+		}
+
 		if ( ! this.active ) return;
 		const c = this.camera.position;
+
+		// 깊이에 따라 층의 색 · 안개를 섞는다. 노래하면 잠깐 안개가 걷히고 밝아진다
+		const { i: zi, k } = zoneAt( depth );
+		const a0 = ZONES[ zi ], a1 = ZONES[ Math.min( zi + 1, ZONES.length - 1 ) ];
+		this.flash = Math.max( 0, ( this.flash ?? 0 ) - dt * 0.8 );
+		this.fog.color.copy( a0.fog ).lerp( a1.fog, k ).lerp( _c.set( 0x2a6fb0 ).convertSRGBToLinear(), this.flash * 0.5 );
+		this.fog.density = THREE.MathUtils.lerp( a0.density, a1.density, k ) * ( 1 - this.flash * 0.45 );
+		this.scene.background.copy( this.fog.color );
+		this.motes.material.color.copy( a0.mote ).lerp( a1.mote, k );
+		this.ceiling.visible = depth < 90;
+		const shaftFade = THREE.MathUtils.clamp( 1 - depth / 70, 0, 1 ); // 빛줄기는 햇빛층에서만
 		this.ceiling.position.x = c.x;
 		this.ceiling.position.z = c.z;
 
@@ -145,7 +210,8 @@ export class Dive {
 			let x = a.getX( i ), y = a.getY( i ) + dt * 0.35, z = a.getZ( i );
 			if ( x - c.x > half ) x -= SPAN; else if ( c.x - x > half ) x += SPAN;
 			if ( z - c.z > half ) z -= SPAN; else if ( c.z - z > half ) z += SPAN;
-			if ( y > - 1 ) y = - 25;
+			if ( y - c.y > half ) y -= SPAN; else if ( c.y - y > half ) y += SPAN;
+			if ( y > - 1 ) y -= SPAN;
 			a.setXYZ( i, x, y, z );
 
 		}
@@ -157,7 +223,7 @@ export class Dive {
 			m.position.set( c.x + m.userData.off.x, 0, c.z + m.userData.off.y );
 			// 카메라가 빛줄기 안에 들어가면 화면이 뿌옇게 덮이니까 가까울수록 흐리게
 			const near = Math.min( 1, Math.hypot( m.userData.off.x, m.userData.off.y ) / 25 );
-			m.material.opacity = ( 0.02 + 0.02 * Math.sin( t * 0.7 + m.userData.phase ) ** 2 ) * near;
+			m.material.opacity = ( 0.02 + 0.02 * Math.sin( t * 0.7 + m.userData.phase ) ** 2 ) * near * shaftFade;
 
 		}
 
