@@ -20,6 +20,14 @@ export default {
 		duet: { title: 'DUET · 52HZ ♥ 52HZ', help: '歌う [E] · ジャンプ [Space]', ready: 'ステラがカウントしてる…', perfect: 'PERFECT', excellent: 'EXCELLENT', good: 'GOOD', miss: 'MISS', combo: '{n} COMBO', rank: 'RANK {r}', sky: '★ 夜空が完成した!' },
 		feedback: { open: '✉ アイデア · バグを送る', placeholder: 'アイデアやバグを自由に書いてください', send: '送る', sending: '送信中…', thanks: 'ありがとう! 受け取りました。', fail: '今は送れませんでした。下のメールに送ってください。', copy: 'アドレスをコピー', copied: 'コピーしました!', mailApp: 'メールアプリで' },
 		letter: { close: '閉じる <span class="mono tiny">[E]</span>' },
+		// MAP 2 プレビュー: ポータル → 海の中
+		dive: {
+			label: 'MAP 2 · 海の中',
+			objPortal: '光る渦の中へ',
+			objSwim: '海の中を泳いでみる',
+			card: [ 'MAP 2', '海の底へ', 'プレビュー · 開発中' ],
+			hint: '[Space] 上へ · [C] 下へ — ここから先は開発中の MAP 2 です'
+		},
 		// もう一度デュエット (ステラに会ったことがあれば、タイトル · エンディング画面から)
 		duetAgain: { thanks: 'また一緒に歌ってくれてありがとう!', more: '♪ もう一曲', title: 'タイトルへ' },
 		// デュエットのスコアボード (歌に名前をつけて TOP 10 に残す)
@@ -64,6 +72,7 @@ export default {
 		ending: {
 			search: '残りの手紙を探しに行く · {n}/{total}',
 			again: 'もう一度あそぶ',
+			dive: '▼ 海の底へ (MAP 2 プレビュー)',
 			allEndings: '★ エンディングを6つすべて集めた — 海が金色にきらめく',
 			duet: '♪ もう一度デュエット',
 			quote: '「 海には自由がある<br>誰もが享受すべき自由が 」',
@@ -447,6 +456,9 @@ export default {
 				A: [ [ 'stella', 'いいね、いいね! はじめてなのにすっごく上手!' ] ],
 				B: [ [ 'stella', 'えへへ、リズムはめちゃくちゃだったけど\n今まで聞いた中でいちばん楽しい歌だった!' ] ]
 			},
+			// MAP 2 プレビュー: デュエットのあとに開くポータル
+			portal: [ [ 'stella', '…あれ? この下で、私の歌に応える信号がある。\n52ヘルツ、一緒に潜ってみる?' ] ],
+			portalNone: [ [ 'narrator', '水面の下で、52Hzに応えるように光が渦を巻いた。' ] ],
 			// もう一度デュエット
 			again: [ [ 'stella', 'また来てくれたんだ、52ヘルツ!\nよーし、もう一曲! 今度は海をもっと静かにしちゃおう!' ] ],
 			againBye: [ [ 'stella', 'いつでもまた来てね! 私はずっとここで歌ってるから。' ] ],

@@ -771,3 +771,6 @@ body.tilt #stick { display: none; }
 	.controls { grid-area: 5 / 1 / 6 / 3; margin: 4px 0 0; font-size: 10px; }
 	.home-link { top: calc(10px + env(safe-area-inset-top, 0px)); left: 12px; font-size: 12px; }
 }
+
+/* MAP 2 미리보기 (바닷속): 아래로 버튼은 잠수할 때만 */
+body:not(.diving) #touch-buttons button[data-act="down"] { display: none; }

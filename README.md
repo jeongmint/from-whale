@@ -33,6 +33,7 @@ A sea adventure of **Hazel**, a whale who sings at 52Hz. Another world, the year
 - **Moby Dick boss fight** — 6 songs that reach him win him over. Body hits and falling stars cost a heart; stun 1.1 s from stars, 1.5 s from charges (with Finn's Tears, a song clears it at once)
 - **Stella (hidden ending)** — all 6 letters in bottles (Moby's prologue letter included) → 12-bar blues duet (PERFECT ±25 ms · EXCELLENT ±60 ms · GOOD ±150 ms, 450 max, S from 85% · A from 60%, a shooting star per jump note) → name the song and leave it with your nickname and score on the shared **Duet TOP 10**. After meeting Stella, "Sing the duet again" on the title or ending screen replays just the duet (save data untouched). Remaining letters can be found in the epilogue after the ending
 - **Space and sea** — Gerstner waves, glittering ripples, ringed planet, shooting stars, bloom
+- **MAP 2 preview (in development)** — after meeting Stella, "Into the deep" on the ending screen → a portal on the surface → dive. Water ceiling, drifting particles, light shafts, swimming up and down. Planned story: the Alliance's origin and the 52Hz stop code
 - **Retro blue UI** — window-style HUD, sonar minimap, chapter cards, PC controls guide, current objective inside the HAZEL window (top center left clear). One-line dialog at the bottom, two-column title, and the call-and-response window at the bottom left in tilt mode on landscape phones
 - **Light models** — 500–650 vertices per whale, 512px textures. Phone support
 
@@ -73,7 +74,8 @@ Color options (`Whale` in `game/js/actors.js`): `solidColor` for a single color,
 | Mouse drag | Screen drag | Camera (on phones it returns behind the whale after a moment) |
 | — | Tilt (LAB, landscape) | Lean forward to swim, back to reverse, sideways to turn |
 | `Shift` | `»` | Boost (stamina) |
-| `Space` | `⤴` | Jump (invincible in the air) · ambush dodge · duet jump notes |
+| `Space` | `⤴` | Jump (invincible in the air) · ambush dodge · duet jump notes · swim up under the sea |
+| `C` | `⤵` (under the sea only) | Swim down under the sea |
 | `E` | `♪` | Sing · talk · sonar · next line · call and response · duet song notes |
 | `L` / `M` / `Esc` | Top-right buttons | Letters / sound / pause |
 | Whale chip in the POD window | Whale chip in the POD window | Home page |
@@ -100,6 +102,7 @@ Color options (`Whale` in `game/js/actors.js`): `solidColor` for a single color,
 | `game/js/lang/*.js` | Text per language (ko / en / ja) |
 | `game/js/i18n.js` | Language selection |
 | `game/js/name.js` | Nickname, Korean particles (`{N은}`, `{N을}`) |
+| `game/js/dive.js` | MAP 2 preview: portal, underwater view (water ceiling, particles, light shafts, fog) |
 | `game/js/scores.js` | Duet scoreboard window (saves on this device only when the server can't be reached) |
 | `game/js/main.js` | Rendering, bloom, input, Alliance AI, boss fight, routes · ending gallery, epilogue |
 | `netlify/functions/duet-scores.mjs` | Duet scoreboard server (Netlify Functions + Blobs). Keeps the TOP 50; checks length, banned words, score matching the judgment counts, 20 s between posts. Remove entries in the Netlify dashboard → Blobs → `duet-scores` → `top-v2` |
@@ -113,5 +116,6 @@ Color options (`Whale` in `game/js/actors.js`): `solidColor` for a single color,
 - `?stella` start at the ending with all 6 letters (Stella → duet → sub ending). Save data untouched
 - `?route=light|friends|compass|sacrifice|late` start ch. 4 onward on that route (with `?chapter=4` or `?chapter=5`, e.g. `?chapter=5&route=compass`)
 - `?duet` just the duet, once you've met Stella (same as the title / ending screen button; scores go to the scoreboard; save data untouched)
+- `?dive` start at the MAP 2 preview (portal → under the sea). Save data untouched
 - `?gold` preview the all-endings reward (golden sea). Save data untouched
 - `?q=low` low-spec mode (automatic on touch devices)
