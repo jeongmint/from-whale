@@ -15,6 +15,7 @@ import { lang, t, setLang, applyStatic } from './i18n.js';
 import { openScores } from './scores.js';
 import { Dive, DIVE_TOP, DIVE_BOTTOM, ZONES, zoneAt } from './dive.js';
 import { buildTrench, trenchCenter, trenchRadius } from './map2.js';
+import { loadSealife, Sealife } from './sealife.js';
 
 const BASE = window.FW_ASSET_BASE ?? '../';
 const query = new URLSearchParams( location.search );
@@ -2996,6 +2997,7 @@ async function openDivePortal() {
 	G.cutscene( true );
 	G.setStarfall( false );
 	G.dive.openPortal( portal.x, portal.z );
+	G.seaLoad ??= loadSealife( BASE ); // 바다 생물 모델은 무거워서 포털이 열릴 때 미리 받아 둔다
 	G.world.ring( portal.x, portal.z, { color: 0xb9a8ff, to: 40, life: 1.6 } );
 	G.audio.play( 'join' );
 	const said = G.actors.stella.root.visible ? T.portal : T.portalNone;
@@ -3037,6 +3039,13 @@ async function enterDive() {
 	// MAP 2는 다른 맵: 맵 1의 것들(등대, 미역, 유리병, 연합군, 모비 딕, 스텔라, 빛 조각...)은 모두 치운다
 	const keep = new Set( [ h.root, G.actors.luke.root, G.actors.finn.root, G.dive.group, G.map2.group, hemiLight, moonLight, ambientLight, hazelLamp, stunStars ] );
 	for ( const o of scene.children ) if ( ! keep.has( o ) ) o.visible = false;
+	( G.seaLoad ??= loadSealife( BASE ) ).then( ( models ) => {
+
+		if ( G.sea ) return;
+		G.sea = new Sealife( models, G.map2.group, G.map2.entry );
+		G.sea.onMeet = ( key ) => key === 'coelacanth' && G.ui.toast( t( 'map2.coelacanth' ) );
+
+	} );
 	document.body.classList.add( 'diving' );
 	G.setMusic( { tension: 0, drums: 0, bass: 0, melody: 0.6, piano: 1, sax: 0 } );
 	camera.position.set( h.pos.x - Math.sin( G.camYaw ) * 20, G.diveY + 4.5, h.pos.z - Math.cos( G.camYaw ) * 20 );
@@ -3579,6 +3588,7 @@ function update( dt ) {
 		hazelLamp.distance = 40 + flash * 70;
 		hazelLamp.position.copy( G.actors.hazel.root.position ).y += 3;
 		if ( G.map2 ) G.map2.update( G.time );
+		if ( G.sea && G.diving ) G.sea.update( dt, G.time, camera.position, G.actors.hazel.root.position, flash );
 
 	}
 

@@ -27,7 +27,8 @@ export default {
 			objBase: '기지 문 앞에서 정지 코드 부르기',
 			current: '물살이 아래를 막는다 — 이 층의 기록부터 찾자',
 			stopTitle: 'STOP CODE · 52HZ ♥ 52HZ',
-			logs: 'LOGS {n}/6'
+			logs: 'LOGS {n}/6',
+			coelacanth: "실러캔스 — 4억 년을 버텨 온 '살아 있는 화석'"
 		},
 		// MAP 2 미리보기: 포털 → 바닷속
 		dive: {

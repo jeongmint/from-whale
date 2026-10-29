@@ -27,7 +27,8 @@ export default {
 			objBase: 'Sing the stop code at the base door',
 			current: 'The current holds you back — find this layer\'s record first',
 			stopTitle: 'STOP CODE · 52HZ ♥ 52HZ',
-			logs: 'LOGS {n}/6'
+			logs: 'LOGS {n}/6',
+			coelacanth: "Coelacanth — a 'living fossil', 400 million years old"
 		},
 		// MAP 2 preview: portal → under the sea
 		dive: {
