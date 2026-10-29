@@ -28,7 +28,9 @@ export default {
 			current: 'The current holds you back — find this layer\'s record first',
 			stopTitle: 'STOP CODE · 52HZ ♥ 52HZ',
 			logs: 'LOGS {n}/6',
-			coelacanth: "Coelacanth — a 'living fossil', 400 million years old"
+			coelacanth: "Coelacanth — a 'living fossil', 400 million years old",
+			eel: "Morays hide in the cracks — sing to make them glow red",
+			faint: "{N} blacked out from a moray bite — woke up by the last log"
 		},
 		// MAP 2 preview: portal → under the sea
 		dive: {

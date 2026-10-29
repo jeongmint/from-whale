@@ -763,6 +763,14 @@ Object.assign( G, {
 
 	},
 
+	// 기록을 읽으면 그 자리가 쓰러졌을 때 깨어나는 곳이 되고, 하트가 다 찬다
+	logRead( log ) {
+
+		G.diveCheckpoint = { x: log.pos.x, z: log.pos.z, y: log.pos.y };
+		heal( true );
+
+	},
+
 	nearLog( log ) {
 
 		const h = G.actors.hazel;
@@ -1215,12 +1223,26 @@ async function faint() {
 	G.fainting = true;
 	G.cutscene( true );
 	// 한 장에서 두 번째로 쓰러지면 심장이 멈춘다 (엔딩). 핀이 대신 맞은 건 세지 않는다
-	G.chapterFaints = ( G.chapterFaints ?? 0 ) + 1;
-	if ( G.chapterFaints >= 2 ) return heartStop();
-	G.ui.toast( t( 'toast.faint' ) );
+	// 맵 2에선 심장이 멈추지 않고, 마지막으로 읽은 기록 앞에서 깨어난다
+	if ( ! G.diving ) {
+
+		G.chapterFaints = ( G.chapterFaints ?? 0 ) + 1;
+		if ( G.chapterFaints >= 2 ) return heartStop();
+
+	}
+
+	G.ui.toast( t( G.diving ? 'map2.faint' : 'toast.faint' ) );
 	await G.ui.fade( 1, 1.2 );
 	const h = G.actors.hazel;
-	if ( G.boss?.active ) {
+	if ( G.diving ) {
+
+		const c = G.diveCheckpoint;
+		h.place( c.x, c.z, h.yaw );
+		G.diveY = c.y;
+		G.diveVy = 0;
+		camera.position.set( c.x - Math.sin( G.camYaw ) * 20, c.y + 4.5, c.z - Math.cos( G.camYaw ) * 20 );
+
+	} else if ( G.boss?.active ) {
 
 		const c = PLACES.moby;
 		const dx = h.pos.x - c.x, dz = h.pos.z - c.z;
@@ -1259,7 +1281,7 @@ async function faint() {
 	G.ui.setHearts( G.hearts, MAX_HEARTS );
 	await G.wait( 0.3 );
 	await G.ui.fade( 0, 1 );
-	G.ui.toast( t( 'toast.lastHeart' ) );
+	if ( ! G.diving ) G.ui.toast( t( 'toast.lastHeart' ) );
 	G.cutscene( false );
 	G.fainting = false;
 
@@ -2383,7 +2405,12 @@ function sing() {
 	const h = G.actors.hazel;
 	G.singCooldown = 1.3;
 	audio.play( 'sing' );
-	if ( G.diving ) G.dive.pulse( h.root.position ); // 바닷속: 노래가 소나처럼 둘레를 밝힌다
+	if ( G.diving ) {
+
+		G.dive.pulse( h.root.position ); // 바닷속: 노래가 소나처럼 둘레를 밝힌다
+		G.sea?.reveal( h.root.position ); // 숨은 곰치도 붉게 드러난다
+
+	}
 	else for ( let i = 0; i < 3; i ++ ) G.world.ring( h.pos.x, h.pos.z, { color: 0x7fe9ff, to: 58, life: 1.6, delay: i * 0.28 } );
 	G.emit( 'sing' );
 
@@ -3033,6 +3060,7 @@ async function enterDive() {
 	await G.ui.fade( 1, 0.8 );
 	G.diving = true;
 	G.diveY = - 6;
+	G.diveCheckpoint = { x: h.pos.x, z: h.pos.z, y: - 6 };
 	G.diveVy = 0;
 	G.dive.enter();
 	if ( ! G.map2 ) G.map2 = { ...buildTrench( scene, { x: h.pos.x, z: h.pos.z } ), entry: { x: h.pos.x, z: h.pos.z } };
@@ -3044,6 +3072,14 @@ async function enterDive() {
 		if ( G.sea ) return;
 		G.sea = new Sealife( models, G.map2.group, G.map2.entry );
 		G.sea.onMeet = ( key ) => key === 'coelacanth' && G.ui.toast( t( 'map2.coelacanth' ) );
+		G.sea.onBite = ( pos ) => {
+
+			if ( ! damage( 1, pos, { stun: 0.5 } ) ) return;
+			if ( G.eelHinted ) return;
+			G.eelHinted = true;
+			G.ui.toast( t( 'map2.eel' ) );
+
+		};
 
 	} );
 	document.body.classList.add( 'diving' );
@@ -3505,6 +3541,8 @@ function updateHud() {
 
 		const next = G.map2.logs.find( ( l ) => ! l.read );
 		for ( const l of G.map2.logs ) points.push( l === next ? { x: l.pos.x, z: l.pos.z, color: '#7fe9ff', size: 4, shape: 'diamond' } : { x: l.pos.x, z: l.pos.z, color: l.read ? 'rgba(185,168,255,0.6)' : 'rgba(127,233,255,0.35)', size: 2.5 } );
+		// 노래로 드러났거나 노리는 중인 곰치는 빨간 점 (비슷한 깊이만)
+		for ( const e of G.sea?.eels ?? [] ) if ( ( e.glow > 0 || e.state === 'tell' || e.state === 'lunge' ) && Math.abs( e.home.y - G.diveY ) < 25 ) points.push( { x: e.home.x, z: e.home.z, color: '#ff5a6e', size: 3.5 } );
 		for ( const key of [ 'luke', 'finn' ] ) if ( G.party[ key ] === 'on' ) points.push( { x: G.actors[ key ].pos.x, z: G.actors[ key ].pos.z, color: '#eaf6ff', size: 3 } );
 		G.ui.drawMinimap( { px: h.pos.x, pz: h.pos.z, yaw: G.camYaw, heading: h.yaw - G.camYaw, range: 140, time: G.time, rocks: [], points, objective: t, signal: 1 } );
 		return;
@@ -3589,7 +3627,7 @@ function update( dt ) {
 		hazelLamp.distance = 40 + flash * 70;
 		hazelLamp.position.copy( G.actors.hazel.root.position ).y += 3;
 		if ( G.map2 ) G.map2.update( G.time );
-		if ( G.sea && G.diving ) G.sea.update( dt, G.time, camera.position, G.actors.hazel.root.position, flash );
+		if ( G.sea && G.diving ) G.sea.update( dt, G.time, camera.position, G.actors.hazel.root.position, flash, ! G.cutsceneOn && ! G.ui.dialogOpen && ! G.ui.overlay && ! G.duetPlay && ! G.fainting );
 
 	}
 

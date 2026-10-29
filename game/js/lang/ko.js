@@ -28,7 +28,9 @@ export default {
 			current: '물살이 아래를 막는다 — 이 층의 기록부터 찾자',
 			stopTitle: 'STOP CODE · 52HZ ♥ 52HZ',
 			logs: 'LOGS {n}/6',
-			coelacanth: "실러캔스 — 4억 년을 버텨 온 '살아 있는 화석'"
+			coelacanth: "실러캔스 — 4억 년을 버텨 온 '살아 있는 화석'",
+			eel: "벽 틈에 곰치가 숨어 있다 — 노래하면 붉게 드러난다",
+			faint: "{N이} 곰치에게 물려 정신을 잃었다 — 마지막으로 읽은 기록 앞에서 깨어났다"
 		},
 		// MAP 2 미리보기: 포털 → 바닷속
 		dive: {

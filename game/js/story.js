@@ -479,6 +479,7 @@ export async function map2( G ) {
 		G.objective( U().label, U().obj[ log.index ], log.pos );
 		await G.until( () => G.nearLog( log ) && ! G.ui.dialogOpen && ! G.ui.overlay );
 		log.read = true;
+		G.logRead( log );
 		G.cutscene( true );
 		const L = T().logs[ log.index ];
 		// 인간의 글자는 루크가 읽어 준다. 루크가 없으면 그림과 숫자만

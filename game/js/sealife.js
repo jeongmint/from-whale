@@ -33,7 +33,8 @@ const SPECIES = {
 	urchin: { file: 'sea-urchin-base.glb', size: 4.2, glow: 0.12 },
 	starfish: { file: 'starfish-772749.glb', size: 2.9, glow: 0.15 },
 	linckia: { file: 'blue-linckia-starfish-e07dd3.glb', size: 2.6, glow: 0.15 },
-	shrimp: { file: 'skunk-cleaner-shrimp-95e351.glb', size: 1.9, glow: 0.2 }
+	shrimp: { file: 'skunk-cleaner-shrimp-95e351.glb', size: 1.9, glow: 0.2 },
+	eel: { file: 'moray-eel-base.glb', size: 5.5, glow: 0.12 } // 위협: 벽 틈에 숨은 곰치
 };
 
 // 어디에 몇 마리: [ 종류, 방식, 깊이(m), 마릿수 ]
@@ -72,6 +73,13 @@ const PLACES = [
 	[ 'shrimp', 'floor', FLOOR_DEPTH, 4 ]
 ];
 
+// 곰치가 숨어 있는 깊이. 햇빛층은 안전하고, 어스름층부터 벽을 따라 숨어 있다
+const EELS = [ 46, 68, 92, 118, 142, 168, 196, 226, 258, 288 ];
+const EEL_SENSE = 11; // 헤이즐이 이만큼 다가오면 노린다
+const EEL_TELL = 0.55; // 튀어나오기 전 몸을 떠는 시간 (피할 틈)
+const EEL_REACH = 8; // 튀어나오는 거리
+const EEL_BITE = 4; // 이 안이면 물린다
+
 const SHOW_RANGE = 55; // 카메라와 높이 차이가 이보다 크면 숨기고 움직이지도 않는다
 
 export function loadSealife( base ) {
@@ -97,6 +105,8 @@ export class Sealife {
 		this.groups = [];
 		this.met = new Set();
 		this.onMeet = null;
+		this.onBite = null; // 곰치에게 물렸을 때 ( 곰치 위치 )
+		this.eels = [];
 
 		// 종류마다 크기 · 재질을 한 번만 맞춘다 (복제본은 같은 재질을 같이 쓴다)
 		const proto = {};
@@ -129,6 +139,7 @@ export class Sealife {
 
 		this.proto = proto;
 		for ( const [ key, mode, depth, count ] of PLACES ) if ( proto[ key ] ) this.place( key, mode, depth, count );
+		if ( proto.eel ) EELS.forEach( ( d ) => this.placeEel( d ) );
 		parent.add( this.group );
 
 	}
@@ -221,7 +232,10 @@ export class Sealife {
 	}
 
 	// 매 프레임. cam: 카메라 위치, hazel: 헤이즐 위치, flash: 노래(소나) 직후 1 → 0
-	update( dt, t, cam, hazel, flash = 0 ) {
+	// active: 헤이즐을 움직일 수 있을 때만 곰치가 문다 (대화 · 컷신 · 리듬 중엔 숨어 있다)
+	update( dt, t, cam, hazel, flash = 0, active = true ) {
+
+		for ( const e of this.eels ) this.updateEel( e, dt, t, cam, hazel, active );
 
 		// 노래하면 깊은 바다 생물이 잠깐 환하게 빛난다
 		for ( const p of Object.values( this.proto ) ) for ( const m of p.mats ) if ( m.userData.glow ) m.emissiveIntensity = m.userData.glow * ( 1 + flash * 2.5 );
@@ -333,6 +347,121 @@ export class Sealife {
 			const k = Math.sin( t * 0.35 + m.phase ) * m.walk;
 			const side = g.key === 'shoreCrab' ? m.root.rotation.y + Math.PI / 2 : m.root.rotation.y;
 			m.root.position.set( m.home.x + Math.sin( side ) * k, m.home.y, m.home.z + Math.cos( side ) * k );
+
+		}
+
+	}
+
+	// 곰치: 협곡 벽 틈에서 머리만 내밀고 있다
+	placeEel( depth ) {
+
+		const f = this.spawn( 'eel' );
+		// 곰치마다 따로 빛나야 해서 재질을 복제한다
+		const mats = [];
+		f.body.traverse( ( o ) => {
+
+			if ( ! o.isMesh ) return;
+			o.material = o.material.clone();
+			mats.push( o.material );
+
+		} );
+		const a = Math.random() * Math.PI * 2;
+		trenchCenter( this.entry, depth, _c );
+		const R = trenchRadius( depth ) - 1;
+		const home = new THREE.Vector3( _c.x + Math.cos( a ) * R, - depth, _c.y + Math.sin( a ) * R );
+		const facing = new THREE.Vector3( - Math.cos( a ), 0, - Math.sin( a ) ); // 협곡 안쪽
+		f.root.position.copy( home );
+		f.root.rotation.y = Math.atan2( facing.x, facing.z );
+		const action = f.play( 'Idle', 0.8 );
+		this.eels.push( { ...f, mats, home, facing, action, state: 'hide', t: 0, target: new THREE.Vector3(), glow: 0, visible: true } );
+
+	}
+
+	// 노래(소나)가 닿은 곰치는 잠깐 붉게 빛나서 어디 숨었는지 보인다
+	reveal( pos, range = 80 ) {
+
+		for ( const e of this.eels ) if ( e.home.distanceTo( pos ) < range ) e.glow = 4;
+
+	}
+
+	updateEel( e, dt, t, cam, hazel, active ) {
+
+		const near = Math.abs( e.home.y - cam.y ) < SHOW_RANGE;
+		if ( near !== e.visible ) e.root.visible = e.visible = near;
+		if ( ! near ) return;
+		e.mixer.update( dt );
+		e.t += dt;
+		e.glow = Math.max( 0, e.glow - dt );
+		const head = _v.copy( e.home ).addScaledVector( e.facing, 2 );
+		const dist = head.distanceTo( hazel );
+
+		if ( e.state === 'hide' ) {
+
+			e.root.position.copy( e.home ).addScaledVector( e.facing, Math.sin( t * 0.8 + e.home.x ) * 0.3 );
+			if ( active && dist < EEL_SENSE ) {
+
+				e.state = 'tell';
+				e.t = 0;
+				e.action.timeScale = 3;
+
+			}
+
+		} else if ( e.state === 'tell' ) {
+
+			// 부르르 떨며 몸을 움츠린다: 피할 시간
+			e.root.position.copy( e.home ).addScaledVector( e.facing, - 0.8 * ( e.t / EEL_TELL ) );
+			e.root.position.x += Math.sin( e.t * 60 ) * 0.15;
+			if ( e.t >= EEL_TELL ) {
+
+				e.state = 'lunge';
+				e.t = 0;
+				// 헤이즐 쪽으로, 벽에서 EEL_REACH 만큼만
+				e.target.subVectors( hazel, e.home );
+				if ( e.target.length() > EEL_REACH ) e.target.setLength( EEL_REACH );
+				e.target.add( e.home );
+				e.bit = false;
+
+			}
+
+		} else if ( e.state === 'lunge' ) {
+
+			const k = Math.min( 1, e.t / 0.22 );
+			e.root.position.lerpVectors( e.home, e.target, 1 - ( 1 - k ) ** 3 );
+			if ( ! e.bit && active && e.root.position.distanceTo( hazel ) < EEL_BITE ) {
+
+				e.bit = true;
+				this.onBite?.( e.root.position );
+
+			}
+
+			if ( e.t > 0.5 ) {
+
+				e.state = 'back';
+				e.t = 0;
+
+			}
+
+		} else if ( e.state === 'back' ) {
+
+			const k = Math.min( 1, e.t / 1.2 );
+			e.root.position.lerpVectors( e.target, e.home, k * k * ( 3 - 2 * k ) );
+			if ( k >= 1 ) {
+
+				e.state = 'rest';
+				e.t = 0;
+				e.action.timeScale = 0.8;
+
+			}
+
+		} else if ( e.state === 'rest' && e.t > 3.5 ) e.state = 'hide';
+
+		// 노리는 중이거나 노래로 드러나면 붉게
+		const alarm = e.state === 'tell' || e.state === 'lunge' ? 1 : e.state === 'back' ? Math.max( 0, 1 - e.t / 1.2 ) : 0;
+		const glow = Math.max( alarm, Math.min( 1, e.glow ) );
+		for ( const m of e.mats ) {
+
+			m.emissive.setRGB( 0.4 + glow * 0.6, 0.45 - glow * 0.25, 0.55 - glow * 0.4 );
+			m.emissiveIntensity = 0.12 + glow * 0.9;
 
 		}
 
