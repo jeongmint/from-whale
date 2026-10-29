@@ -27,7 +27,8 @@ export default {
 			objBase: '基地の扉の前で停止コードを歌う',
 			current: '潮の流れが下を阻む — まずこの層の記録を探そう',
 			stopTitle: 'STOP CODE · 52HZ ♥ 52HZ',
-			logs: 'LOGS {n}/6'
+			logs: 'LOGS {n}/6',
+			coelacanth: "シーラカンス — 4億年を生きてきた『生きた化石』"
 		},
 		// MAP 2 プレビュー: ポータル → 海の中
 		dive: {
