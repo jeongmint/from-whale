@@ -2298,7 +2298,7 @@ function setupTouch() {
 			e.preventDefault();
 			btn.classList.add( 'held' );
 			if ( act === 'boost' ) touch.boost = true;
-			else if ( G.diving && ! G.ui.dialogOpen && ! G.ui.overlay && ( act === 'jump' || act === 'down' ) ) touch[ act === 'jump' ? 'up' : 'down' ] = true;
+			else if ( G.diving && ! G.duetPlay && ! G.puzzle && ! G.ui.dialogOpen && ! G.ui.overlay && ( act === 'jump' || act === 'down' ) ) touch[ act === 'jump' ? 'up' : 'down' ] = true;
 			else if ( G.ui.dialogOpen || G.ui.overlay ) onAction( 'KeyE' );
 			else onAction( act === 'sing' ? 'KeyE' : 'Space' );
 
@@ -3194,7 +3194,8 @@ function updatePlayer( dt ) {
 	// 바닷속: Space · ⤴ 위로, C · ⤵ 아래로. 손을 떼면 그 깊이를 유지한다
 	if ( G.diving ) {
 
-		const v = control ? ( keys.has( 'Space' ) || touch.up ? 1 : 0 ) - ( keys.has( 'KeyC' ) || touch.down ? 1 : 0 ) : 0;
+		// 정지 코드 리듬 중엔 Space가 박자 입력이라 위로 헤엄치지 않는다
+		const v = control && ! G.duetPlay ? ( keys.has( 'Space' ) || touch.up ? 1 : 0 ) - ( keys.has( 'KeyC' ) || touch.down ? 1 : 0 ) : 0;
 		G.diveVy += ( v * ( boost ? 18 : 9 ) - G.diveVy ) * Math.min( 1, dt * 3 ); // 가속 중엔 위아래도 빠르게
 		const floor = G.diveFloor ?? DIVE_BOTTOM;
 		G.diveY = THREE.MathUtils.clamp( G.diveY + G.diveVy * dt, floor, DIVE_TOP );
