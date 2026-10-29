@@ -30,6 +30,76 @@ const PARTICLES = 520;
 const SHAFTS = 9;
 const SPAN = 70; // 입자 · 빛줄기가 카메라 둘레에 퍼지는 범위
 
+// 물 천장 재질: 물결로 출렁이는 면, 물결 무늬, 빛 그물. 안개는 three.js 안개를 그대로 따른다
+function makeCeilingMaterial() {
+
+	return new THREE.ShaderMaterial( {
+		uniforms: THREE.UniformsUtils.merge( [ THREE.UniformsLib.fog, {
+			uTime: { value: 0 },
+			uSky: { value: new THREE.Color( 0x7cc6ee ).convertSRGBToLinear() },
+			uDeep: { value: new THREE.Color( 0x0b4a8c ).convertSRGBToLinear() },
+			uLight: { value: new THREE.Color( 0xbfeaff ).convertSRGBToLinear() }
+		} ] ),
+		side: THREE.DoubleSide,
+		fog: true,
+		vertexShader: /* glsl */`
+			uniform float uTime;
+			varying vec3 vWorld;
+			#include <fog_pars_vertex>
+			void main() {
+				vec4 world = modelMatrix * vec4( position, 1.0 );
+				// 수면이 위아래로 출렁인다 (평면이 x축으로 누워 있어 z가 높이)
+				float t = uTime;
+				vec3 p = position;
+				p.z += sin( world.x * 0.18 + t * 1.1 ) * 0.22 + sin( world.z * 0.23 - t * 0.9 ) * 0.18 + sin( ( world.x + world.z ) * 0.31 + t * 1.7 ) * 0.08;
+				world = modelMatrix * vec4( p, 1.0 );
+				vWorld = world.xyz;
+				vec4 mvPosition = viewMatrix * world;
+				gl_Position = projectionMatrix * mvPosition;
+				#include <fog_vertex>
+			}
+		`,
+		fragmentShader: /* glsl */`
+			uniform float uTime;
+			uniform vec3 uSky;
+			uniform vec3 uDeep;
+			uniform vec3 uLight;
+			varying vec3 vWorld;
+			#include <fog_pars_fragment>
+
+			// 겹친 물결: 0 근처가 물결의 능선
+			float wave( vec2 p, float t ) {
+				float a = sin( p.x * 0.35 + t * 0.9 + sin( p.y * 0.27 + t * 0.5 ) * 1.6 );
+				float b = sin( p.y * 0.31 - t * 0.7 + sin( p.x * 0.22 - t * 0.4 ) * 1.8 );
+				float c = sin( ( p.x + p.y ) * 0.23 + t * 0.6 );
+				return ( a + b + c ) / 3.0;
+			}
+
+			void main() {
+				vec2 p = vWorld.xz;
+				float t = uTime;
+				// 스넬의 창: 바로 위(가까운 곳)는 하늘빛, 비스듬할수록 깊은 물빛
+				float h = max( 0.6, vWorld.y - cameraPosition.y );
+				float slope = length( vWorld.xz - cameraPosition.xz ) / h;
+				float win = 1.0 - smoothstep( 0.8, 2.6, slope );
+				// 빛 그물: 두 겹의 물결 능선이 가늘게 빛난다
+				float r1 = pow( 1.0 - abs( wave( p, t ) ), 7.0 );
+				float r2 = pow( 1.0 - abs( wave( p * 1.9 + 17.0, t * 1.3 ) ), 9.0 );
+				float net = r1 * 0.7 + r2 * 0.45;
+				// 넓은 물결 얼룩
+				float swell = wave( p * 0.35, t * 0.5 ) * 0.5 + 0.5;
+				vec3 col = mix( uDeep, uSky, win * 0.85 + swell * 0.15 );
+				col += uLight * net * ( 0.18 + win * 0.45 );
+				gl_FragColor = vec4( col, 1.0 );
+				#include <tonemapping_fragment>
+				#include <encodings_fragment>
+				#include <fog_fragment>
+			}
+		`
+	} );
+
+}
+
 export class Dive {
 
 	constructor( { scene, camera, fog, sky, ocean, world } ) {
@@ -48,13 +118,12 @@ export class Dive {
 		this.group.visible = false;
 		scene.add( this.group );
 
-		// 물 천장: 아래에서 올려다본 수면. 멀어질수록 안개에 묻힌다
-		this.ceiling = new THREE.Mesh(
-			new THREE.PlaneGeometry( 1600, 1600 ),
-			new THREE.MeshBasicMaterial( { color: 0x58b4f0, transparent: true, opacity: 0.9, side: THREE.DoubleSide, depthWrite: false } )
-		);
+		// 물 천장: 아래에서 올려다본 수면. 일렁이는 물결과 빛 그물(커스틱)
+		// 머리 위는 하늘이 비쳐 밝고 (스넬의 창), 비스듬히 볼수록 깊은 물빛이 비쳐 어두워진다
+		this.ceiling = new THREE.Mesh( new THREE.PlaneGeometry( 600, 600, 120, 120 ), makeCeilingMaterial() );
 		this.ceiling.rotation.x = - Math.PI / 2;
 		this.ceiling.position.y = - 0.3;
+		this.ceiling.frustumCulled = false;
 		this.group.add( this.ceiling );
 
 		// 떠다니는 입자
@@ -198,6 +267,7 @@ export class Dive {
 		this.scene.background.copy( this.fog.color );
 		this.motes.material.color.copy( a0.mote ).lerp( a1.mote, k );
 		this.ceiling.visible = depth < 90;
+		this.ceiling.material.uniforms.uTime.value = t;
 		const shaftFade = THREE.MathUtils.clamp( 1 - depth / 70, 0, 1 ); // 빛줄기는 햇빛층에서만
 		this.ceiling.position.x = c.x;
 		this.ceiling.position.z = c.z;
