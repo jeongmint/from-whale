@@ -202,6 +202,15 @@ html[lang="ko"] #obj-text { word-break: keep-all; }
 	body.talking #minimap-wrap { opacity: 0; transform: translateY(16px); pointer-events: none; }
 }
 #minimap { display: block; width: 180px; height: 180px; }
+/* 소나 접기: 제목 줄을 누르면 지도를 숨기고 제목 줄만 남긴다 */
+#sonar-bar { pointer-events: auto; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+#sonar-bar .fold-mark::before { content: ' ▾'; font-weight: normal; }
+#minimap-wrap.folded #sonar-bar .fold-mark::before { content: ' ▸'; }
+#minimap-wrap.folded #minimap { display: none !important; }
+body.singing #sonar-bar { pointer-events: none; }
+@media (max-width: 1200px) {
+	body.talking #sonar-bar { pointer-events: none; }
+}
 
 #marker {
 	position: absolute; left: 0; top: 0;
