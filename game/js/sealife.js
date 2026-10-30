@@ -34,7 +34,8 @@ const SPECIES = {
 	starfish: { file: 'starfish-772749.glb', size: 2.9, glow: 0.15 },
 	linckia: { file: 'blue-linckia-starfish-e07dd3.glb', size: 2.6, glow: 0.15 },
 	shrimp: { file: 'skunk-cleaner-shrimp-95e351.glb', size: 1.9, glow: 0.2 },
-	eel: { file: 'moray-eel-base.glb', size: 5.5, glow: 0.12 } // 위협: 벽 틈에 숨은 곰치
+	eel: { file: 'moray-eel-base.glb', size: 5.5, glow: 0.12 }, // 위협: 벽 틈에 숨은 곰치
+	hook: { file: 'mangai-stone-fishhook-389db5.glb', size: 2.4, glow: 0.35 } // 대학원생 J의 돌 낚싯바늘 (캡슐에 매달린 유품)
 };
 
 // 어디에 몇 마리: [ 종류, 방식, 깊이(m), 마릿수 ]
@@ -254,6 +255,7 @@ export class Sealife {
 		this.active = active;
 
 		for ( const e of this.eels ) this.updateEel( e, dt, t, cam, hazel, active );
+		for ( const h of this.hung ?? [] ) h.rotation.z = Math.sin( t * 0.9 ) * 0.25;
 
 		// 노래하면 깊은 바다 생물이 잠깐 환하게 빛난다
 		for ( const p of Object.values( this.proto ) ) for ( const m of p.mats ) if ( m.userData.glow ) m.emissiveIntensity = m.userData.glow * ( 1 + flash * 2.5 );
@@ -395,6 +397,19 @@ export class Sealife {
 		f.root.rotation.y = Math.atan2( facing.x, facing.z );
 		const action = f.play( 'Idle', 0.8 );
 		this.eels.push( { ...f, mats, home, facing, action, state: 'hide', t: 0, target: new THREE.Vector3(), glow: 0, visible: true } );
+
+	}
+
+	// 물건 하나를 그 자리에 매달아 둔다 (천천히 흔들린다)
+	hang( key, pos ) {
+
+		if ( ! this.proto[ key ] ) return null;
+		const { body } = this.spawn( key );
+		body.parent.position.copy( pos );
+		body.rotation.x = Math.PI / 2; // 낚싯바늘이 아래로 늘어지게
+		this.hung = this.hung ?? [];
+		this.hung.push( body.parent );
+		return body.parent;
 
 	}
 

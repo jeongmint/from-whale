@@ -3127,6 +3127,9 @@ async function enterDive() {
 		if ( G.sea ) return;
 		G.sea = new Sealife( models, G.map2.group, G.map2.entry );
 		G.sea.onMeet = ( key ) => key === 'coelacanth' && G.ui.toast( t( 'map2.coelacanth' ) );
+		// 대학원생 J의 마지막 기록 캡슐에 매달린 돌 낚싯바늘
+		const capsule = G.map2.logs.find( ( l ) => l.landmark === 'capsule' );
+		if ( capsule ) G.sea.hang( 'hook', capsule.pos.clone().add( new THREE.Vector3( 0.8, - 2.2, 0 ) ) );
 		// 해파리에 닿으면 하트 하나 (하트가 다 차 있으면 그냥 지나간다)
 		G.sea.onHeal = () => {
 

@@ -69,7 +69,7 @@ A sea adventure of **Hazel**, a whale who sings at 52Hz. Another world, the year
 | Sunlight | 0–40 m | Wrecked sub (30 m) | Reef fish schools (scatter when you come close) |
 | Twilight | 40–120 m | Undersea lab (80 m) | Stingray, grouper, barracuda, reef sharks · guards, morays |
 | Midnight | 120–250 m | Red terminal (150 m), whale bone altar (205 m) | Glowing moon jellyfish (brighter when you sing) · guards, morays |
-| Trench | 250–318 m | Grad student J's last record (270 m) | Coelacanths · guards, morays |
+| Trench | 250–318 m | Grad student J's last record (270 m), with a stone fishhook | Coelacanths · guards, morays |
 | Base | 318 m– | The Doctor's memo (312 m) | Crabs, urchins, starfish, shrimp · the Shaman |
 
 ### Characters

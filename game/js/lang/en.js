@@ -441,7 +441,10 @@ export default {
 					[ 'finn', 'This... it\'s on my neck. I thought it was a compass.', 'finn' ],
 					[ 'finn', 'So that\'s why. That\'s how someone from the Alliance could follow you.', 'finn' ],
 					[ 'narrator', '{N} remembered the broken compass Finn left behind.', 'finnGone' ],
-					[ 'narrator', 'It was never a compass. It was the stop device Finn had guarded to the end.', 'finnGone' ]
+					[ 'narrator', 'It was never a compass. It was the stop device Finn had guarded to the end.', 'finnGone' ],
+					[ 'narrator', 'Tied to the capsule hung a small fishhook carved from stone.' ],
+					[ 'finn', '...I\'ve seen this. Every time someone stroked my head, it swung back and forth.', 'finn' ],
+					[ 'narrator', 'Its tip was worn smooth, as if someone had held it for years.', 'finnGone' ]
 				],
 				[
 					[ 'luke', '"Uninterpretable"... No. He understood it too well, so he tried to erase it.', 'luke' ],
