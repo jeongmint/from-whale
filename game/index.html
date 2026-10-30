@@ -52,7 +52,8 @@
 			<div id="hud-keys" class="key-only">
 				<span><kbd>WASD</kbd><em data-i18n="hud.keys.swim"></em></span>
 				<span><kbd>Shift</kbd><em data-i18n="hud.keys.boost"></em></span>
-				<span><kbd>Space</kbd><em data-i18n="hud.keys.jump"></em></span>
+				<span><kbd>Space</kbd><em class="land-only" data-i18n="hud.keys.jump"></em><em class="dive-only" data-i18n="hud.keys.up"></em></span>
+				<span class="dive-only"><kbd>C</kbd><em data-i18n="hud.keys.down"></em></span>
 				<span><kbd>E</kbd><em data-i18n="hud.keys.sing"></em></span>
 			</div>
 
@@ -83,7 +84,7 @@
 			</section>
 
 			<div id="minimap-wrap" class="win">
-				<header class="win-bar"><span>SONAR</span><span id="compass-meter" hidden><small>COMPASS</small><span class="gauge"><span class="fill"></span></span></span><i></i></header>
+				<header class="win-bar" id="sonar-bar" role="button" tabindex="-1"><span>SONAR<b class="fold-mark"></b></span><span id="compass-meter" hidden><small>COMPASS</small><span class="gauge"><span class="fill"></span></span></span><i></i></header>
 				<canvas id="minimap" width="180" height="180"></canvas>
 			</div>
 
@@ -289,7 +290,7 @@
 			<div id="stick"><div id="stick-knob"></div></div>
 			<div id="touch-buttons">
 				<button data-act="sing">♪<small>52Hz</small></button>
-				<button data-act="jump">⤴<small>JUMP</small></button>
+				<button data-act="jump">⤴<small class="land-only">JUMP</small><small class="dive-only">UP</small></button>
 				<button data-act="boost">»<small>BOOST</small></button>
 				<button data-act="down">⤵<small>DOWN</small></button>
 			</div>

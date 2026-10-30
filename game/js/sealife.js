@@ -34,7 +34,8 @@ const SPECIES = {
 	starfish: { file: 'starfish-772749.glb', size: 2.9, glow: 0.15 },
 	linckia: { file: 'blue-linckia-starfish-e07dd3.glb', size: 2.6, glow: 0.15 },
 	shrimp: { file: 'skunk-cleaner-shrimp-95e351.glb', size: 1.9, glow: 0.2 },
-	eel: { file: 'moray-eel-base.glb', size: 5.5, glow: 0.12 } // 위협: 벽 틈에 숨은 곰치
+	eel: { file: 'moray-eel-base.glb', size: 5.5, glow: 0.12 }, // 위협: 벽 틈에 숨은 곰치
+	hook: { file: 'mangai-stone-fishhook-389db5.glb', size: 2.4, glow: 0.35 } // 대학원생 J의 돌 낚싯바늘 (캡슐에 매달린 유품)
 };
 
 // 어디에 몇 마리: [ 종류, 방식, 깊이(m), 마릿수 ]
@@ -80,6 +81,9 @@ const EEL_TELL = 0.55; // 튀어나오기 전 몸을 떠는 시간 (피할 틈)
 const EEL_REACH = 8; // 튀어나오는 거리
 const EEL_BITE = 4; // 이 안이면 물린다
 
+const JELLY_TOUCH = 5; // 해파리 갓에 이만큼 닿으면 하트 회복
+const JELLY_COOL = 30; // 빛을 나눠 준 해파리가 다시 빛나기까지 (초)
+
 const SHOW_RANGE = 55; // 카메라와 높이 차이가 이보다 크면 숨기고 움직이지도 않는다
 
 export function loadSealife( base ) {
@@ -105,6 +109,7 @@ export class Sealife {
 		this.groups = [];
 		this.met = new Set();
 		this.onMeet = null;
+		this.onHeal = null; // 해파리에 닿았을 때 ( 위치 ) → 하트가 찼으면 true
 		this.onBite = null; // 곰치에게 물렸을 때 ( 곰치 위치 )
 		this.eels = [];
 
@@ -204,6 +209,17 @@ export class Sealife {
 				m.root.position.copy( m.home );
 				m.root.rotation.y = Math.random() * Math.PI * 2;
 				m.action = f.play( 'Swim', 0.5 + Math.random() * 0.3 );
+				// 빛을 나눠 준 해파리만 잠깐 흐려지도록 재질을 따로 쓴다
+				m.mats = [];
+				f.body.traverse( ( o ) => {
+
+					if ( ! o.isMesh ) return;
+					o.material = [ o.material ].flat().map( ( mat ) => mat.clone() );
+					if ( o.material.length === 1 ) o.material = o.material[ 0 ];
+					m.mats.push( ...[ o.material ].flat() );
+
+				} );
+				m.cool = 0;
 
 			} else if ( mode === 'floor' ) {
 
@@ -235,7 +251,11 @@ export class Sealife {
 	// active: 헤이즐을 움직일 수 있을 때만 곰치가 문다 (대화 · 컷신 · 리듬 중엔 숨어 있다)
 	update( dt, t, cam, hazel, flash = 0, active = true ) {
 
+		this.flash = flash;
+		this.active = active;
+
 		for ( const e of this.eels ) this.updateEel( e, dt, t, cam, hazel, active );
+		for ( const h of this.hung ?? [] ) h.rotation.z = Math.sin( t * 0.9 ) * 0.25;
 
 		// 노래하면 깊은 바다 생물이 잠깐 환하게 빛난다
 		for ( const p of Object.values( this.proto ) ) for ( const m of p.mats ) if ( m.userData.glow ) m.emissiveIntensity = m.userData.glow * ( 1 + flash * 2.5 );
@@ -323,16 +343,19 @@ export class Sealife {
 
 	}
 
-	// 해파리: 제자리에서 둥둥, 헤이즐이 지나가면 살짝 밀려난다
+	// 해파리: 제자리에서 둥둥. 닿으면 빛을 나눠 하트 하나를 채워 주고, 한동안 흐려진다
 	drift( g, dt, t, hazel ) {
 
 		for ( const m of g.members ) {
 
 			m.root.position.set( m.home.x + Math.sin( t * 0.2 + m.phase ) * 2, m.home.y + Math.sin( t * 0.45 + m.phase ) * 2.5, m.home.z + Math.cos( t * 0.17 + m.phase ) * 2 );
-			_v.subVectors( m.home, hazel );
-			const d = _v.length();
-			if ( d < 10 ) m.home.addScaledVector( _v.normalize(), dt * 4 * ( 1 - d / 10 ) );
 			m.root.rotation.y += dt * 0.1;
+			m.cool = Math.max( 0, m.cool - dt );
+			// 갓의 가운데 (모델의 원점은 촉수 끝)
+			_v.copy( m.root.position ).y += 2.6;
+			if ( ! m.cool && this.active && _v.distanceTo( hazel ) < JELLY_TOUCH && this.onHeal?.( _v ) ) m.cool = JELLY_COOL;
+			const dim = m.cool ? 0.15 + 0.85 * ( 1 - m.cool / JELLY_COOL ) ** 3 : 1;
+			for ( const mat of m.mats ) mat.emissiveIntensity = mat.userData.glow * ( 1 + ( this.flash ?? 0 ) * 2.5 ) * dim;
 
 		}
 
@@ -374,6 +397,19 @@ export class Sealife {
 		f.root.rotation.y = Math.atan2( facing.x, facing.z );
 		const action = f.play( 'Idle', 0.8 );
 		this.eels.push( { ...f, mats, home, facing, action, state: 'hide', t: 0, target: new THREE.Vector3(), glow: 0, visible: true } );
+
+	}
+
+	// 물건 하나를 그 자리에 매달아 둔다 (천천히 흔들린다)
+	hang( key, pos ) {
+
+		if ( ! this.proto[ key ] ) return null;
+		const { body } = this.spawn( key );
+		body.parent.position.copy( pos );
+		body.rotation.x = Math.PI / 2; // 낚싯바늘이 아래로 늘어지게
+		this.hung = this.hung ?? [];
+		this.hung.push( body.parent );
+		return body.parent;
 
 	}
 

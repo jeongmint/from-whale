@@ -3,6 +3,7 @@ import { fillName } from './name.js';
 import { lang, t } from './i18n.js';
 
 const $ = ( id ) => document.getElementById( id );
+const SONAR_KEY = 'fromwhale.sonarFolded';
 
 const HEART_SVG = `<svg viewBox="0 0 11 10" shape-rendering="crispEdges"><path fill="#7fe9ff" d="M1 1h3v1h1v1h1V2h1V1h3v1h1v3h-1v1h-1v1h-1v1h-1v1H5V8H4V7H3V6H2V5H1V4H0V2h1z"/><path fill="#eaf6ff" d="M2 2h1v1H2z"/></svg>`;
 
@@ -24,6 +25,33 @@ export class UI {
 		} );
 
 		document.querySelectorAll( '[data-close]' ).forEach( ( b ) => b.addEventListener( 'click', () => this.closeOverlay() ) );
+
+		// 소나 창 제목 줄을 누르면 접고 편다 (이 기기에 기억)
+		try {
+
+			this.setSonarFolded( localStorage.getItem( SONAR_KEY ) === '1' );
+
+		} catch ( e ) { /* 저장소를 못 쓰면 펼친 채로 */ }
+
+		$( 'sonar-bar' ).addEventListener( 'pointerdown', ( e ) => {
+
+			e.stopPropagation();
+			e.preventDefault();
+			this.setSonarFolded( ! this.sonarFolded );
+			try {
+
+				localStorage.setItem( SONAR_KEY, this.sonarFolded ? '1' : '0' );
+
+			} catch ( err ) { /* 저장 불가 */ }
+
+		} );
+
+	}
+
+	setSonarFolded( on ) {
+
+		this.sonarFolded = on;
+		$( 'minimap-wrap' ).classList.toggle( 'folded', on );
 
 	}
 
@@ -435,6 +463,7 @@ export class UI {
 
 	drawMinimap( data ) {
 
+		if ( this.sonarFolded ) return; // 접어 둔 동안은 그리지 않는다
 		const c = $( 'minimap' );
 		const ctx = c.getContext( '2d' );
 		const W = c.width, R = W / 2;

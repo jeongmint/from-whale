@@ -25,7 +25,7 @@ export function trenchCenter( entry, d, out = new THREE.Vector2() ) {
 
 export function trenchRadius( d ) {
 
-	return 70 - Math.min( d, FLOOR_DEPTH ) * 0.12;
+	return 92 - Math.min( d, FLOOR_DEPTH ) * 0.12;
 
 }
 

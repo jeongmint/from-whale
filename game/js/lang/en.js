@@ -15,14 +15,14 @@ export default {
 			continueAt: 'Continue · {ch}',
 			quote: '“ Adventure begins<br>with the very thought of doing something ”'
 		},
-		hud: { hearts: 'Health', journal: 'Letters (L)', mute: 'Sound (M)', pause: 'Pause (Esc)', home: 'Back to home', boss: 'MOBY DICK · HEART', keys: { swim: 'Swim', boost: 'Boost', jump: 'Jump', sing: 'Sing' } },
+		hud: { hearts: 'Health', journal: 'Letters (L)', mute: 'Sound (M)', pause: 'Pause (Esc)', home: 'Back to home', boss: 'MOBY DICK · HEART', keys: { swim: 'Swim', boost: 'Boost', jump: 'Jump', sing: 'Sing', up: 'Up', down: 'Down' } },
 		song: { title: '52HZ ↔ FINN', listen: 'Listen… the rhythm of Finn\'s sobs', turn: 'Now! Sing back the same rhythm [E]', miss: 'Not quite… listen again', help: 'Luke counts the beat for you', good: 'The sobbing eases a little', done: 'The crying stops' },
 		duet: { title: 'DUET · 52HZ ♥ 52HZ', help: 'Sing [E] · Jump [Space]', ready: 'Stella counts you in…', perfect: 'PERFECT', excellent: 'EXCELLENT', good: 'GOOD', miss: 'MISS', combo: '{n} COMBO', rank: 'RANK {r}', sky: '★ The night sky is complete!' },
 		feedback: { open: '✉ Send an idea or a bug', placeholder: 'Write any idea or bug you found', send: 'Send', sending: 'Sending…', thanks: 'Thank you! Got it.', fail: 'Couldn\'t send it right now. Please email it instead:', copy: 'Copy address', copied: 'Copied!', mailApp: 'Open mail app' },
 		letter: { close: 'Close <span class="mono tiny">[E]</span>' },
 		// MAP 2 · Under the sea
 		map2: {
-			label: 'MAP 2 · THE DEEP',
+			label: 'MAP 2 · A SEA BORN WITHOUT WAVES',
 			obj: [ 'Find the wrecked submersible · Sunlight zone', 'Find the undersea lab · Twilight zone', 'Find the red terminal · Midnight zone', 'Find the whale bones · Midnight zone', 'Find the last record · The trench', 'Find the base door · The bottom' ],
 			objBase: 'Sing the stop code at the base door',
 			current: 'The current holds you back — find this layer\'s record first',
@@ -32,14 +32,16 @@ export default {
 			eel: 'Morays hide in the cracks — sing to make them glow red',
 			faint: '{N} blacked out from a moray bite — woke up by the last log',
 			guardSpot: '! Alliance guards — they won\'t follow you to the walls (moray holes)',
-			guardHear: '52Hz rang out — the guards are coming!'
+			guardHear: '52Hz rang out — the guards are coming!',
+			jelly: 'The jellyfish\'s light wraps the wound — heart restored',
+			guardStun: 'A perfect 52Hz — nearby guards freeze for a moment'
 		},
 		// MAP 2 preview: portal → under the sea
 		dive: {
-			label: 'MAP 2 · THE DEEP',
+			label: 'MAP 2 · A SEA BORN WITHOUT WAVES',
 			objPortal: 'Swim into the glowing whirlpool',
 			objSwim: 'Try swimming under the sea',
-			card: [ 'MAP 2', 'Into the Deep', 'Preview · in development' ],
+			card: [ 'MAP 2', 'A Sea Born Without Waves', 'Preview · in development' ],
 			hint: '[Space] up · [C] down · [E] sing to light the dark — MAP 2 is still in development from here',
 			zones: [ 'Sunlight zone', 'Twilight zone', 'Midnight zone', 'The trench' ],
 			zoneSub: [ 'Where the light shafts reach', 'The light fades — the glow on your back lights the way', 'Pitch dark — sing and the dark lights up like sonar', 'The end of a narrow canyon — something waits below' ]
@@ -218,7 +220,7 @@ export default {
 
 	story: {
 		prologue: {
-			card: [ 'PROLOGUE', '52Hz', 'A song no one can hear' ],
+			card: [ 'MAP 1 · The Night the Stars Fell', '52Hz', 'A song no one can hear' ],
 			intro: [
 				[ 'narrator', 'Another world, the year 2066.\nThe sea is home to a few humans, and far more whales.' ],
 				[ 'narrator', 'Whales talk in song.\nMost sing low, at 10 to 25 hertz. Blue whales sing a little higher, in the 30s.' ],
@@ -422,7 +424,9 @@ export default {
 				],
 				[
 					[ 'luke', 'This J was on the whales\' side, I think. Let\'s read it all.', 'luke' ],
-					[ 'narrator', 'The writing was unreadable, but the drawings were clear.', 'lukeGone' ]
+					[ 'narrator', 'The writing was unreadable, but the drawings were clear.', 'lukeGone' ],
+					[ 'finn', '...We never knew waves. The first sea we saw was on the other side of tank glass.', 'finn' ],
+					[ 'narrator', 'They were born without waves.', 'finnGone' ]
 				],
 				[
 					[ 'narrator', 'The third command blinked red.' ],
@@ -439,7 +443,10 @@ export default {
 					[ 'finn', 'This... it\'s on my neck. I thought it was a compass.', 'finn' ],
 					[ 'finn', 'So that\'s why. That\'s how someone from the Alliance could follow you.', 'finn' ],
 					[ 'narrator', '{N} remembered the broken compass Finn left behind.', 'finnGone' ],
-					[ 'narrator', 'It was never a compass. It was the stop device Finn had guarded to the end.', 'finnGone' ]
+					[ 'narrator', 'It was never a compass. It was the stop device Finn had guarded to the end.', 'finnGone' ],
+					[ 'narrator', 'Tied to the capsule hung a small fishhook carved from stone.' ],
+					[ 'finn', '...I\'ve seen this. Every time someone stroked my head, it swung back and forth.', 'finn' ],
+					[ 'narrator', 'Its tip was worn smooth, as if someone had held it for years.', 'finnGone' ]
 				],
 				[
 					[ 'luke', '"Uninterpretable"... No. He understood it too well, so he tried to erase it.', 'luke' ],
@@ -452,8 +459,9 @@ export default {
 				[ 'finn', 'The guards... The trench is where "the Voice of the Deep" lives. They protect it.', 'finn' ],
 				[ 'finn', 'Stay by the walls. The moray holes are taboo, so they won\'t come.\n...I\'m scared of morays too, though.', 'finn' ],
 				[ 'narrator', 'Strangely, the red eyes never came near the walls.', 'finnGone' ],
-				[ 'luke', 'And save your singing. To them, 52Hz is "purge priority one."', 'luke' ],
-				[ 'narrator', 'If {N} sang at 52Hz, every one of those eyes would turn this way.', 'lukeGone' ]
+				[ 'luke', 'Careful with singing, though. Every guard in earshot will come. To them, 52Hz is "purge priority one."', 'luke' ],
+				[ 'narrator', 'If {N} sang at 52Hz, every one of those eyes would turn this way.', 'lukeGone' ],
+				[ 'narrator', 'The duet with Stella still rang through {N}.\nSung up close, it might freeze even those red eyes for a moment.' ]
 			],
 			// 고래 뼈 제단: 정화 의식
 			altar: [

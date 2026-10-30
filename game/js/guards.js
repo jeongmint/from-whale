@@ -6,14 +6,20 @@ import { Whale, steerTo } from './actors.js';
 import { trenchCenter, trenchRadius } from './map2.js';
 
 // 순찰하는 깊이 (m). 고래 뼈(205m) 둘레는 제단이라 셋이 원을 그리며 의식을 치른다
-const PATROLS = [ 58, 96, 132, 168, 238, 262, 292 ];
-const ALTAR = { depth: 205, count: 3, radius: 16 };
+const PATROLS = [ 70, 140, 245, 290 ];
+const ALTAR = { depth: 205, count: 2, radius: 18 };
 
-const SEE = 26; // 이 안에서 헤이즐을 보면 쫓는다
-const HEAR = 95; // 노래가 들리는 거리
-const BITE = 6.5;
-const CHASE_SPEED = 16; // 헤이즐 보통 속도(17)보다 조금 느리다. 가속하면 따돌린다
-const TABOO = 0.6; // 협곡 반지름의 이 비율 밖(벽 쪽)으로는 들어가지 않는다
+const SEE = 18; // 이 안에서 헤이즐을 보면 쫓는다
+const HEAR = 60; // 노래가 들리는 거리
+const HEAR_DEPTH = 30; // 노래는 위아래로는 이만큼만 들린다
+const SPOT_TIME = 1; // 들킨 뒤 멈춰서 노려보는 시간 (피할 틈)
+const BITE = 5;
+// 스텔라와 부른 '완벽한 노래': 가까운 경비는 잠시 멈춘다 (멀리 있는 경비는 여전히 몰려온다)
+const STUN_RANGE = 24;
+const STUN_DEPTH = 14;
+const SONG_STUN = 3.5;
+const CHASE_SPEED = 13; // 헤이즐 보통 속도(17)보다 느리다. 그냥 헤엄쳐도 조금씩 멀어진다
+const TABOO = 0.5; // 협곡 반지름의 이 비율 밖(벽 쪽)으로는 들어가지 않는다
 const SHOW_RANGE = 90;
 
 const _c = new THREE.Vector2();
@@ -28,6 +34,7 @@ export class Guards {
 		this.onSpot = null; // 들켰을 때 ( 이 경비 )
 		this.onHit = null; // 부딪혔을 때 ( 위치 ) → 맞았으면 true
 		this.onHear = null; // 노래를 듣고 몰려올 때 ( 몇 마리 )
+		this.onStun = null; // 노래로 멈췄을 때 ( 몇 마리 )
 
 		for ( const depth of PATROLS ) this.add( model, { depth, angle: Math.random() * Math.PI * 2 } );
 		for ( let i = 0; i < ALTAR.count; i ++ ) this.add( model, { depth: ALTAR.depth, angle: ( i / ALTAR.count ) * Math.PI * 2, altar } );
@@ -75,21 +82,35 @@ export class Guards {
 
 	}
 
-	// 52Hz 노래: 들리는 곳의 경비가 모두 몰려온다. 몰려온 수를 돌려준다
+	// 52Hz 노래: 가까운 경비는 멈추고, 들리는 곳의 나머지는 몰려온다. 몰려온 수를 돌려준다
 	hear( pos ) {
 
-		let n = 0;
+		let n = 0, stunned = 0;
 		for ( const g of this.list ) {
 
-			if ( g.state === 'stun' ) continue;
+			if ( g.state === 'calm' ) continue;
 			const d = Math.hypot( g.whale.pos.x - pos.x, g.y - pos.y, g.whale.pos.z - pos.z );
-			if ( d > HEAR ) continue;
-			if ( g.state !== 'chase' ) n ++;
-			g.state = 'chase';
+			if ( d < STUN_RANGE && Math.abs( g.y - pos.y ) < STUN_DEPTH ) {
+
+				g.state = 'stun';
+				g.sung = true;
+				g.t = 0;
+				g.whale.setGlow( 0, 0x000000 ); // 붉은 눈이 잠시 꺼진다
+				stunned ++;
+				continue;
+
+			}
+
+			if ( g.state === 'stun' ) continue;
+			if ( d > HEAR || Math.abs( g.y - pos.y ) > HEAR_DEPTH ) continue;
+			if ( g.state === 'chase' || g.state === 'spot' ) continue;
+			n ++;
+			g.state = 'spot';
 			g.t = 0;
 
 		}
 
+		if ( stunned ) this.onStun?.( stunned );
 		if ( n ) this.onHear?.( n );
 		return n;
 
@@ -128,9 +149,22 @@ export class Guards {
 				// 벽 쪽에 붙은 헤이즐은 보지 않는다 (금기의 땅)
 				if ( dist < SEE && this.clampTaboo( hazel.x, hazel.z, hazel.y ).inside ) {
 
-					g.state = 'chase';
+					g.state = 'spot';
 					g.t = 0;
 					this.onSpot?.( g );
+
+				}
+
+			} else if ( g.state === 'spot' ) {
+
+				// 멈춰서 헤이즐 쪽으로 돌아본다. 이때 벽으로 피하면 쫓지 않는다
+				w.speed *= 0.85;
+				steerTo( w, hazel.x, hazel.z, 0, dt, 3 );
+				wantY = g.y;
+				if ( g.t > SPOT_TIME ) {
+
+					g.state = this.clampTaboo( hazel.x, hazel.z, hazel.y ).inside && dist < SEE * 2.5 ? 'chase' : 'return';
+					g.t = 0;
 
 				}
 
@@ -142,7 +176,7 @@ export class Guards {
 				// 벽으로 숨거나 멀리 따돌리면 잠시 노려보다 돌아간다
 				if ( ! p.inside ) g.glare = ( g.glare ?? 0 ) + dt;
 				else g.glare = 0;
-				if ( dist > 70 || g.glare > 3 || g.t > 14 ) {
+				if ( dist > 45 || g.glare > 2 || g.t > 8 ) {
 
 					g.state = 'return';
 					g.glare = 0;
@@ -154,13 +188,27 @@ export class Guards {
 				const p = this.patrolPoint( g );
 				if ( steerTo( w, p.x, p.z, 12, dt, 2.2 ) < 6 && Math.abs( g.y + g.home ) < 3 ) g.state = 'patrol';
 
+			} else if ( g.state === 'stun' && g.sung ) {
+
+				// 노래에 멈춤: 제자리에서 비틀거리다 정신을 차리면 돌아간다
+				w.speed *= 0.9;
+				w.bank = Math.sin( g.t * 7 ) * 0.5;
+				wantY = g.y;
+				if ( g.t > SONG_STUN ) {
+
+					g.state = 'return';
+					g.sung = false;
+					w.setGlow( 0.12, 0xff2050 );
+
+				}
+
 			} else if ( g.state === 'stun' ) {
 
 				steerTo( w, w.pos.x - dx, w.pos.z - dz, 12, dt, 3 );
 				wantY = g.y;
-				if ( g.t > 1.6 ) {
+				if ( g.t > 2.5 ) {
 
-					g.state = dist < 50 ? 'chase' : 'return';
+					g.state = 'return'; // 한 번 물고 나면 돌아간다
 					g.t = 0;
 
 				}
@@ -172,7 +220,7 @@ export class Guards {
 			w.depth = w.surfaceY - g.y;
 			w.update( dt );
 
-			if ( active && dist < BITE && ( g.state === 'chase' || g.state === 'patrol' ) && this.onHit?.( w.pos ) ) {
+			if ( active && dist < BITE && g.state === 'chase' && this.onHit?.( w.pos ) ) {
 
 				g.state = 'stun';
 				g.t = 0;

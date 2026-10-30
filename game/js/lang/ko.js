@@ -15,14 +15,14 @@ export default {
 			continueAt: '이어하기 · {ch}',
 			quote: '“ 무언가를 한다는 생각 자체부터<br>모험은 시작된다 ”'
 		},
-		hud: { hearts: '체력', journal: '편지함 (L)', mute: '소리 (M)', pause: '일시정지 (Esc)', home: '첫 화면으로', boss: 'MOBY DICK · 마음', keys: { swim: '헤엄', boost: '가속', jump: '점프', sing: '노래' } },
+		hud: { hearts: '체력', journal: '편지함 (L)', mute: '소리 (M)', pause: '일시정지 (Esc)', home: '첫 화면으로', boss: 'MOBY DICK · 마음', keys: { swim: '헤엄', boost: '가속', jump: '점프', sing: '노래', up: '위로', down: '아래로' } },
 		song: { title: '52HZ ↔ FINN', listen: '들어 봐… 핀의 울음 박자', turn: '지금! 같은 박자로 노래하기 [E]', miss: '조금 달라… 다시 들어 봐', help: '루크가 박자를 세어 준다', good: '울음이 조금 잦아들었다', done: '울음이 멎었다' },
 		duet: { title: 'DUET · 52HZ ♥ 52HZ', help: '노래 [E] · 점프 [Space]', ready: '스텔라가 박자를 센다…', perfect: 'PERFECT', excellent: 'EXCELLENT', good: 'GOOD', miss: 'MISS', combo: '{n} COMBO', rank: 'RANK {r}', sky: '★ 밤하늘 완성!' },
 		feedback: { open: '✉ 아이디어 · 버그 보내기', placeholder: '아이디어나 버그를 자유롭게 적어 주세요', send: '보내기', sending: '보내는 중…', thanks: '고마워요! 잘 받았어요.', fail: '지금은 바로 보내지 못했어요. 아래 메일로 보내 주세요.', copy: '주소 복사', copied: '복사했어요!', mailApp: '메일 앱으로' },
 		letter: { close: '닫기 <span class="mono tiny">[E]</span>' },
 		// MAP 2 · 바닷속
 		map2: {
-			label: 'MAP 2 · 바닷속',
+			label: 'MAP 2 · 파도 없이 태어난 바다',
 			obj: [ '부서진 잠수정 찾기 · 햇빛층', '해저 연구소 찾기 · 어스름층', '붉은 단말기 찾기 · 한밤층', '고래 뼈 찾기 · 한밤층', '마지막 기록 찾기 · 해구', '기지 출입문 찾기 · 맨 밑' ],
 			objBase: '기지 문 앞에서 정지 코드 부르기',
 			current: '물살이 아래를 막는다 — 이 층의 기록부터 찾자',
@@ -32,14 +32,16 @@ export default {
 			eel: '벽 틈에 곰치가 숨어 있다 — 노래하면 붉게 드러난다',
 			faint: '{N이} 곰치에게 물려 정신을 잃었다 — 마지막으로 읽은 기록 앞에서 깨어났다',
 			guardSpot: '! 경비 연합군 — 벽 쪽(곰치 굴)으로는 따라오지 않는다',
-			guardHear: '52Hz가 울렸다 — 경비 연합군이 몰려온다!'
+			guardHear: '52Hz가 울렸다 — 경비 연합군이 몰려온다!',
+			jelly: '해파리의 빛이 상처를 감쌌다 — 하트 회복',
+			guardStun: '완벽한 52Hz — 가까운 연합군이 잠시 멈췄다'
 		},
 		// MAP 2 미리보기: 포털 → 바닷속
 		dive: {
-			label: 'MAP 2 · 바닷속',
+			label: 'MAP 2 · 파도 없이 태어난 바다',
 			objPortal: '빛나는 소용돌이로 들어가기',
 			objSwim: '바닷속을 헤엄쳐 보기',
-			card: [ 'MAP 2', '바닷속으로', '미리보기 · 개발 중' ],
+			card: [ 'MAP 2', '파도 없이 태어난 바다', '미리보기 · 개발 중' ],
 			hint: '[Space] 위로 · [C] 아래로 · [E] 노래로 둘레 밝히기 — 여기부터는 개발 중인 MAP 2예요',
 			zones: [ '햇빛층', '어스름층', '한밤층', '해구' ],
 			zoneSub: [ '빛줄기가 닿는 곳', '빛이 희미해진다 — 등의 빛 문양이 길을 비춘다', '깜깜하다 — 노래하면 소나처럼 둘레가 밝아진다', '좁은 협곡의 끝 — 저 아래에 무언가 있다' ]
@@ -220,7 +222,7 @@ export default {
 
 	story: {
 		prologue: {
-			card: [ 'PROLOGUE', '52Hz', '아무도 듣지 못하는 노래' ],
+			card: [ 'MAP 1 · 별이 떨어지는 밤', '52Hz', '아무도 듣지 못하는 노래' ],
 			intro: [
 				[ 'narrator', '이세계의 2066년.\n바다에는 소수의 인간과, 그보다 훨씬 많은 고래가 살고 있다.' ],
 				[ 'narrator', '고래들은 노래로 이야기한다.\n대부분은 10~25헤르츠의 낮은 소리. 대왕고래는 조금 높은 30헤르츠대.' ],
@@ -424,7 +426,9 @@ export default {
 				],
 				[
 					[ 'luke', '이 J라는 인간, 고래 편이었나 봐. 끝까지 읽어 보자.', 'luke' ],
-					[ 'narrator', '글자는 읽을 수 없었지만, 그림은 분명했다.', 'lukeGone' ]
+					[ 'narrator', '글자는 읽을 수 없었지만, 그림은 분명했다.', 'lukeGone' ],
+					[ 'finn', '...우린 파도를 몰랐어. 처음 본 바다는, 수조 유리 너머였어.', 'finn' ],
+					[ 'narrator', '그들은 파도 없이 태어났다.', 'finnGone' ]
 				],
 				[
 					[ 'narrator', '세 번째 명령이 붉게 깜빡였다.' ],
@@ -441,7 +445,10 @@ export default {
 					[ 'finn', '이거... 내 목에 있는 거야. 나침반인 줄 알았는데.', 'finn' ],
 					[ 'finn', '그래서였구나. 연합군이었던 내가, 너를 따라올 수 있었던 거.', 'finn' ],
 					[ 'narrator', '{N은} 핀이 남긴 부서진 나침반을 떠올렸다.', 'finnGone' ],
-					[ 'narrator', '나침반이 아니었다. 핀이 끝까지 지켜 온 정지 장치였다.', 'finnGone' ]
+					[ 'narrator', '나침반이 아니었다. 핀이 끝까지 지켜 온 정지 장치였다.', 'finnGone' ],
+					[ 'narrator', '캡슐 끈에, 돌을 깎아 만든 작은 낚싯바늘 하나가 매달려 있었다.' ],
+					[ 'finn', '...이거, 본 적 있어. 누가 내 머리를 쓰다듬을 때마다 이게 달랑거렸어.', 'finn' ],
+					[ 'narrator', '오래 쥐고 다닌 듯, 끝이 반들반들하게 닳아 있었다.', 'finnGone' ]
 				],
 				[
 					[ 'luke', '"해석 불가"라니... 아니야. 너무 잘 알아서 지우려 한 거야.', 'luke' ],
@@ -454,8 +461,9 @@ export default {
 				[ 'finn', '경비대야... 해구는 "심연의 목소리"가 사는 곳이라, 저 애들이 지켜.', 'finn' ],
 				[ 'finn', '벽 쪽으로 붙어. 곰치 굴은 금기라서 저 애들은 안 와.\n...곰치는 나도 무섭지만.', 'finn' ],
 				[ 'narrator', '붉은 눈들은 이상하게도, 벽 쪽으로는 다가오지 않았다.', 'finnGone' ],
-				[ 'luke', '그리고 노래는 아껴. 52Hz는 저 녀석들한테 "정화 1순위"니까.', 'luke' ],
-				[ 'narrator', '52Hz로 노래하면, 저 눈들이 모두 이쪽을 볼 것 같았다.', 'lukeGone' ]
+				[ 'luke', '노래는 조심해. 들리는 녀석들은 다 몰려올 거야. 52Hz는 저 녀석들한테 "정화 1순위"니까.', 'luke' ],
+				[ 'narrator', '52Hz로 노래하면, 저 눈들이 모두 이쪽을 볼 것 같았다.', 'lukeGone' ],
+				[ 'narrator', '스텔라와 함께 부른 노래가 아직 몸에 남아 있었다.\n가까이서 부르면, 붉은 눈도 잠시 멈출 것 같았다.' ]
 			],
 			// 고래 뼈 제단: 정화 의식
 			altar: [

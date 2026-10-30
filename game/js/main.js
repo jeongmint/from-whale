@@ -1278,7 +1278,7 @@ async function faint() {
 		G.diveY = c.y;
 		G.diveVy = 0;
 		camera.position.set( c.x - Math.sin( G.camYaw ) * 20, c.y + 4.5, c.z - Math.cos( G.camYaw ) * 20 );
-		for ( const g of G.guards?.list ?? [] ) if ( g.state === 'chase' || g.state === 'stun' ) g.state = 'return';
+		for ( const g of G.guards?.list ?? [] ) if ( g.state === 'chase' || g.state === 'spot' || g.state === 'stun' ) g.state = 'return';
 
 	} else if ( G.boss?.active ) {
 
@@ -2447,7 +2447,7 @@ function sing() {
 
 		G.dive.pulse( h.root.position ); // 바닷속: 노래가 소나처럼 둘레를 밝힌다
 		G.sea?.reveal( h.root.position ); // 숨은 곰치도 붉게 드러난다
-		G.guards?.hear( h.root.position ); // 대신 52Hz를 들은 경비 연합군이 몰려온다
+		G.guards?.hear( h.root.position ); // 가까운 경비는 '완벽한 노래'에 멈추고, 멀리서 들은 경비는 몰려온다
 
 	}
 	else for ( let i = 0; i < 3; i ++ ) G.world.ring( h.pos.x, h.pos.z, { color: 0x7fe9ff, to: 58, life: 1.6, delay: i * 0.28 } );
@@ -3111,6 +3111,13 @@ async function enterDive() {
 		G.guards = new Guards( { scene, model: G.models.orca, entry: G.map2.entry, altar: G.map2.logs.find( ( l ) => l.landmark === 'bones' ).pos } );
 		G.guards.onSpot = () => guardAlert( 'map2.guardSpot' );
 		G.guards.onHear = () => guardAlert( 'map2.guardHear' );
+		G.guards.onStun = () => {
+
+			if ( G.guardStunHinted ) return;
+			G.guardStunHinted = true;
+			G.ui.toast( t( 'map2.guardStun' ) );
+
+		};
 		G.guards.onHit = ( pos ) => damage( 1, pos, { stun: 0.3 } );
 
 	}
@@ -3120,6 +3127,18 @@ async function enterDive() {
 		if ( G.sea ) return;
 		G.sea = new Sealife( models, G.map2.group, G.map2.entry );
 		G.sea.onMeet = ( key ) => key === 'coelacanth' && G.ui.toast( t( 'map2.coelacanth' ) );
+		// 대학원생 J의 마지막 기록 캡슐에 매달린 돌 낚싯바늘
+		const capsule = G.map2.logs.find( ( l ) => l.landmark === 'capsule' );
+		if ( capsule ) G.sea.hang( 'hook', capsule.pos.clone().add( new THREE.Vector3( 0.8, - 2.2, 0 ) ) );
+		// 해파리에 닿으면 하트 하나 (하트가 다 차 있으면 그냥 지나간다)
+		G.sea.onHeal = () => {
+
+			if ( G.hearts >= MAX_HEARTS ) return false;
+			heal();
+			G.ui.toast( t( 'map2.jelly' ) );
+			return true;
+
+		};
 		G.sea.onBite = ( pos ) => {
 
 			if ( ! damage( 1, pos, { stun: 0.5 } ) ) return;
@@ -3591,7 +3610,7 @@ function updateHud() {
 		const next = G.map2.logs.find( ( l ) => ! l.read );
 		for ( const l of G.map2.logs ) points.push( l === next ? { x: l.pos.x, z: l.pos.z, color: '#7fe9ff', size: 4, shape: 'diamond' } : { x: l.pos.x, z: l.pos.z, color: l.read ? 'rgba(185,168,255,0.6)' : 'rgba(127,233,255,0.35)', size: 2.5 } );
 		// 경비 연합군: 쫓아올 땐 깜빡이는 빨간 점 (비슷한 깊이만)
-		for ( const g of G.guards?.list ?? [] ) if ( g.state !== 'calm' && Math.abs( g.y - G.diveY ) < 25 ) points.push( { x: g.whale.pos.x, z: g.whale.pos.z, color: g.state === 'chase' ? ( Math.floor( G.time * 6 ) % 2 ? '#ff3355' : '#ffd0d8' ) : 'rgba(255,90,110,0.55)', size: 3 } );
+		for ( const g of G.guards?.list ?? [] ) if ( g.state !== 'calm' && Math.abs( g.y - G.diveY ) < 25 ) points.push( { x: g.whale.pos.x, z: g.whale.pos.z, color: g.state === 'chase' || g.state === 'spot' ? ( Math.floor( G.time * 6 ) % 2 ? '#ff3355' : '#ffd0d8' ) : 'rgba(255,90,110,0.55)', size: 3 } );
 		// 노래로 드러났거나 노리는 중인 곰치는 빨간 점 (비슷한 깊이만)
 		for ( const e of G.sea?.eels ?? [] ) if ( ( e.glow > 0 || e.state === 'tell' || e.state === 'lunge' ) && Math.abs( e.home.y - G.diveY ) < 25 ) points.push( { x: e.home.x, z: e.home.z, color: '#ff5a6e', size: 3.5 } );
 		for ( const key of [ 'luke', 'finn' ] ) if ( G.party[ key ] === 'on' ) points.push( { x: G.actors[ key ].pos.x, z: G.actors[ key ].pos.z, color: '#eaf6ff', size: 3 } );
