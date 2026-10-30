@@ -33,7 +33,7 @@ A sea adventure of **Hazel**, a whale who sings at 52Hz. Another world, the year
 - **Moby Dick boss fight** — 6 songs that reach him win him over. Body hits and falling stars cost a heart; stun 1.1 s from stars, 1.5 s from charges (with Finn's Tears, a song clears it at once)
 - **Stella (hidden ending)** — all 6 letters in bottles (Moby's prologue letter included) → 12-bar blues duet (PERFECT ±25 ms · EXCELLENT ±60 ms · GOOD ±150 ms, 450 max, S from 85% · A from 60%, a shooting star per jump note) → name the song and leave it with your nickname and score on the shared **Duet TOP 10**. After meeting Stella, "Sing the duet again" on the title or ending screen replays just the duet (save data untouched). Remaining letters can be found in the epilogue after the ending
 - **Space and sea** — Gerstner waves, glittering ripples, ringed planet, shooting stars, bloom
-- **MAP 2 · Under the sea (BETA)** — after meeting Stella, "Into the deep" on the ending screen → a portal on the surface → dive. Inside, MAP 1 (lighthouse, kelp, Alliance…) is gone and only MAP 2 remains (the sonar shows the research logs). Keep descending a trench: sunlight zone → twilight (40 m) → midnight (120 m) → trench (250 m) → the Doctor's base at the bottom (318 m). The deeper you go the more the moonlight fades; Hazel's glowing pattern and her song (sonar) light the way. Six research logs, one per layer (wrecked sub, lab, red terminal, whale bones, grad student J's record, the Doctor's memo); the current blocks the way down until each is read. Luke translates the writing, or you get only the drawings; Finn's fate changes the stop-device scene. At the base door the pink Shaman blocks the way: she calls the base AI "the Voice of the Deep". Sing the stop code → the red eyes go dark, the Shaman's Voice falls silent → MAP 2 ending "A Song Heard". Sea life per layer: reef fish schools in the sunlight zone (scatter when Hazel comes close), stingray · grouper · barracuda · reef sharks in the twilight, glowing moon jellyfish at midnight (brighter when you sing; touch one for a heart, then it dims for 30 s), coelacanths in the trench, crabs · urchins · starfish · shrimp at the bottom. Alliance guards (red eyes) patrol the middle of the trench from the twilight zone down and, after a one-second stare (time to slip away to the walls), chase Hazel when they see her; singing at 52Hz brings every guard in earshot, but the "perfect song" learned from the duet with Stella freezes guards close by for a few seconds (red eyes go dark). Two guards circle the whale bones as an altar of "purification". The moray holes in the walls are taboo, so guards never follow you there. Moray eels hide in those walls: they shiver, then lunge and bite (1 heart, short stun). Singing makes nearby morays glow red and shows them on the sonar. Reading a log refills hearts; fainting in MAP 2 wakes Hazel by the last log read (no heart-stop ending)
+- **MAP 2 · Under the sea (BETA)** — a second map that opens after meeting Stella. Descend a trench and uncover the Alliance's secret (see MAP 2 below)
 - **Retro blue UI** — window-style HUD, sonar minimap, chapter cards, PC controls guide, current objective inside the HAZEL window (top center left clear). One-line dialog at the bottom, two-column title, and the call-and-response window at the bottom left in tilt mode on landscape phones
 - **Light models** — 500–650 vertices per whale, 512px textures. Phone support
 
@@ -51,6 +51,26 @@ A sea adventure of **Hazel**, a whale who sings at 52Hz. Another world, the year
 | The Broken Compass | ○ | ✕ |
 | Sacrifice | ✕ | ✕ |
 | The Late Whale | any | any |
+
+### MAP 2 · Under the sea (BETA)
+
+- Way in: after meeting Stella, "Into the deep" on the ending screen → a portal on the surface → dive. MAP 1 (lighthouse, kelp, Alliance…) is gone
+- Progress: keep descending a trench. One research log per layer; the current blocks the way down until it is read. Luke translates the writing, or only the drawings
+- Darkness: the moonlight fades with depth. Hazel's glowing pattern and her song (sonar) light the way. A rippling surface with a net of light overhead
+- Story: the Alliance is a human AI experiment. The Shaman hears the base AI's orders as "the Voice of the Deep"; the whale bones are the altar of "purification"
+- Alliance guards: patrol the middle of the trench. Spotted → a one-second stare, then a chase; slip to the walls in time and they don't follow. The moray holes in the walls are taboo
+- Singing: nearby morays glow red (red dots on the sonar). Close guards freeze for 3.5 s at the "perfect song" learned from Stella; guards farther off hear it and come
+- Moray eels: hide in the wall cracks, shiver, then lunge and bite (1 heart, short stun)
+- Hearts: refilled by reading a log; a jellyfish touch gives 1 (that jellyfish recharges for 30 s). Fainting wakes Hazel by the last log read (no heart-stop ending)
+- Finale: the Shaman at the base door → the stop code rhythm (Stella's voice + Finn's device, or the broken compass without Finn) → the red eyes go dark and the Shaman's Voice falls silent → MAP 2 ending "A Song Heard"
+
+| Layer | Depth | Research log | Sea life · dangers |
+| --- | --- | --- | --- |
+| Sunlight | 0–40 m | Wrecked sub (30 m) | Reef fish schools (scatter when you come close) |
+| Twilight | 40–120 m | Undersea lab (80 m) | Stingray, grouper, barracuda, reef sharks · guards, morays |
+| Midnight | 120–250 m | Red terminal (150 m), whale bone altar (205 m) | Glowing moon jellyfish (brighter when you sing) · guards, morays |
+| Trench | 250–318 m | Grad student J's last record (270 m) | Coelacanths · guards, morays |
+| Base | 318 m– | The Doctor's memo (312 m) | Crabs, urchins, starfish, shrimp · the Shaman |
 
 ### Characters
 
