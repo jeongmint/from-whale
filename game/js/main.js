@@ -3120,6 +3120,15 @@ async function enterDive() {
 		if ( G.sea ) return;
 		G.sea = new Sealife( models, G.map2.group, G.map2.entry );
 		G.sea.onMeet = ( key ) => key === 'coelacanth' && G.ui.toast( t( 'map2.coelacanth' ) );
+		// 해파리에 닿으면 하트 하나 (하트가 다 차 있으면 그냥 지나간다)
+		G.sea.onHeal = () => {
+
+			if ( G.hearts >= MAX_HEARTS ) return false;
+			heal();
+			G.ui.toast( t( 'map2.jelly' ) );
+			return true;
+
+		};
 		G.sea.onBite = ( pos ) => {
 
 			if ( ! damage( 1, pos, { stun: 0.5 } ) ) return;

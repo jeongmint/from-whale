@@ -32,7 +32,8 @@ export default {
 			eel: 'Morays hide in the cracks — sing to make them glow red',
 			faint: '{N} blacked out from a moray bite — woke up by the last log',
 			guardSpot: '! Alliance guards — they won\'t follow you to the walls (moray holes)',
-			guardHear: '52Hz rang out — the guards are coming!'
+			guardHear: '52Hz rang out — the guards are coming!',
+			jelly: 'The jellyfish\'s light wraps the wound — heart restored'
 		},
 		// MAP 2 preview: portal → under the sea
 		dive: {
