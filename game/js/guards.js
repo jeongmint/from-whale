@@ -14,6 +14,10 @@ const HEAR = 60; // 노래가 들리는 거리
 const HEAR_DEPTH = 30; // 노래는 위아래로는 이만큼만 들린다
 const SPOT_TIME = 1; // 들킨 뒤 멈춰서 노려보는 시간 (피할 틈)
 const BITE = 5;
+// 스텔라와 부른 '완벽한 노래': 가까운 경비는 잠시 멈춘다 (멀리 있는 경비는 여전히 몰려온다)
+const STUN_RANGE = 24;
+const STUN_DEPTH = 14;
+const SONG_STUN = 3.5;
 const CHASE_SPEED = 13; // 헤이즐 보통 속도(17)보다 느리다. 그냥 헤엄쳐도 조금씩 멀어진다
 const TABOO = 0.5; // 협곡 반지름의 이 비율 밖(벽 쪽)으로는 들어가지 않는다
 const SHOW_RANGE = 90;
@@ -30,6 +34,7 @@ export class Guards {
 		this.onSpot = null; // 들켰을 때 ( 이 경비 )
 		this.onHit = null; // 부딪혔을 때 ( 위치 ) → 맞았으면 true
 		this.onHear = null; // 노래를 듣고 몰려올 때 ( 몇 마리 )
+		this.onStun = null; // 노래로 멈췄을 때 ( 몇 마리 )
 
 		for ( const depth of PATROLS ) this.add( model, { depth, angle: Math.random() * Math.PI * 2 } );
 		for ( let i = 0; i < ALTAR.count; i ++ ) this.add( model, { depth: ALTAR.depth, angle: ( i / ALTAR.count ) * Math.PI * 2, altar } );
@@ -77,14 +82,26 @@ export class Guards {
 
 	}
 
-	// 52Hz 노래: 들리는 곳의 경비가 모두 몰려온다. 몰려온 수를 돌려준다
+	// 52Hz 노래: 가까운 경비는 멈추고, 들리는 곳의 나머지는 몰려온다. 몰려온 수를 돌려준다
 	hear( pos ) {
 
-		let n = 0;
+		let n = 0, stunned = 0;
 		for ( const g of this.list ) {
 
-			if ( g.state === 'stun' || g.state === 'calm' ) continue;
+			if ( g.state === 'calm' ) continue;
 			const d = Math.hypot( g.whale.pos.x - pos.x, g.y - pos.y, g.whale.pos.z - pos.z );
+			if ( d < STUN_RANGE && Math.abs( g.y - pos.y ) < STUN_DEPTH ) {
+
+				g.state = 'stun';
+				g.sung = true;
+				g.t = 0;
+				g.whale.setGlow( 0, 0x000000 ); // 붉은 눈이 잠시 꺼진다
+				stunned ++;
+				continue;
+
+			}
+
+			if ( g.state === 'stun' ) continue;
 			if ( d > HEAR || Math.abs( g.y - pos.y ) > HEAR_DEPTH ) continue;
 			if ( g.state === 'chase' || g.state === 'spot' ) continue;
 			n ++;
@@ -93,6 +110,7 @@ export class Guards {
 
 		}
 
+		if ( stunned ) this.onStun?.( stunned );
 		if ( n ) this.onHear?.( n );
 		return n;
 
@@ -169,6 +187,20 @@ export class Guards {
 
 				const p = this.patrolPoint( g );
 				if ( steerTo( w, p.x, p.z, 12, dt, 2.2 ) < 6 && Math.abs( g.y + g.home ) < 3 ) g.state = 'patrol';
+
+			} else if ( g.state === 'stun' && g.sung ) {
+
+				// 노래에 멈춤: 제자리에서 비틀거리다 정신을 차리면 돌아간다
+				w.speed *= 0.9;
+				w.bank = Math.sin( g.t * 7 ) * 0.5;
+				wantY = g.y;
+				if ( g.t > SONG_STUN ) {
+
+					g.state = 'return';
+					g.sung = false;
+					w.setGlow( 0.12, 0xff2050 );
+
+				}
 
 			} else if ( g.state === 'stun' ) {
 

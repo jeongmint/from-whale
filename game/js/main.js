@@ -2447,7 +2447,7 @@ function sing() {
 
 		G.dive.pulse( h.root.position ); // 바닷속: 노래가 소나처럼 둘레를 밝힌다
 		G.sea?.reveal( h.root.position ); // 숨은 곰치도 붉게 드러난다
-		G.guards?.hear( h.root.position ); // 대신 52Hz를 들은 경비 연합군이 몰려온다
+		G.guards?.hear( h.root.position ); // 가까운 경비는 '완벽한 노래'에 멈추고, 멀리서 들은 경비는 몰려온다
 
 	}
 	else for ( let i = 0; i < 3; i ++ ) G.world.ring( h.pos.x, h.pos.z, { color: 0x7fe9ff, to: 58, life: 1.6, delay: i * 0.28 } );
@@ -3111,6 +3111,13 @@ async function enterDive() {
 		G.guards = new Guards( { scene, model: G.models.orca, entry: G.map2.entry, altar: G.map2.logs.find( ( l ) => l.landmark === 'bones' ).pos } );
 		G.guards.onSpot = () => guardAlert( 'map2.guardSpot' );
 		G.guards.onHear = () => guardAlert( 'map2.guardHear' );
+		G.guards.onStun = () => {
+
+			if ( G.guardStunHinted ) return;
+			G.guardStunHinted = true;
+			G.ui.toast( t( 'map2.guardStun' ) );
+
+		};
 		G.guards.onHit = ( pos ) => damage( 1, pos, { stun: 0.3 } );
 
 	}

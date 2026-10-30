@@ -33,7 +33,8 @@ export default {
 			faint: '{N} blacked out from a moray bite — woke up by the last log',
 			guardSpot: '! Alliance guards — they won\'t follow you to the walls (moray holes)',
 			guardHear: '52Hz rang out — the guards are coming!',
-			jelly: 'The jellyfish\'s light wraps the wound — heart restored'
+			jelly: 'The jellyfish\'s light wraps the wound — heart restored',
+			guardStun: 'A perfect 52Hz — nearby guards freeze for a moment'
 		},
 		// MAP 2 preview: portal → under the sea
 		dive: {
@@ -453,8 +454,9 @@ export default {
 				[ 'finn', 'The guards... The trench is where "the Voice of the Deep" lives. They protect it.', 'finn' ],
 				[ 'finn', 'Stay by the walls. The moray holes are taboo, so they won\'t come.\n...I\'m scared of morays too, though.', 'finn' ],
 				[ 'narrator', 'Strangely, the red eyes never came near the walls.', 'finnGone' ],
-				[ 'luke', 'And save your singing. To them, 52Hz is "purge priority one."', 'luke' ],
-				[ 'narrator', 'If {N} sang at 52Hz, every one of those eyes would turn this way.', 'lukeGone' ]
+				[ 'luke', 'Careful with singing, though. Every guard in earshot will come. To them, 52Hz is "purge priority one."', 'luke' ],
+				[ 'narrator', 'If {N} sang at 52Hz, every one of those eyes would turn this way.', 'lukeGone' ],
+				[ 'narrator', 'The duet with Stella still rang through {N}.\nSung up close, it might freeze even those red eyes for a moment.' ]
 			],
 			// 고래 뼈 제단: 정화 의식
 			altar: [
