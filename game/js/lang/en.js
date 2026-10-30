@@ -22,7 +22,7 @@ export default {
 		letter: { close: 'Close <span class="mono tiny">[E]</span>' },
 		// MAP 2 · Under the sea
 		map2: {
-			label: 'MAP 2 · THE DEEP',
+			label: 'MAP 2 · A SEA BORN WITHOUT WAVES',
 			obj: [ 'Find the wrecked submersible · Sunlight zone', 'Find the undersea lab · Twilight zone', 'Find the red terminal · Midnight zone', 'Find the whale bones · Midnight zone', 'Find the last record · The trench', 'Find the base door · The bottom' ],
 			objBase: 'Sing the stop code at the base door',
 			current: 'The current holds you back — find this layer\'s record first',
@@ -38,10 +38,10 @@ export default {
 		},
 		// MAP 2 preview: portal → under the sea
 		dive: {
-			label: 'MAP 2 · THE DEEP',
+			label: 'MAP 2 · A SEA BORN WITHOUT WAVES',
 			objPortal: 'Swim into the glowing whirlpool',
 			objSwim: 'Try swimming under the sea',
-			card: [ 'MAP 2', 'Into the Deep', 'Preview · in development' ],
+			card: [ 'MAP 2', 'A Sea Born Without Waves', 'Preview · in development' ],
 			hint: '[Space] up · [C] down · [E] sing to light the dark — MAP 2 is still in development from here',
 			zones: [ 'Sunlight zone', 'Twilight zone', 'Midnight zone', 'The trench' ],
 			zoneSub: [ 'Where the light shafts reach', 'The light fades — the glow on your back lights the way', 'Pitch dark — sing and the dark lights up like sonar', 'The end of a narrow canyon — something waits below' ]
@@ -220,7 +220,7 @@ export default {
 
 	story: {
 		prologue: {
-			card: [ 'PROLOGUE', '52Hz', 'A song no one can hear' ],
+			card: [ 'MAP 1 · The Night the Stars Fell', '52Hz', 'A song no one can hear' ],
 			intro: [
 				[ 'narrator', 'Another world, the year 2066.\nThe sea is home to a few humans, and far more whales.' ],
 				[ 'narrator', 'Whales talk in song.\nMost sing low, at 10 to 25 hertz. Blue whales sing a little higher, in the 30s.' ],
@@ -424,7 +424,9 @@ export default {
 				],
 				[
 					[ 'luke', 'This J was on the whales\' side, I think. Let\'s read it all.', 'luke' ],
-					[ 'narrator', 'The writing was unreadable, but the drawings were clear.', 'lukeGone' ]
+					[ 'narrator', 'The writing was unreadable, but the drawings were clear.', 'lukeGone' ],
+					[ 'finn', '...We never knew waves. The first sea we saw was on the other side of tank glass.', 'finn' ],
+					[ 'narrator', 'They were born without waves.', 'finnGone' ]
 				],
 				[
 					[ 'narrator', 'The third command blinked red.' ],

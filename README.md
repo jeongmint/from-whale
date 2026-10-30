@@ -8,6 +8,9 @@
 
 A sea adventure of **Hazel**, a whale who sings at 52Hz. Another world, the year 2066, a night sea. (BETA)
 
+- MAP 1 · **The Night the Stars Fell** — the night sea: lighthouse, kelp, the Alliance, Moby Dick, Stella
+- MAP 2 · **A Sea Born Without Waves** — down a trench to the base where the Alliance was made
+
 | Lighthouse and ringed planet | Moby Dick boss fight |
 | --- | --- |
 | ![Hazel swimming toward the lighthouse under a ringed planet](data/res/shots/play.jpg) | ![Moby Dick, Luke and Finn among falling-star warning circles](data/res/shots/boss.jpg) |
@@ -33,7 +36,7 @@ A sea adventure of **Hazel**, a whale who sings at 52Hz. Another world, the year
 - **Moby Dick boss fight** — 6 songs that reach him win him over. Body hits and falling stars cost a heart; stun 1.1 s from stars, 1.5 s from charges (with Finn's Tears, a song clears it at once)
 - **Stella (hidden ending)** — all 6 letters in bottles (Moby's prologue letter included) → 12-bar blues duet (PERFECT ±25 ms · EXCELLENT ±60 ms · GOOD ±150 ms, 450 max, S from 85% · A from 60%, a shooting star per jump note) → name the song and leave it with your nickname and score on the shared **Duet TOP 10**. After meeting Stella, "Sing the duet again" on the title or ending screen replays just the duet (save data untouched). Remaining letters can be found in the epilogue after the ending
 - **Space and sea** — Gerstner waves, glittering ripples, ringed planet, shooting stars, bloom
-- **MAP 2 · Under the sea (BETA)** — a second map that opens after meeting Stella. Descend a trench and uncover the Alliance's secret (see MAP 2 below)
+- **MAP 2 · A Sea Born Without Waves (BETA)** — a second map that opens after meeting Stella. Descend a trench and uncover the Alliance's secret (see MAP 2 below)
 - **Retro blue UI** — window-style HUD, sonar minimap, chapter cards, PC controls guide, current objective inside the HAZEL window (top center left clear). One-line dialog at the bottom, two-column title, and the call-and-response window at the bottom left in tilt mode on landscape phones
 - **Light models** — 500–650 vertices per whale, 512px textures. Phone support
 
@@ -52,7 +55,10 @@ A sea adventure of **Hazel**, a whale who sings at 52Hz. Another world, the year
 | Sacrifice | ✕ | ✕ |
 | The Late Whale | any | any |
 
-### MAP 2 · Under the sea (BETA)
+### MAP 2 · A Sea Born Without Waves (BETA)
+
+The name: the deep sea where no waves reach, and the Alliance (and Finn), born in tanks at the base, never knowing waves.
+
 
 - Way in: after meeting Stella, "Into the deep" on the ending screen → a portal on the surface → dive. MAP 1 (lighthouse, kelp, Alliance…) is gone
 - Progress: keep descending a trench. One research log per layer; the current blocks the way down until it is read. Luke translates the writing, or only the drawings
