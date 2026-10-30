@@ -680,6 +680,22 @@ body.tilt #stick { display: none; }
 	body.touch #obj-dist { margin: 0; font-size: 10px; line-height: 1; white-space: nowrap; }
 	body.touch #obj-dist::before { content: attr(data-chapter) '  '; color: var(--ink-dim); white-space: pre; }
 	body.touch #toasts { top: 133px; }
+	/* 아래 한 줄: 조이스틱 | 소나 | 버튼 2×2 (오른손 엄지 자리). 화면 가운데는 비운다 */
+	body.touch #touch-buttons {
+		right: 10px; bottom: 14px;
+		grid-template-columns: 58px 58px; grid-template-rows: 58px 58px; gap: 8px;
+	}
+	body.touch #touch-buttons button { width: 58px; height: 58px; font-size: 20px; }
+	body.touch #touch-buttons [data-act="jump"] { grid-area: 1 / 1; }
+	body.touch #touch-buttons [data-act="boost"] { grid-area: 1 / 2; }
+	body.touch #touch-buttons [data-act="down"] { grid-area: 2 / 1; }
+	body.touch #touch-buttons [data-act="sing"] { grid-area: 2 / 2; }
+	body.touch.talking #touch-buttons { opacity: 0; pointer-events: none; }
+	body.touch #minimap-wrap { left: 126px; right: auto; bottom: 14px; }
+	body.touch #minimap { width: min(104px, calc(100vw - 272px)); height: min(104px, calc(100vw - 272px)); }
+	body.touch #minimap-wrap .win-bar { padding: 1px 6px; font-size: 10px; }
+	/* 따라 부르기 · 듀엣 창은 버튼 줄 위로 */
+	body.touch #song, body.touch #duet { bottom: 150px; }
 	/* 바닷속: 깊이계는 오른쪽 버튼에 가려지니까 HAZEL 창 맨 아래 한 줄로 (창을 그만큼 늘린다) */
 	body.touch.diving #hud-status { height: 135px; }
 	body.touch.diving #toasts { top: 151px; }
@@ -777,6 +793,8 @@ body.tilt #stick { display: none; }
 
 /* MAP 2 미리보기 (바닷속): 아래로 버튼은 잠수할 때만 */
 body:not(.diving) #touch-buttons button[data-act="down"] { display: none; }
+/* 점프 ↔ 위로: 바닷속에서만 바뀌는 안내 (폰 버튼 이름, PC 키 안내) */
+body:not(.diving) .dive-only, body.diving .land-only { display: none !important; }
 /* 깊이계 (바닷속에서만) */
 #depth-meter {
 	position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
