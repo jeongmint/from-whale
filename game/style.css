@@ -680,6 +680,9 @@ body.tilt #stick { display: none; }
 	body.touch #obj-dist { margin: 0; font-size: 10px; line-height: 1; white-space: nowrap; }
 	body.touch #obj-dist::before { content: attr(data-chapter) '  '; color: var(--ink-dim); white-space: pre; }
 	body.touch #toasts { top: 133px; }
+	/* 바닷속: 깊이계는 오른쪽 버튼에 가려지니까 HAZEL 창 맨 아래 한 줄로 (창을 그만큼 늘린다) */
+	body.touch.diving #hud-status { height: 135px; }
+	body.touch.diving #toasts { top: 151px; }
 }
 
 /* 가로로 든 폰: 버튼을 소나 왼쪽에 한 줄로 */
@@ -782,3 +785,10 @@ body:not(.diving) #touch-buttons button[data-act="down"] { display: none; }
 	text-shadow: 0 0 8px rgba(127, 233, 255, 0.6); pointer-events: none;
 }
 body:not(.diving) #depth-meter { display: none; }
+@media (max-width: 760px) and (orientation: portrait) {
+	body.touch #depth-meter {
+		top: 124px; left: 18px; right: auto; transform: none; width: 144px;
+		padding: 0; font-size: 10px; line-height: 1; letter-spacing: 0.06em;
+		background: none; border: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+	}
+}
