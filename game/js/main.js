@@ -16,6 +16,7 @@ import { openScores } from './scores.js';
 import { Dive, DIVE_TOP, DIVE_BOTTOM, ZONES, zoneAt } from './dive.js';
 import { buildTrench, trenchCenter, trenchRadius } from './map2.js';
 import { loadSealife, Sealife } from './sealife.js';
+import { Guards } from './guards.js';
 
 const BASE = window.FW_ASSET_BASE ?? '../';
 const query = new URLSearchParams( location.search );
@@ -763,6 +764,40 @@ Object.assign( G, {
 
 	},
 
+	// 맵 2 기지 문 앞: 샤먼이 헤이즐과 문 사이를 막아선다
+	shamanAtDoor( door ) {
+
+		const s = G.actors.shaman;
+		const h = G.actors.hazel;
+		// 헤이즐 앞, 문 쪽으로 비스듬히 비켜선 자리에서 헤이즐을 마주 본다
+		const a = Math.atan2( door.pos.x - h.pos.x, door.pos.z - h.pos.z ) + 1.1;
+		const x = h.pos.x + Math.sin( a ) * 26, z = h.pos.z + Math.cos( a ) * 26;
+		s.place( x, z, Math.atan2( h.pos.x - x, h.pos.z - z ) );
+		s.depth = s.targetDepth = s.surfaceY - G.diveY + 2;
+		s.hold = true;
+		s.root.visible = true;
+		s.setGlow( 0.25, 0xff2050 );
+		G.camFocus( s, { side: 1, dist: 34, height: 6 } );
+		return s;
+
+	},
+
+	// 정지 코드가 통한 뒤: 붉은 눈이 모두 꺼진다
+	calmAlliance() {
+
+		G.guards?.calm();
+		G.actors.shaman.setGlow( 0, 0x000000 );
+
+	},
+
+	// 기록을 읽으면 그 자리가 쓰러졌을 때 깨어나는 곳이 되고, 하트가 다 찬다
+	logRead( log ) {
+
+		G.diveCheckpoint = { x: log.pos.x, z: log.pos.z, y: log.pos.y };
+		heal( true );
+
+	},
+
 	nearLog( log ) {
 
 		const h = G.actors.hazel;
@@ -1043,6 +1078,16 @@ function updateOrcas( dt ) {
 
 }
 
+// MAP 2 경비 연합군에게 들켰을 때 (경고음 · 안내는 4초에 한 번)
+function guardAlert( key ) {
+
+	if ( G.time - ( G.lastAlert ?? - 99 ) < 4 ) return;
+	G.lastAlert = G.time;
+	G.audio.play( 'warn' );
+	G.ui.toast( t( key ) );
+
+}
+
 function alertOrca( o ) {
 
 	if ( o.state === 'chase' ) return;
@@ -1215,12 +1260,27 @@ async function faint() {
 	G.fainting = true;
 	G.cutscene( true );
 	// 한 장에서 두 번째로 쓰러지면 심장이 멈춘다 (엔딩). 핀이 대신 맞은 건 세지 않는다
-	G.chapterFaints = ( G.chapterFaints ?? 0 ) + 1;
-	if ( G.chapterFaints >= 2 ) return heartStop();
-	G.ui.toast( t( 'toast.faint' ) );
+	// 맵 2에선 심장이 멈추지 않고, 마지막으로 읽은 기록 앞에서 깨어난다
+	if ( ! G.diving ) {
+
+		G.chapterFaints = ( G.chapterFaints ?? 0 ) + 1;
+		if ( G.chapterFaints >= 2 ) return heartStop();
+
+	}
+
+	G.ui.toast( t( G.diving ? 'map2.faint' : 'toast.faint' ) );
 	await G.ui.fade( 1, 1.2 );
 	const h = G.actors.hazel;
-	if ( G.boss?.active ) {
+	if ( G.diving ) {
+
+		const c = G.diveCheckpoint;
+		h.place( c.x, c.z, h.yaw );
+		G.diveY = c.y;
+		G.diveVy = 0;
+		camera.position.set( c.x - Math.sin( G.camYaw ) * 20, c.y + 4.5, c.z - Math.cos( G.camYaw ) * 20 );
+		for ( const g of G.guards?.list ?? [] ) if ( g.state === 'chase' || g.state === 'stun' ) g.state = 'return';
+
+	} else if ( G.boss?.active ) {
 
 		const c = PLACES.moby;
 		const dx = h.pos.x - c.x, dz = h.pos.z - c.z;
@@ -1259,7 +1319,7 @@ async function faint() {
 	G.ui.setHearts( G.hearts, MAX_HEARTS );
 	await G.wait( 0.3 );
 	await G.ui.fade( 0, 1 );
-	G.ui.toast( t( 'toast.lastHeart' ) );
+	if ( ! G.diving ) G.ui.toast( t( 'toast.lastHeart' ) );
 	G.cutscene( false );
 	G.fainting = false;
 
@@ -2383,7 +2443,13 @@ function sing() {
 	const h = G.actors.hazel;
 	G.singCooldown = 1.3;
 	audio.play( 'sing' );
-	if ( G.diving ) G.dive.pulse( h.root.position ); // 바닷속: 노래가 소나처럼 둘레를 밝힌다
+	if ( G.diving ) {
+
+		G.dive.pulse( h.root.position ); // 바닷속: 노래가 소나처럼 둘레를 밝힌다
+		G.sea?.reveal( h.root.position ); // 숨은 곰치도 붉게 드러난다
+		G.guards?.hear( h.root.position ); // 대신 52Hz를 들은 경비 연합군이 몰려온다
+
+	}
 	else for ( let i = 0; i < 3; i ++ ) G.world.ring( h.pos.x, h.pos.z, { color: 0x7fe9ff, to: 58, life: 1.6, delay: i * 0.28 } );
 	G.emit( 'sing' );
 
@@ -3033,17 +3099,35 @@ async function enterDive() {
 	await G.ui.fade( 1, 0.8 );
 	G.diving = true;
 	G.diveY = - 6;
+	G.diveCheckpoint = { x: h.pos.x, z: h.pos.z, y: - 6 };
 	G.diveVy = 0;
 	G.dive.enter();
 	if ( ! G.map2 ) G.map2 = { ...buildTrench( scene, { x: h.pos.x, z: h.pos.z } ), entry: { x: h.pos.x, z: h.pos.z } };
 	// MAP 2는 다른 맵: 맵 1의 것들(등대, 미역, 유리병, 연합군, 모비 딕, 스텔라, 빛 조각...)은 모두 치운다
 	const keep = new Set( [ h.root, G.actors.luke.root, G.actors.finn.root, G.dive.group, G.map2.group, hemiLight, moonLight, ambientLight, hazelLamp, stunStars ] );
 	for ( const o of scene.children ) if ( ! keep.has( o ) ) o.visible = false;
+	if ( ! G.guards ) {
+
+		G.guards = new Guards( { scene, model: G.models.orca, entry: G.map2.entry, altar: G.map2.logs.find( ( l ) => l.landmark === 'bones' ).pos } );
+		G.guards.onSpot = () => guardAlert( 'map2.guardSpot' );
+		G.guards.onHear = () => guardAlert( 'map2.guardHear' );
+		G.guards.onHit = ( pos ) => damage( 1, pos, { stun: 0.3 } );
+
+	}
+
 	( G.seaLoad ??= loadSealife( BASE ) ).then( ( models ) => {
 
 		if ( G.sea ) return;
 		G.sea = new Sealife( models, G.map2.group, G.map2.entry );
 		G.sea.onMeet = ( key ) => key === 'coelacanth' && G.ui.toast( t( 'map2.coelacanth' ) );
+		G.sea.onBite = ( pos ) => {
+
+			if ( ! damage( 1, pos, { stun: 0.5 } ) ) return;
+			if ( G.eelHinted ) return;
+			G.eelHinted = true;
+			G.ui.toast( t( 'map2.eel' ) );
+
+		};
 
 	} );
 	document.body.classList.add( 'diving' );
@@ -3334,7 +3418,7 @@ function updateCompanions( dt ) {
 
 		w.update( dt );
 		w.depth += ( ( w.targetDepth ?? 0 ) - w.depth ) * Math.min( 1, dt * 0.8 );
-		if ( key === 'shaman' && w.depth > 22 && w.targetDepth > 20 ) w.root.visible = false;
+		if ( key === 'shaman' && ! G.diving && w.depth > 22 && w.targetDepth > 20 ) w.root.visible = false;
 
 	}
 
@@ -3407,8 +3491,9 @@ function updateCamera( dt ) {
 			dx /= d; dz /= d;
 
 		}
-		desired.set( mx + dz * t.side * t.dist - dx * t.dist * 0.35, t.height, mz - dx * t.side * t.dist - dz * t.dist * 0.35 );
-		look = new THREE.Vector3( mx, 3, mz );
+		const base = G.diving ? G.diveY : 0; // 바닷속에선 지금 깊이를 기준으로
+		desired.set( mx + dz * t.side * t.dist - dx * t.dist * 0.35, base + t.height, mz - dx * t.side * t.dist - dz * t.dist * 0.35 );
+		look = new THREE.Vector3( mx, base + 3, mz );
 
 	} else {
 
@@ -3505,6 +3590,10 @@ function updateHud() {
 
 		const next = G.map2.logs.find( ( l ) => ! l.read );
 		for ( const l of G.map2.logs ) points.push( l === next ? { x: l.pos.x, z: l.pos.z, color: '#7fe9ff', size: 4, shape: 'diamond' } : { x: l.pos.x, z: l.pos.z, color: l.read ? 'rgba(185,168,255,0.6)' : 'rgba(127,233,255,0.35)', size: 2.5 } );
+		// 경비 연합군: 쫓아올 땐 깜빡이는 빨간 점 (비슷한 깊이만)
+		for ( const g of G.guards?.list ?? [] ) if ( g.state !== 'calm' && Math.abs( g.y - G.diveY ) < 25 ) points.push( { x: g.whale.pos.x, z: g.whale.pos.z, color: g.state === 'chase' ? ( Math.floor( G.time * 6 ) % 2 ? '#ff3355' : '#ffd0d8' ) : 'rgba(255,90,110,0.55)', size: 3 } );
+		// 노래로 드러났거나 노리는 중인 곰치는 빨간 점 (비슷한 깊이만)
+		for ( const e of G.sea?.eels ?? [] ) if ( ( e.glow > 0 || e.state === 'tell' || e.state === 'lunge' ) && Math.abs( e.home.y - G.diveY ) < 25 ) points.push( { x: e.home.x, z: e.home.z, color: '#ff5a6e', size: 3.5 } );
 		for ( const key of [ 'luke', 'finn' ] ) if ( G.party[ key ] === 'on' ) points.push( { x: G.actors[ key ].pos.x, z: G.actors[ key ].pos.z, color: '#eaf6ff', size: 3 } );
 		G.ui.drawMinimap( { px: h.pos.x, pz: h.pos.z, yaw: G.camYaw, heading: h.yaw - G.camYaw, range: 140, time: G.time, rocks: [], points, objective: t, signal: 1 } );
 		return;
@@ -3589,7 +3678,9 @@ function update( dt ) {
 		hazelLamp.distance = 40 + flash * 70;
 		hazelLamp.position.copy( G.actors.hazel.root.position ).y += 3;
 		if ( G.map2 ) G.map2.update( G.time );
-		if ( G.sea && G.diving ) G.sea.update( dt, G.time, camera.position, G.actors.hazel.root.position, flash );
+		const active = ! G.cutsceneOn && ! G.ui.dialogOpen && ! G.ui.overlay && ! G.duetPlay && ! G.fainting;
+		if ( G.sea && G.diving ) G.sea.update( dt, G.time, camera.position, G.actors.hazel.root.position, flash, active );
+		if ( G.guards && G.diving ) G.guards.update( dt, G.actors.hazel.root.position, active );
 
 	}
 
