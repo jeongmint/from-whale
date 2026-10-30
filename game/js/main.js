@@ -1278,7 +1278,7 @@ async function faint() {
 		G.diveY = c.y;
 		G.diveVy = 0;
 		camera.position.set( c.x - Math.sin( G.camYaw ) * 20, c.y + 4.5, c.z - Math.cos( G.camYaw ) * 20 );
-		for ( const g of G.guards?.list ?? [] ) if ( g.state === 'chase' || g.state === 'stun' ) g.state = 'return';
+		for ( const g of G.guards?.list ?? [] ) if ( g.state === 'chase' || g.state === 'spot' || g.state === 'stun' ) g.state = 'return';
 
 	} else if ( G.boss?.active ) {
 
@@ -3600,7 +3600,7 @@ function updateHud() {
 		const next = G.map2.logs.find( ( l ) => ! l.read );
 		for ( const l of G.map2.logs ) points.push( l === next ? { x: l.pos.x, z: l.pos.z, color: '#7fe9ff', size: 4, shape: 'diamond' } : { x: l.pos.x, z: l.pos.z, color: l.read ? 'rgba(185,168,255,0.6)' : 'rgba(127,233,255,0.35)', size: 2.5 } );
 		// 경비 연합군: 쫓아올 땐 깜빡이는 빨간 점 (비슷한 깊이만)
-		for ( const g of G.guards?.list ?? [] ) if ( g.state !== 'calm' && Math.abs( g.y - G.diveY ) < 25 ) points.push( { x: g.whale.pos.x, z: g.whale.pos.z, color: g.state === 'chase' ? ( Math.floor( G.time * 6 ) % 2 ? '#ff3355' : '#ffd0d8' ) : 'rgba(255,90,110,0.55)', size: 3 } );
+		for ( const g of G.guards?.list ?? [] ) if ( g.state !== 'calm' && Math.abs( g.y - G.diveY ) < 25 ) points.push( { x: g.whale.pos.x, z: g.whale.pos.z, color: g.state === 'chase' || g.state === 'spot' ? ( Math.floor( G.time * 6 ) % 2 ? '#ff3355' : '#ffd0d8' ) : 'rgba(255,90,110,0.55)', size: 3 } );
 		// 노래로 드러났거나 노리는 중인 곰치는 빨간 점 (비슷한 깊이만)
 		for ( const e of G.sea?.eels ?? [] ) if ( ( e.glow > 0 || e.state === 'tell' || e.state === 'lunge' ) && Math.abs( e.home.y - G.diveY ) < 25 ) points.push( { x: e.home.x, z: e.home.z, color: '#ff5a6e', size: 3.5 } );
 		for ( const key of [ 'luke', 'finn' ] ) if ( G.party[ key ] === 'on' ) points.push( { x: G.actors[ key ].pos.x, z: G.actors[ key ].pos.z, color: '#eaf6ff', size: 3 } );
