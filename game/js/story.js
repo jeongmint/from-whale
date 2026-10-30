@@ -472,11 +472,33 @@ export async function map2( G ) {
 	const pick = ( arr ) => lines( ( arr ?? [] ).filter( ( [ , , c ] ) => ! c || on[ c ] ).map( ( [ who, text ] ) => [ who, text ] ) );
 
 	await G.say( pick( T().intro ) );
+	const h = G.actors.hazel;
+	const near = ( pos, r, dy ) => Math.hypot( h.pos.x - pos.x, h.pos.z - pos.z ) < r && Math.abs( G.diveY - pos.y ) < dy;
 	for ( const log of G.map2.logs ) {
 
 		// 이 층의 기록을 읽기 전엔 물살이 더 아래를 막는다
 		G.setDiveFloor( log.depth + 14 );
 		G.objective( U().label, U().obj[ log.index ], log.pos );
+		// 어스름층으로 내려가기 전: 아래에서 경비 연합군의 붉은 눈이 보인다
+		if ( log.index === 1 ) {
+
+			await G.until( () => G.diveY < - 40 && ! G.ui.dialogOpen && ! G.ui.overlay );
+			G.cutscene( true );
+			await G.say( pick( T().guards ) );
+			G.cutscene( false );
+
+		}
+
+		// 고래 뼈: 연합군의 '정화' 제단
+		if ( log.landmark === 'bones' ) {
+
+			await G.until( () => near( log.pos, 60, 30 ) && ! G.ui.dialogOpen && ! G.ui.overlay );
+			G.cutscene( true );
+			await G.say( pick( T().altar ) );
+			G.cutscene( false );
+
+		}
+
 		await G.until( () => G.nearLog( log ) && ! G.ui.dialogOpen && ! G.ui.overlay );
 		log.read = true;
 		G.logRead( log );
@@ -493,10 +515,13 @@ export async function map2( G ) {
 	// 기지 문 앞: 박사의 AI, 그리고 정지 코드
 	G.setDiveFloor( null );
 	G.cutscene( true );
+	G.shamanAtDoor( G.map2.logs[ G.map2.logs.length - 1 ] );
 	await G.say( pick( T().base ) );
+	G.camRelease();
 	G.objective( U().label, U().objBase );
 	await G.duet( STOP_CHART, U().stopTitle );
 	G.openBase();
+	G.calmAlliance();
 	await G.say( pick( T().stop ) );
 	await card( G, T().card );
 	G.cutscene( false );

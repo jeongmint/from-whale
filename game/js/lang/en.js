@@ -28,9 +28,11 @@ export default {
 			current: 'The current holds you back — find this layer\'s record first',
 			stopTitle: 'STOP CODE · 52HZ ♥ 52HZ',
 			logs: 'LOGS {n}/6',
-			coelacanth: "Coelacanth — a 'living fossil', 400 million years old",
-			eel: "Morays hide in the cracks — sing to make them glow red",
-			faint: "{N} blacked out from a moray bite — woke up by the last log"
+			coelacanth: 'Coelacanth — a \'living fossil\', 400 million years old',
+			eel: 'Morays hide in the cracks — sing to make them glow red',
+			faint: '{N} blacked out from a moray bite — woke up by the last log',
+			guardSpot: '! Alliance guards — they won\'t follow you to the walls (moray holes)',
+			guardHear: '52Hz rang out — the guards are coming!'
 		},
 		// MAP 2 preview: portal → under the sea
 		dive: {
@@ -444,9 +446,29 @@ export default {
 					[ 'hazel', '( sings at 52Hz. From behind the door, something answers )' ]
 				]
 			],
+			// 경비 연합군: 어스름층으로 내려가기 전에 처음 보인다
+			guards: [
+				[ 'narrator', 'Down in the dark, red eyes were circling slowly.' ],
+				[ 'finn', 'The guards... The trench is where "the Voice of the Deep" lives. They protect it.', 'finn' ],
+				[ 'finn', 'Stay by the walls. The moray holes are taboo, so they won\'t come.\n...I\'m scared of morays too, though.', 'finn' ],
+				[ 'narrator', 'Strangely, the red eyes never came near the walls.', 'finnGone' ],
+				[ 'luke', 'And save your singing. To them, 52Hz is "purge priority one."', 'luke' ],
+				[ 'narrator', 'If {N} sang at 52Hz, every one of those eyes would turn this way.', 'lukeGone' ]
+			],
+			// 고래 뼈 제단: 정화 의식
+			altar: [
+				[ 'narrator', 'Around the grave of whale bones, three of the Alliance circled, humming low.' ],
+				[ 'narrator', 'Their red eyes blinked in one rhythm. It looked like prayer. Or like orders.' ],
+				[ 'finn', 'The altar of "purification." The Shaman says she first heard the Voice here.', 'finn' ],
+				[ 'luke', 'A voice, huh... Looks to me like they\'re writing down machine signals.', 'luke' ]
+			],
 			base: [
+				[ 'shaman', 'So you came this far, 52 hertz.\nThe Voice of the Deep calls for you. "Purify," it says.' ],
+				[ 'shaman', 'The Voice has never been wrong. We hear, and we obey.' ],
 				[ 'ai', 'Approaching individual detected. Frequency 52Hz. Purification priority one.' ],
 				[ 'ai', 'Warning. This door will not open. Warning. Warning.' ],
+				[ 'finn', 'Shaman, did you hear that? That isn\'t a voice. It\'s a machine.', 'finn' ],
+				[ 'narrator', 'The Shaman\'s red eyes blinked in exactly the rhythm of the AI\'s words.', 'finnGone' ],
 				[ 'stella', '52Hz! I can hear everything from up here!\nI\'ll sing with you. You remember our rhythm, right?' ],
 				[ 'finn', 'My device will catch your song. This time... I won\'t cry.', 'finn' ],
 				[ 'narrator', 'The broken compass began to tremble faintly.', 'finnGone' ],
@@ -454,6 +476,8 @@ export default {
 			],
 			stop: [
 				[ 'ai', 'Stop code confirmed. ...All Alliance units, commands released.' ],
+				[ 'shaman', '......The Voice has stopped.' ],
+				[ 'shaman', 'Then whose voice... have we been hearing all this time?' ],
 				[ 'narrator', 'All across the sea, the Alliance\'s red eyes went dark, one by one.' ],
 				[ 'narrator', 'Behind the base windows, a small light came on. Humans.' ],
 				[ 'narrator', 'A child holding a hydrophone pressed a hand to the glass and said something.' ],
