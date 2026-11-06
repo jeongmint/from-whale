@@ -3683,20 +3683,21 @@ function update( dt ) {
 	G.sky.update( dt, camera.position );
 	G.world.update( dt, G.time );
 	G.dive.update( dt, G.time, G.diving ? - G.diveY : 0 );
+	if ( G.diving ) G.dive.trail( dt, G.actors.hazel.root.position, G.actors.hazel.forward, Math.abs( G.actors.hazel.speed ) + Math.abs( G.diveVy ), - G.diveY );
 	if ( G.diving ) updateDepth();
 	{
 
 		// 깊을수록 달빛이 사라진다 (수면 위에선 원래대로)
 		const depth = G.diving ? - G.diveY : 0;
-		const k = Math.max( 0.04, Math.exp( - depth / 35 ) );
+		const k = Math.max( 0.12, Math.exp( - depth / 35 ) ); // 아주 깊어도 벽의 윤곽은 보이게
 		hemiLight.intensity = 0.75 * k;
 		ambientLight.intensity = 0.35 * k;
 		moonLight.intensity = 1.15 * k;
 		const flash = G.dive.flash ?? 0;
 		hazelLamp.intensity = G.diving ? ( 1 - k ) * 2.4 + flash * 5 : 0;
-		hazelLamp.distance = 40 + flash * 70;
+		hazelLamp.distance = 60 + flash * 70;
 		hazelLamp.position.copy( G.actors.hazel.root.position ).y += 3;
-		if ( G.map2 ) G.map2.update( G.time );
+		if ( G.map2 ) G.map2.update( G.time, camera.position );
 		const active = ! G.cutsceneOn && ! G.ui.dialogOpen && ! G.ui.overlay && ! G.duetPlay && ! G.fainting;
 		if ( G.sea && G.diving ) G.sea.update( dt, G.time, camera.position, G.actors.hazel.root.position, flash, active );
 		if ( G.guards && G.diving ) G.guards.update( dt, G.actors.hazel.root.position, active );

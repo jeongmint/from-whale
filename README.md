@@ -62,7 +62,10 @@ The name: the deep sea where no waves reach, and the Alliance (and Finn), born i
 
 - Way in: after meeting Stella, "Into the deep" on the ending screen → a portal on the surface → dive. MAP 1 (lighthouse, kelp, Alliance…) is gone
 - Progress: keep descending a trench. One research log per layer; the current blocks the way down until it is read. Luke translates the writing, or only the drawings
-- Darkness: the moonlight fades with depth. Hazel's glowing pattern and her song (sonar) light the way. A rippling surface with a net of light overhead
+- Space: at each log's depth the trench opens into a wide chamber, with narrow passages between. Each chamber has a beacon visible from afar (wreck warning light, lab windows, red terminal, altar, capsule, base searchlight)
+- Walls: a colour per layer (sand and coral, teal, indigo, basalt with red veins), with the odd rock pillar
+- Sights: a coral garden on the sunlight-zone walls, marine snow from the twilight down and a huge old ship resting on the wall, glowing plankton in Hazel's wake from the midnight zone (singing lights up all around), and in the trench glowing hydrothermal vents with rising hot water and tube worms
+- Darkness: the moonlight fades with depth (wall outlines stay visible). Hazel's glowing pattern and her song (sonar) light the way. A rippling surface with a net of light overhead
 - Story: the Alliance is a human AI experiment. The Shaman hears the base AI's orders as "the Voice of the Deep"; the whale bones are the altar of "purification"
 - Alliance guards: patrol the middle of the trench. Spotted → a one-second stare, then a chase; slip to the walls in time and they don't follow. The moray holes in the walls are taboo
 - Singing: nearby morays glow red (red dots on the sonar). Close guards freeze for 3.5 s at the "perfect song" learned from Stella; guards farther off hear it and come
