@@ -3683,6 +3683,7 @@ function update( dt ) {
 	G.sky.update( dt, camera.position );
 	G.world.update( dt, G.time );
 	G.dive.update( dt, G.time, G.diving ? - G.diveY : 0 );
+	if ( G.diving ) G.dive.trail( dt, G.actors.hazel.root.position, G.actors.hazel.forward, Math.abs( G.actors.hazel.speed ) + Math.abs( G.diveVy ), - G.diveY );
 	if ( G.diving ) updateDepth();
 	{
 

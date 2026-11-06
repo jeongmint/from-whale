@@ -26,7 +26,25 @@ export function zoneAt( d ) {
 }
 
 const _c = new THREE.Color();
+
+// 둥근 빛 알갱이 (네모난 점 대신)
+function dotTexture() {
+
+	const cv = document.createElement( 'canvas' );
+	cv.width = cv.height = 32;
+	const g = cv.getContext( '2d' );
+	const grad = g.createRadialGradient( 16, 16, 0, 16, 16, 16 );
+	grad.addColorStop( 0, 'rgba(255,255,255,1)' );
+	grad.addColorStop( 0.4, 'rgba(255,255,255,0.5)' );
+	grad.addColorStop( 1, 'rgba(255,255,255,0)' );
+	g.fillStyle = grad;
+	g.fillRect( 0, 0, 32, 32 );
+	return new THREE.CanvasTexture( cv );
+
+}
 const PARTICLES = 520;
+const SNOW = 420; // 바다 눈: 어스름층부터 천천히 내려오는 하얀 부스러기
+const PLANKTON = 600; // 한밤층부터: 헤이즐이 지나간 자리에서 빛나는 플랑크톤
 const SHAFTS = 9;
 const SPAN = 70; // 입자 · 빛줄기가 카메라 둘레에 퍼지는 범위
 
@@ -135,6 +153,29 @@ export class Dive {
 		this.motes.frustumCulled = false;
 		this.group.add( this.motes );
 
+		// 바다 눈
+		const snowPos = new Float32Array( SNOW * 3 );
+		for ( let i = 0; i < SNOW; i ++ ) snowPos.set( [ ( Math.random() - 0.5 ) * SPAN, ( Math.random() - 0.5 ) * SPAN, ( Math.random() - 0.5 ) * SPAN ], i * 3 );
+		const snowGeo = new THREE.BufferGeometry();
+		snowGeo.setAttribute( 'position', new THREE.BufferAttribute( snowPos, 3 ) );
+		const dot = dotTexture();
+		this.snow = new THREE.Points( snowGeo, new THREE.PointsMaterial( { color: 0xe8f2ff, map: dot, size: 0.22, transparent: true, opacity: 0, depthWrite: false } ) );
+		this.snow.frustumCulled = false;
+		this.group.add( this.snow );
+
+		// 빛나는 플랑크톤: 고리 모양 버퍼에 차례로 뿌리고, 나이에 따라 흐려진다
+		const pk = new THREE.BufferGeometry();
+		pk.setAttribute( 'position', new THREE.BufferAttribute( new Float32Array( PLANKTON * 3 ), 3 ) );
+		pk.setAttribute( 'color', new THREE.BufferAttribute( new Float32Array( PLANKTON * 3 ), 3 ) );
+		this.plankton = new THREE.Points( pk, new THREE.PointsMaterial( { map: dot, size: 0.7, vertexColors: true, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false } ) );
+		this.plankton.frustumCulled = false;
+		this.group.add( this.plankton );
+		this.pkBorn = new Float32Array( PLANKTON ).fill( - 99 );
+		this.pkLife = new Float32Array( PLANKTON ).fill( 1 );
+		this.pkNext = 0;
+		this.pkCarry = 0;
+		this.pkTime = 0;
+
 		// 위에서 내려오는 빛줄기
 		this.shafts = [];
 		const shaftGeo = new THREE.CylinderGeometry( 1.2, 4.5, 26, 16, 1, true );
@@ -213,8 +254,60 @@ export class Dive {
 
 	}
 
+	// 플랑크톤 하나를 깨운다
+	spark( x, y, z, life ) {
+
+		const i = this.pkNext;
+		this.pkNext = ( i + 1 ) % PLANKTON;
+		this.plankton.geometry.attributes.position.setXYZ( i, x, y, z );
+		this.pkBorn[ i ] = this.pkTime;
+		this.pkLife[ i ] = life;
+
+	}
+
+	// 매 프레임: 헤이즐이 헤엄친 자리의 플랑크톤이 빛난다 (한밤층부터). pos: 헤이즐, forward: 머리 방향
+	trail( dt, pos, forward, speed, depth ) {
+
+		this.pkTime += dt;
+		const on = THREE.MathUtils.smoothstep( depth, 90, 140 );
+		if ( on > 0 ) {
+
+			this.pkCarry += dt * Math.min( 60, speed * 2.2 ) * on;
+			while ( this.pkCarry >= 1 ) {
+
+				this.pkCarry -= 1;
+				// 몸 둘레 (꼬리부터 머리까지) 바깥쪽에서 깨어나 뒤로 남는다
+				const along = ( Math.random() - 0.3 ) * 8, side = ( Math.random() < 0.5 ? - 1 : 1 ) * ( 2 + Math.random() * 2.5 );
+				this.spark( pos.x + forward.x * along + forward.z * side, pos.y + ( Math.random() - 0.5 ) * 3, pos.z + forward.z * along - forward.x * side, 2 + Math.random() * 1.5 );
+
+			}
+
+		}
+
+		const col = this.plankton.geometry.attributes.color;
+		for ( let i = 0; i < PLANKTON; i ++ ) {
+
+			const age = ( this.pkTime - this.pkBorn[ i ] ) / this.pkLife[ i ];
+			const k = age < 0 || age > 1 ? 0 : ( age < 0.1 ? age / 0.1 : ( 1 - age ) ** 2 );
+			col.setXYZ( i, 0.35 * k, 0.95 * k, 1.0 * k );
+
+		}
+
+		col.needsUpdate = true;
+		this.plankton.geometry.attributes.position.needsUpdate = true;
+
+	}
+
 	// 52Hz 노래: 깊은 곳에선 소나처럼 둘레를 잠깐 밝힌다 (퍼지는 빛의 공)
 	pulse( pos ) {
+
+		// 한밤층부터는 둘레의 플랑크톤도 한꺼번에 깨어난다
+		if ( this.active && pos.y < - 100 ) for ( let i = 0; i < 160; i ++ ) {
+
+			const r = 4 + Math.random() * 16, a = Math.random() * Math.PI * 2, b = ( Math.random() - 0.5 ) * Math.PI;
+			this.spark( pos.x + Math.cos( a ) * Math.cos( b ) * r, pos.y + Math.sin( b ) * r * 0.6, pos.z + Math.sin( a ) * Math.cos( b ) * r, 2.5 + Math.random() * 1.5 );
+
+		}
 
 		const m = new THREE.Mesh(
 			new THREE.SphereGeometry( 1, 24, 16 ),
@@ -287,6 +380,21 @@ export class Dive {
 		}
 
 		a.needsUpdate = true;
+
+		// 바다 눈: 천천히 가라앉는다. 어스름층부터 보인다
+		this.snow.material.opacity = 0.75 * THREE.MathUtils.smoothstep( depth, 35, 75 );
+		const sn = this.snow.geometry.attributes.position;
+		for ( let i = 0; i < SNOW; i ++ ) {
+
+			let x = sn.getX( i ) + Math.sin( t * 0.3 + i ) * dt * 0.15, y = sn.getY( i ) - dt * 0.6, z = sn.getZ( i );
+			if ( x - c.x > half ) x -= SPAN; else if ( c.x - x > half ) x += SPAN;
+			if ( z - c.z > half ) z -= SPAN; else if ( c.z - z > half ) z += SPAN;
+			if ( y - c.y > half ) y -= SPAN; else if ( c.y - y > half ) y += SPAN;
+			sn.setXYZ( i, x, y, z );
+
+		}
+
+		sn.needsUpdate = true;
 
 		for ( const m of this.shafts ) {
 

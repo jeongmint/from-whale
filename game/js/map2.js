@@ -234,10 +234,13 @@ export function buildTrench( scene, entry ) {
 
 	} );
 
+	const deco = buildDeco( group, entry, logs );
 	scene.add( group );
 	return {
 		group, logs,
 		update( t, cam ) {
+
+			deco.update( t );
 
 			// 표지 빛: 깜빡이거나 숨 쉬듯 밝아졌다 어두워지고, 너무 멀면 사라진다
 			for ( const b of beacons ) {
@@ -388,5 +391,157 @@ function makeLandmark( kind ) {
 	}
 
 	return g;
+
+}
+
+// ---------------------------------------------------------------
+// 층마다의 볼거리: 햇빛층 산호 정원 · 어스름층 옛 배 · 해구 열수구와 관벌레
+// ---------------------------------------------------------------
+const CORAL_COLORS = [ 0xff7aa8, 0xff9a4a, 0xb07aff, 0xffd36b, 0x4fe0c0, 0xff5f6d ];
+const _q = new THREE.Quaternion(), _m = new THREE.Matrix4(), _s = new THREE.Vector3(), _p = new THREE.Vector3(), _up = new THREE.Vector3( 0, 1, 0 ), _dir = new THREE.Vector3(), _col = new THREE.Color();
+
+function buildDeco( group, entry, logs ) {
+
+	const c = new THREE.Vector2();
+	// 벽 위의 한 점과, 벽에서 협곡 안쪽을 향하는 방향
+	const onWall = ( d, a, inset ) => {
+
+		trenchCenter( entry, d, c );
+		const R = trenchRadius( d ) - inset;
+		return { x: c.x + Math.cos( a ) * R, y: - d, z: c.y + Math.sin( a ) * R, nx: - Math.cos( a ), nz: - Math.sin( a ) };
+
+	};
+
+	// 햇빛층 산호 정원: 채찍산호 · 뇌산호 · 관해면이 벽에 무리 지어 붙어 있다
+	const coralMat = new THREE.MeshStandardMaterial( { color: 0xffffff, roughness: 0.7, flatShading: true, emissive: 0x2a0e1a } );
+	const shapes = [
+		[ new THREE.ConeGeometry( 0.35, 3.4, 5 ).translate( 0, 1.7, 0 ), 340 ],
+		[ new THREE.SphereGeometry( 1, 7, 5 ).scale( 1, 0.6, 1 ), 180 ],
+		[ new THREE.CylinderGeometry( 0.5, 0.32, 2.4, 6 ).translate( 0, 1.2, 0 ), 240 ]
+	];
+	for ( const [ geo, count ] of shapes ) {
+
+		const mesh = new THREE.InstancedMesh( geo, coralMat, count );
+		let i = 0;
+		while ( i < count ) {
+
+			// 무리의 가운데
+			const d = 4 + Math.random() * 40, a = Math.random() * Math.PI * 2;
+			const n = 3 + Math.floor( Math.random() * 5 );
+			const base = CORAL_COLORS[ Math.floor( Math.random() * CORAL_COLORS.length ) ];
+			for ( let k = 0; k < n && i < count; k ++, i ++ ) {
+
+				const w = onWall( d + ( Math.random() - 0.5 ) * 7, a + ( Math.random() - 0.5 ) * 0.1, 3 + Math.random() * 4 );
+				_dir.set( w.nx * 0.7, 1, w.nz * 0.7 ).normalize();
+				_q.setFromUnitVectors( _up, _dir );
+				_s.setScalar( 2 + Math.random() * 2.6 );
+				mesh.setMatrixAt( i, _m.compose( _p.set( w.x, w.y, w.z ), _q, _s ) );
+				mesh.setColorAt( i, _col.set( base ).offsetHSL( ( Math.random() - 0.5 ) * 0.05, 0, ( Math.random() - 0.5 ) * 0.15 ) );
+
+			}
+
+		}
+
+		group.add( mesh );
+
+	}
+
+	// 어스름층: 벽에 기대 잠든 커다란 옛 배 (말없는 실루엣)
+	const ship = makeLandmark( 'wreck' );
+	ship.name = 'oldShip';
+	const sw = onWall( 108, ( logs[ 1 ]?.angle ?? 0 ) + Math.PI, 10 );
+	ship.position.set( sw.x, sw.y, sw.z );
+	ship.scale.setScalar( 3.2 );
+	ship.rotation.set( 0.25, Math.atan2( sw.nx, sw.nz ) + 1.2, - 0.35 );
+	group.add( ship );
+
+	// 해구 열수구: 검은 굴뚝 꼭대기가 붉게 달아올라 뜨거운 물이 피어오르고, 둘레엔 관벌레
+	const rock = new THREE.MeshStandardMaterial( { color: 0x1c1a22, roughness: 1, flatShading: true } );
+	const hot = new THREE.MeshBasicMaterial( { color: 0xff6a2a } );
+	const VENTS = 7, SMOKE = 40, WORMS = 16;
+	const smokeBase = [];
+	const worms = new THREE.InstancedMesh( new THREE.CylinderGeometry( 0.12, 0.16, 1, 5 ).translate( 0, 0.5, 0 ), new THREE.MeshStandardMaterial( { color: 0xe8e2d8, roughness: 0.6 } ), VENTS * WORMS );
+	const tips = new THREE.InstancedMesh( new THREE.SphereGeometry( 0.28, 6, 4 ), new THREE.MeshBasicMaterial( { color: 0xff3040 } ), VENTS * WORMS );
+	let wi = 0;
+	for ( let v = 0; v < VENTS; v ++ ) {
+
+		// 맨 밑 바닥에 셋, 해구 벽 아래쪽에 넷
+		let x, y, z;
+		if ( v < 3 ) {
+
+			trenchCenter( entry, FLOOR_DEPTH, c );
+			const a = Math.random() * Math.PI * 2, r = 14 + Math.random() * trenchRadius( FLOOR_DEPTH ) * 0.5;
+			x = c.x + Math.cos( a ) * r; y = - FLOOR_DEPTH; z = c.y + Math.sin( a ) * r;
+
+		} else {
+
+			const w = onWall( 280 + Math.random() * 40, Math.random() * Math.PI * 2, 4 );
+			x = w.x; y = w.y; z = w.z;
+
+		}
+
+		const vent = new THREE.Group();
+		vent.position.set( x, y, z );
+		let h = 0;
+		for ( const [ rb, rt, hh ] of [ [ 2.6, 1.8, 3.4 ], [ 1.8, 1.1, 2.6 ], [ 1.1, 0.7, 2 ] ] ) {
+
+			const part = new THREE.Mesh( new THREE.CylinderGeometry( rt, rb, hh, 7 ), rock );
+			part.position.y = h + hh / 2;
+			part.rotation.y = Math.random() * 3;
+			vent.add( part );
+			h += hh;
+
+		}
+
+		const mouth = new THREE.Mesh( new THREE.CylinderGeometry( 0.75, 0.75, 0.3, 8 ), hot );
+		mouth.position.y = h;
+		const glow = new THREE.Sprite( new THREE.SpriteMaterial( { map: glowMap(), color: 0xff7a3a, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending, depthWrite: false } ) );
+		glow.position.y = h + 0.5;
+		glow.scale.setScalar( 9 );
+		vent.add( mouth, glow );
+		group.add( vent );
+		for ( let k = 0; k < SMOKE; k ++ ) smokeBase.push( x, y + h, z, Math.random() );
+
+		for ( let k = 0; k < WORMS; k ++, wi ++ ) {
+
+			const a = Math.random() * Math.PI * 2, r = 2.8 + Math.random() * 2.5;
+			const len = 1.2 + Math.random() * 1.8;
+			_q.setFromAxisAngle( _dir.set( Math.sin( a ), 0, - Math.cos( a ) ), ( Math.random() - 0.5 ) * 0.5 );
+			_p.set( x + Math.cos( a ) * r, y, z + Math.sin( a ) * r );
+			worms.setMatrixAt( wi, _m.compose( _p, _q, _s.set( 1, len, 1 ) ) );
+			_p.add( _dir.set( 0, len, 0 ).applyQuaternion( _q ) );
+			tips.setMatrixAt( wi, _m.compose( _p, _q, _s.set( 1, 1, 1 ) ) );
+
+		}
+
+	}
+
+	group.add( worms, tips );
+
+	// 열수구에서 피어오르는 뜨거운 물 (입자)
+	const smokeGeo = new THREE.BufferGeometry();
+	const smokePos = new Float32Array( smokeBase.length / 4 * 3 );
+	smokeGeo.setAttribute( 'position', new THREE.BufferAttribute( smokePos, 3 ) );
+	const smoke = new THREE.Points( smokeGeo, new THREE.PointsMaterial( { color: 0xffb070, map: glowMap(), size: 1.6, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false } ) );
+	smoke.frustumCulled = false;
+	group.add( smoke );
+
+	return {
+		update( t ) {
+
+			for ( let i = 0; i < smokeBase.length / 4; i ++ ) {
+
+				const ph = smokeBase[ i * 4 + 3 ];
+				const k = ( t * 0.18 + ph ) % 1; // 0 → 1: 아래에서 위로
+				smokePos[ i * 3 ] = smokeBase[ i * 4 ] + Math.sin( t * 1.3 + ph * 20 ) * ( 0.4 + k * 2.5 );
+				smokePos[ i * 3 + 1 ] = smokeBase[ i * 4 + 1 ] + k * 22;
+				smokePos[ i * 3 + 2 ] = smokeBase[ i * 4 + 2 ] + Math.cos( t * 1.1 + ph * 17 ) * ( 0.4 + k * 2.5 );
+
+			}
+
+			smokeGeo.attributes.position.needsUpdate = true;
+
+		}
+	};
 
 }
