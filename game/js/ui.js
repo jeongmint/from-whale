@@ -153,9 +153,11 @@ export class UI {
 
 	}
 
-	setDistance( d ) {
+	// dy: 바닷속에서 목표가 위(+) · 아래(-)로 얼마나 떨어져 있는지 (수면 위에선 null)
+	setDistance( d, dy = null ) {
 
-		$( 'obj-dist' ).textContent = d == null ? '' : `▲ ${Math.round( d )}m`;
+		const v = dy == null || Math.abs( dy ) < 6 ? '' : dy < 0 ? ` · ▼${Math.round( - dy )}m` : ` · ▲${Math.round( dy )}m`;
+		$( 'obj-dist' ).textContent = d == null ? '' : dy == null ? `▲ ${Math.round( d )}m` : `◆ ${Math.round( d )}m${v}`;
 
 	}
 
@@ -400,7 +402,7 @@ export class UI {
 
 	// --- 목표 표시 (화면 안: 마름모 / 밖: 가장자리 화살표) ---
 
-	updateMarker( screen, dist, visible ) {
+	updateMarker( screen, dist, visible, dy = 0 ) {
 
 		const marker = $( 'marker' ), arrow = $( 'edge-arrow' );
 		if ( ! visible ) {
@@ -412,7 +414,8 @@ export class UI {
 		}
 
 		const { w, h } = this.game.view;
-		const label = `${Math.round( dist )}m`;
+		// 바닷속: 목표가 아래 · 위에 있으면 화살표 기호를 붙인다
+		const label = `${Math.round( dist )}m${Math.abs( dy ) < 6 ? '' : dy < 0 ? ' ▼' : ' ▲'}`;
 		const margin = 48;
 		if ( screen.onScreen ) {
 

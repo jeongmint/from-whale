@@ -1759,16 +1759,26 @@ function duet( chart, title = null ) {
 				}
 
 				const h = G.actors.hazel;
-				G.world.ring( h.pos.x, h.pos.z, { color: 0x7fe9ff, to: 12, life: 0.5, width: 0.3 } );
+				if ( G.diving ) G.dive.ring( h.root.position, 0x7fe9ff ); // 바닷속: 둘레의 플랑크톤이 고리로 빛난다
+				else G.world.ring( h.pos.x, h.pos.z, { color: 0x7fe9ff, to: 12, life: 0.5, width: 0.3 } );
 
 			} else {
 
 				jump();
 				stars ++;
 				showStars();
-				G.sky.spawnShootingStar( true, aim() );
-				const s = G.actors.stella;
-				G.world.ring( s.pos.x, s.pos.z, { color: 0xffd36b, to: 60, life: 1, width: 0.25 } );
+				if ( G.diving ) {
+
+					// 바닷속엔 별똥별 대신, 빛나는 거품이 위로 솟구친다 (파도 없는 바다에서 하늘로)
+					G.dive.rise( G.actors.hazel.root.position );
+
+				} else {
+
+					G.sky.spawnShootingStar( true, aim() );
+					const s = G.actors.stella;
+					G.world.ring( s.pos.x, s.pos.z, { color: 0xffd36b, to: 60, life: 1, width: 0.25 } );
+
+				}
 
 			}
 
@@ -3200,13 +3210,24 @@ function updatePlayer( dt ) {
 		boost = keys.has( 'ShiftLeft' ) || keys.has( 'ShiftRight' ) || touch.boost;
 		if ( touch.active ) {
 
-			// 많이 밀수록 빠르게, 아래로 당기면 뒤로
+			// 많이 밀수록 빠르게. 아래로 당기면 PC의 S처럼 몸을 돌려 화면 쪽으로 헤엄친다 (헤이즐 얼굴이 보인다)
 			const push = Math.min( 1, Math.hypot( touch.x, touch.y ) * 1.2 );
-			const stick = touch.y > 0.6 ? - push : push;
-			if ( Math.abs( stick ) > Math.abs( throttle ) ) throttle = stick;
-			turn = - touch.x * 1.2;
+			if ( touch.y > 0.6 && Math.abs( touch.x ) < 0.75 ) {
 
-		}
+				if ( G.touchBack == null ) G.touchBack = G.camYaw + Math.PI; // 당긴 순간의 화면 쪽
+				const diff = wrapAngle( G.touchBack - h.yaw );
+				turn = Math.max( - 1.6, Math.min( 1.6, diff * 2.5 ) );
+				throttle = Math.abs( diff ) > 2 ? 0.3 * push : push;
+
+			} else {
+
+				G.touchBack = null;
+				if ( push > Math.abs( throttle ) ) throttle = push;
+				turn = - touch.x * 1.2;
+
+			}
+
+		} else G.touchBack = null;
 
 		if ( tiltActive() ) {
 
@@ -3519,8 +3540,9 @@ function updateCamera( dt ) {
 		if ( G.touch ) {
 
 			// 터치는 카메라가 고래 등 뒤에 붙어 있고, 화면을 드래그해 돌려도 잠시 뒤 돌아온다
+			// 아래로 당겨 화면 쪽으로 헤엄치는 동안은 카메라가 따라 돌지 않는다 (얼굴이 보이게). 놓으면 천천히 등 뒤로
 			if ( G.time - ( G.lastDrag ?? - 99 ) > 1.8 && ! drag ) G.camOrbit *= Math.exp( - dt * 1.5 );
-			G.camYaw = h.yaw + G.camOrbit;
+			if ( G.touchBack == null ) G.camYaw += wrapAngle( h.yaw + G.camOrbit - G.camYaw ) * Math.min( 1, dt * 4 );
 
 		}
 
@@ -3583,14 +3605,17 @@ function updateHud() {
 	const t = G.objectiveTarget;
 	if ( t && ! G.cutsceneOn && ! G.ended && guideVisible() ) {
 
-		const y = sampleOcean( t.x, t.z ) + 8;
+		// 바닷속에선 목표의 실제 깊이로 (수면이 아니라)
+		const deep = G.diving && t.y !== undefined;
+		const y = deep ? t.y + 2 : sampleOcean( t.x, t.z ) + 8;
+		const dy = deep ? t.y - G.actors.hazel.root.position.y : 0;
 		_v.set( t.x, y, t.z ).project( camera );
 		const behind = _v.z > 1;
 		const onScreen = ! behind && Math.abs( _v.x ) < 0.95 && Math.abs( _v.y ) < 0.92;
 		const screen = { x: ( _v.x * 0.5 + 0.5 ) * view.w, y: ( - _v.y * 0.5 + 0.5 ) * view.h, onScreen, behind };
-		const d = G.distTo( t );
-		G.ui.updateMarker( screen, d, d > 12 );
-		G.ui.setDistance( d );
+		const d = deep ? Math.hypot( G.distTo( t ), dy ) : G.distTo( t );
+		G.ui.updateMarker( screen, d, d > 12, dy );
+		G.ui.setDistance( d, deep ? dy : null );
 
 	} else {
 
