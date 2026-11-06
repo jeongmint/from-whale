@@ -45,6 +45,7 @@ function dotTexture() {
 const PARTICLES = 520;
 const SNOW = 420; // 바다 눈: 어스름층부터 천천히 내려오는 하얀 부스러기
 const PLANKTON = 600; // 한밤층부터: 헤이즐이 지나간 자리에서 빛나는 플랑크톤
+const BUBBLES = 260; // 정지 코드 리듬의 점프 박자: 위로 솟구치는 빛 거품
 const SHAFTS = 9;
 const SPAN = 70; // 입자 · 빛줄기가 카메라 둘레에 퍼지는 범위
 
@@ -176,6 +177,15 @@ export class Dive {
 		this.pkCarry = 0;
 		this.pkTime = 0;
 
+		// 빛 거품: 금빛으로 솟구치며 흔들리다 사라진다
+		const bg = new THREE.BufferGeometry();
+		bg.setAttribute( 'position', new THREE.BufferAttribute( new Float32Array( BUBBLES * 3 ), 3 ) );
+		bg.setAttribute( 'color', new THREE.BufferAttribute( new Float32Array( BUBBLES * 3 ), 3 ) );
+		this.bubbles = new THREE.Points( bg, new THREE.PointsMaterial( { map: dot, size: 0.8, vertexColors: true, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false } ) );
+		this.bubbles.frustumCulled = false;
+		this.group.add( this.bubbles );
+		this.bub = { vel: new Float32Array( BUBBLES * 3 ), born: new Float32Array( BUBBLES ).fill( - 99 ), next: 0 };
+
 		// 위에서 내려오는 빛줄기
 		this.shafts = [];
 		const shaftGeo = new THREE.CylinderGeometry( 1.2, 4.5, 26, 16, 1, true );
@@ -254,6 +264,37 @@ export class Dive {
 
 	}
 
+	// 정지 코드의 점프 박자: 헤이즐 둘레에서 빛 거품이 위로 솟구친다
+	rise( pos, n = 34 ) {
+
+		const p = this.bubbles.geometry.attributes.position, b = this.bub;
+		for ( let k = 0; k < n; k ++ ) {
+
+			const i = b.next;
+			b.next = ( i + 1 ) % BUBBLES;
+			const a = Math.random() * Math.PI * 2, r = Math.random() * 3.5;
+			p.setXYZ( i, pos.x + Math.cos( a ) * r, pos.y + ( Math.random() - 0.5 ) * 2, pos.z + Math.sin( a ) * r );
+			b.vel.set( [ Math.cos( a ) * 1.5, 9 + Math.random() * 9, Math.sin( a ) * 1.5 ], i * 3 );
+			b.born[ i ] = this.pkTime;
+
+		}
+
+		this.flash = Math.max( this.flash ?? 0, 0.35 );
+
+	}
+
+	// 정지 코드의 노래 박자: 헤이즐 둘레에 플랑크톤 고리가 빛난다
+	ring( pos ) {
+
+		for ( let k = 0; k < 26; k ++ ) {
+
+			const a = ( k / 26 ) * Math.PI * 2;
+			this.spark( pos.x + Math.cos( a ) * 6, pos.y + ( Math.random() - 0.5 ) * 0.8, pos.z + Math.sin( a ) * 6, 0.9 );
+
+		}
+
+	}
+
 	// 플랑크톤 하나를 깨운다
 	spark( x, y, z, life ) {
 
@@ -295,6 +336,28 @@ export class Dive {
 
 		col.needsUpdate = true;
 		this.plankton.geometry.attributes.position.needsUpdate = true;
+
+		// 빛 거품: 솟구치며 느려지고, 금빛에서 흰빛으로 흐려진다
+		const bp = this.bubbles.geometry.attributes.position, bc = this.bubbles.geometry.attributes.color, b = this.bub;
+		for ( let i = 0; i < BUBBLES; i ++ ) {
+
+			const age = ( this.pkTime - b.born[ i ] ) / 2.2;
+			if ( age < 0 || age > 1 ) {
+
+				bc.setXYZ( i, 0, 0, 0 );
+				continue;
+
+			}
+
+			b.vel[ i * 3 + 1 ] *= 1 - dt * 0.9;
+			bp.setXYZ( i, bp.getX( i ) + ( b.vel[ i * 3 ] + Math.sin( this.pkTime * 6 + i ) * 0.8 ) * dt, bp.getY( i ) + b.vel[ i * 3 + 1 ] * dt, bp.getZ( i ) + ( b.vel[ i * 3 + 2 ] + Math.cos( this.pkTime * 5 + i ) * 0.8 ) * dt );
+			const k = ( 1 - age ) ** 1.5;
+			bc.setXYZ( i, 1.0 * k, ( 0.82 + age * 0.18 ) * k, ( 0.45 + age * 0.55 ) * k );
+
+		}
+
+		bp.needsUpdate = true;
+		bc.needsUpdate = true;
 
 	}
 

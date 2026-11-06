@@ -36,6 +36,28 @@ export default {
 			jelly: 'クラゲの光が傷を包んだ — ハート回復',
 			guardStun: '完璧な52Hz — 近くの連合軍が少しのあいだ止まった'
 		},
+		// MAP 2 낚시
+		fish: {
+			titleHorn: '釣り · ルークの角',
+			titleFin: '釣り · 不器用なヒレ',
+			cast: '[E] 糸をたらす',
+			again: '[E] もう一回 · やめるなら下のボタン',
+			wait: '待って…浮きを見よう',
+			nibble: 'ツン…ツン…(まだ!)',
+			bite: 'グッ! 今だ [E]',
+			early: '早すぎた — 魚は逃げた',
+			missed: '逃した…',
+			reel: '[E] 白い線が緑のマスに来たら引き上げる',
+			snap: '糸が切れた! (赤が3回)',
+			new: 'NEW!',
+			dexCount: '図鑑 {n}/{max}',
+			jelly: 'クラゲはそっと放してあげた',
+			quit: 'やめる',
+			dex: '図鑑',
+			prompt: '[E] 釣りをする',
+			hookToast: 'Jの石の釣り針をつけた — 魚がよくかかる',
+			names: { blueTang: 'ナンヨウハギ', yellowTang: 'キイロハギ', chromis: 'スズメダイ', clownfish: 'カクレクマノミ', angelfish: 'エンゼルフィッシュ', firefish: 'ハタタテハゼ', mandarin: 'ニシキテグリ', cardinalfish: 'テンジクダイ', rabbitfish: 'アイゴ', reefFish: 'リーフフィッシュ', grouper: 'ハタ', barracuda: 'バラクーダ', stingray: 'エイ', shark: 'ネムリブカ', jelly: 'ミズクラゲ', shrimp: 'スカンクシュリンプ', coelacanth: 'シーラカンス', shoreCrab: 'イソガニ', reefCrab: 'サンゴガニ', hermit: 'ヤドカリ', eel: 'ウツボ' }
+		},
 		// MAP 2 プレビュー: ポータル → 海の中
 		dive: {
 			label: 'MAP 2 · 波を知らずに生まれた海',
@@ -452,6 +474,13 @@ export default {
 					[ 'luke', '「解読不能」だって…違う。わかりすぎてたから、消そうとしたんだ。', 'luke' ],
 					[ 'hazel', '( 52Hzで歌う。扉の向こうで、何かが応える )' ]
 				]
+			],
+			// 낚시를 처음 할 때
+			fishIntro: [
+				[ 'luke', '潜水艇で拾った釣り糸だ。おれの角に巻けば…ほら、釣り竿だ。', 'luke' ],
+				[ 'finn', '……釣っても、また放してあげるんだよね? なら見たい。', 'finn' ],
+				[ 'narrator', '{N}は潜水艇で拾った釣り糸をヒレに巻いた。ちょっと不器用かもしれない。', 'lukeGone' ],
+				[ 'narrator', '釣った魚は図鑑に書いて、また海に放す。' ]
 			],
 			// 경비 연합군: 어스름층으로 내려가기 전에 처음 보인다
 			guards: [

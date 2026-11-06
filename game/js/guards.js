@@ -3,7 +3,7 @@
 // 곰치가 사는 벽 쪽은 금기라 다가가지 않는다 (벽을 타면 순찰은 피하지만 곰치가 문다)
 import * as THREE from 'three';
 import { Whale, steerTo } from './actors.js';
-import { trenchCenter, trenchRadius } from './map2.js';
+import { trenchCenter, trenchRadius, glowMap } from './map2.js';
 
 // 순찰하는 깊이 (m). 고래 뼈(205m) 둘레는 제단이라 셋이 원을 그리며 의식을 치른다
 const PATROLS = [ 70, 140, 245, 290 ];
@@ -23,6 +23,8 @@ const TABOO = 0.5; // 협곡 반지름의 이 비율 밖(벽 쪽)으로는 들�
 const SHOW_RANGE = 90;
 
 const _c = new THREE.Vector2();
+const EYE_GEO = new THREE.SphereGeometry( 0.2, 8, 6 );
+const EYE_MAT = new THREE.MeshBasicMaterial( { color: 0xff3355 } );
 
 export class Guards {
 
@@ -44,8 +46,22 @@ export class Guards {
 	add( model, { depth, angle, altar = null } ) {
 
 		const w = new Whale( model, { name: 'guard', length: 10, ride: 0.42, freq: 3, amp: 0.06 } );
-		w.setGlow( 0.12, 0xff2050 ); // 붉은 눈: 기지의 명령을 받는 칩
-		const g = { whale: w, home: depth, angle, altar, state: 'patrol', t: 0, y: - depth, dir: Math.random() < 0.5 ? 1 : - 1 };
+		// 붉은 눈: 기지의 명령을 받는 칩. 몸은 보통 범고래 색 그대로
+		const eyes = new THREE.Group();
+		for ( const sx of [ - 1, 1 ] ) {
+
+			const eye = new THREE.Mesh( EYE_GEO, EYE_MAT );
+			eye.position.set( sx * 0.85, 0.55, 3.4 );
+			eyes.add( eye );
+
+		}
+
+		const glow = new THREE.Sprite( new THREE.SpriteMaterial( { map: glowMap(), color: 0xff2050, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false } ) );
+		glow.position.set( 0, 0.6, 3.6 );
+		glow.scale.setScalar( 1.7 );
+		eyes.add( glow );
+		w.root.add( eyes );
+		const g = { whale: w, eyes, home: depth, angle, altar, state: 'patrol', t: 0, y: - depth, dir: Math.random() < 0.5 ? 1 : - 1 };
 		this.place( g );
 		this.scene.add( w.root );
 		this.list.push( g );
@@ -95,7 +111,7 @@ export class Guards {
 				g.state = 'stun';
 				g.sung = true;
 				g.t = 0;
-				g.whale.setGlow( 0, 0x000000 ); // 붉은 눈이 잠시 꺼진다
+				g.eyes.visible = false; // 붉은 눈이 잠시 꺼진다
 				stunned ++;
 				continue;
 
@@ -198,7 +214,7 @@ export class Guards {
 
 					g.state = 'return';
 					g.sung = false;
-					w.setGlow( 0.12, 0xff2050 );
+					g.eyes.visible = true;
 
 				}
 
@@ -254,7 +270,7 @@ export class Guards {
 		for ( const g of this.list ) {
 
 			g.state = 'calm';
-			g.whale.setGlow( 0, 0x000000 );
+			g.eyes.visible = false;
 
 		}
 

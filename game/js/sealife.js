@@ -256,6 +256,23 @@ export class Sealife {
 
 		for ( const e of this.eels ) this.updateEel( e, dt, t, cam, hazel, active );
 		for ( const h of this.hung ?? [] ) h.rotation.z = Math.sin( t * 0.9 ) * 0.25;
+		for ( let i = ( this.shows?.length ?? 0 ) - 1; i >= 0; i -- ) {
+
+			const s = this.shows[ i ];
+			s.t += dt;
+			s.mixer.update( dt );
+			s.root.position.y += dt * 1.1;
+			s.root.rotation.y += dt * 1.6;
+			const k = s.t < 2.4 ? 1 : Math.max( 0, 1 - ( s.t - 2.4 ) / 0.6 );
+			s.body.scale.setScalar( s.base * ( 0.4 + 0.6 * Math.min( 1, s.t * 3 ) ) * k );
+			if ( s.t > 3 ) {
+
+				this.group.remove( s.root );
+				this.shows.splice( i, 1 );
+
+			}
+
+		}
 
 		// 노래하면 깊은 바다 생물이 잠깐 환하게 빛난다
 		for ( const p of Object.values( this.proto ) ) for ( const m of p.mats ) if ( m.userData.glow ) m.emissiveIntensity = m.userData.glow * ( 1 + flash * 2.5 );
@@ -397,6 +414,18 @@ export class Sealife {
 		f.root.rotation.y = Math.atan2( facing.x, facing.z );
 		const action = f.play( 'Idle', 0.8 );
 		this.eels.push( { ...f, mats, home, facing, action, state: 'hide', t: 0, target: new THREE.Vector3(), glow: 0, visible: true } );
+
+	}
+
+	// 낚시로 잡은 물고기를 잠깐 보여 주고 놓아준다 (헤엄치며 떠올랐다가 작아지며 사라진다)
+	showCatch( key, pos ) {
+
+		if ( ! this.proto[ key ] ) return;
+		const f = this.spawn( key );
+		f.play( key === 'jelly' ? 'Swim' : 'Swim fast', 1.2 );
+		f.root.position.copy( pos );
+		this.shows = this.shows ?? [];
+		this.shows.push( { ...f, t: 0, base: f.body.scale.x } );
 
 	}
 

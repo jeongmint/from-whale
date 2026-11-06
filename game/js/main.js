@@ -14,9 +14,10 @@ import { CHAPTERS, PLACES, BOTTLES, LETTER_TOTAL, ORCA_PACKS, KELP_GROVES, scram
 import { lang, t, setLang, applyStatic } from './i18n.js';
 import { openScores } from './scores.js';
 import { Dive, DIVE_TOP, DIVE_BOTTOM, ZONES, zoneAt } from './dive.js';
-import { buildTrench, trenchCenter, trenchRadius } from './map2.js';
+import { buildTrench, trenchCenter, trenchRadius, glowMap } from './map2.js';
 import { loadSealife, Sealife } from './sealife.js';
 import { Guards } from './guards.js';
+import { startFishing, dexCount, DEX_KEYS } from './fishing.js';
 
 const BASE = window.FW_ASSET_BASE ?? '../';
 const query = new URLSearchParams( location.search );
@@ -795,6 +796,7 @@ Object.assign( G, {
 
 		G.diveCheckpoint = { x: log.pos.x, z: log.pos.z, y: log.pos.y };
 		heal( true );
+		if ( log.landmark === 'capsule' ) setTimeout( () => G.ui.toast( t( 'fish.hookToast' ) ), 1500 );
 
 	},
 
@@ -909,6 +911,7 @@ async function showMap2Ending() {
 	$( 'ending-stats' ).innerHTML = [
 		`PLAY TIME ${minutes}:${String( seconds ).padStart( 2, '0' )}`,
 		`LOGS ${G.map2.logs.filter( ( l ) => l.read ).length}/${G.map2.logs.length}`,
+		`FISH ${dexCount()}/${DEX_KEYS.length}`,
 		G.flags.duetRank ? `STOP CODE ${G.flags.duetRank}` : '',
 		t( 'ending.deepHint' )
 	].filter( Boolean ).join( '<br>' );
@@ -1075,6 +1078,67 @@ function updateOrcas( dt ) {
 		}
 
 	}
+
+}
+
+// MAP 2 낚시 자리: 일지가 있는 방마다 하나 (기지 문 앞은 빼고). 떠 있는 찌와 초록 빛
+function makeFishSpots() {
+
+	const tex = glowMap();
+	return G.map2.logs.slice( 0, 5 ).map( ( log, i ) => {
+
+		const c = trenchCenter( G.map2.entry, log.depth );
+		const pos = new THREE.Vector3( ( log.pos.x + c.x ) / 2, log.pos.y - 3, ( log.pos.z + c.y ) / 2 );
+		const group = new THREE.Group();
+		group.position.copy( pos );
+		const buoy = new THREE.Mesh( new THREE.SphereGeometry( 0.7, 12, 8 ), new THREE.MeshStandardMaterial( { color: 0xff6b6b, emissive: 0xff6b6b, emissiveIntensity: 0.6 } ) );
+		const cap = new THREE.Mesh( new THREE.SphereGeometry( 0.72, 12, 6, 0, Math.PI * 2, 0, Math.PI / 2 ), new THREE.MeshStandardMaterial( { color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 0.5 } ) );
+		buoy.add( cap );
+		const ring = new THREE.Mesh( new THREE.TorusGeometry( 3.2, 0.08, 6, 40 ), new THREE.MeshBasicMaterial( { color: 0x8dffb8, transparent: true, opacity: 0.6 } ) );
+		ring.rotation.x = Math.PI / 2;
+		ring.position.y = - 1.5;
+		const glow = new THREE.Sprite( new THREE.SpriteMaterial( { map: tex, color: 0x8dffb8, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending, depthWrite: false } ) );
+		glow.scale.setScalar( 7 );
+		group.add( buoy, ring, glow );
+		group.visible = false;
+		G.map2.group.add( group );
+		const layer = log.depth < 40 ? 0 : log.depth < 120 ? 1 : log.depth < 250 ? 2 : 3;
+		return { pos, group, buoy, glow, layer };
+
+	} );
+
+}
+
+function nearFishSpot() {
+
+	if ( ! G.diving || ! G.fishSpots || G.fishing ) return null;
+	const h = G.actors.hazel;
+	return G.fishSpots.find( ( s ) => s.group.visible && Math.hypot( h.pos.x - s.pos.x, h.pos.z - s.pos.z ) < 11 && Math.abs( h.root.position.y - s.pos.y ) < 8 ) ?? null;
+
+}
+
+// 낚시 한 판: 처음이면 짧은 대사, 루크가 있으면 뿔 낚싯대 (쉬움), 없으면 지느러미 (조금 빡빡함)
+async function fishAt( spot ) {
+
+	const h = G.actors.hazel;
+	G.cutscene( true );
+	h.speed = 0;
+	if ( ! G.flags.fishIntro ) {
+
+		G.flags.fishIntro = true;
+		const on = { luke: G.party.luke === 'on', lukeGone: G.party.luke !== 'on', finn: G.party.finn === 'on', finnGone: G.party.finn !== 'on' };
+		await G.say( lang().story.map2.fishIntro.filter( ( [ , , c ] ) => ! c || on[ c ] ).map( ( [ who, text ] ) => ( { who, text } ) ) );
+
+	}
+
+	const gear = { horn: G.party.luke === 'on', hook: !! G.map2.logs[ 4 ]?.read };
+	await startFishing( G, {
+		layer: spot.layer,
+		gear,
+		onCatch: ( key ) => G.sea?.showCatch( key, h.root.position.clone().add( h.forward.multiplyScalar( 5 ) ).setY( h.root.position.y + 2 ) )
+	} );
+	G.singCooldown = 0.6;
+	G.cutscene( false );
 
 }
 
@@ -1759,16 +1823,26 @@ function duet( chart, title = null ) {
 				}
 
 				const h = G.actors.hazel;
-				G.world.ring( h.pos.x, h.pos.z, { color: 0x7fe9ff, to: 12, life: 0.5, width: 0.3 } );
+				if ( G.diving ) G.dive.ring( h.root.position, 0x7fe9ff ); // 바닷속: 둘레의 플랑크톤이 고리로 빛난다
+				else G.world.ring( h.pos.x, h.pos.z, { color: 0x7fe9ff, to: 12, life: 0.5, width: 0.3 } );
 
 			} else {
 
 				jump();
 				stars ++;
 				showStars();
-				G.sky.spawnShootingStar( true, aim() );
-				const s = G.actors.stella;
-				G.world.ring( s.pos.x, s.pos.z, { color: 0xffd36b, to: 60, life: 1, width: 0.25 } );
+				if ( G.diving ) {
+
+					// 바닷속엔 별똥별 대신, 빛나는 거품이 위로 솟구친다 (파도 없는 바다에서 하늘로)
+					G.dive.rise( G.actors.hazel.root.position );
+
+				} else {
+
+					G.sky.spawnShootingStar( true, aim() );
+					const s = G.actors.stella;
+					G.world.ring( s.pos.x, s.pos.z, { color: 0xffd36b, to: 60, life: 1, width: 0.25 } );
+
+				}
 
 			}
 
@@ -2247,6 +2321,7 @@ function onAction( code ) {
 
 	}
 
+	if ( G.fishing && code === 'Escape' ) return G.fishing.quit();
 	if ( code === 'Escape' ) return setPaused( true );
 	if ( code === 'KeyM' ) return G.ui.setMuted( audio.toggleMute() );
 	if ( G.puzzle && [ 'KeyE', 'Space', 'Enter' ].includes( code ) ) return G.puzzle.tap();
@@ -2440,6 +2515,8 @@ function sing() {
 
 	if ( G.stun > 0 && G.flags.finnTears && ! G.cutsceneOn && ! G.ui.dialogOpen ) return finnTears();
 	if ( G.singCooldown > 0 || G.stun > 0 ) return;
+	const spot = nearFishSpot();
+	if ( spot ) return fishAt( spot );
 	const h = G.actors.hazel;
 	G.singCooldown = 1.3;
 	audio.play( 'sing' );
@@ -3122,6 +3199,8 @@ async function enterDive() {
 
 	}
 
+	if ( ! G.fishSpots ) G.fishSpots = makeFishSpots();
+
 	( G.seaLoad ??= loadSealife( BASE ) ).then( ( models ) => {
 
 		if ( G.sea ) return;
@@ -3200,13 +3279,24 @@ function updatePlayer( dt ) {
 		boost = keys.has( 'ShiftLeft' ) || keys.has( 'ShiftRight' ) || touch.boost;
 		if ( touch.active ) {
 
-			// 많이 밀수록 빠르게, 아래로 당기면 뒤로
+			// 많이 밀수록 빠르게. 아래로 당기면 PC의 S처럼 몸을 돌려 화면 쪽으로 헤엄친다 (헤이즐 얼굴이 보인다)
 			const push = Math.min( 1, Math.hypot( touch.x, touch.y ) * 1.2 );
-			const stick = touch.y > 0.6 ? - push : push;
-			if ( Math.abs( stick ) > Math.abs( throttle ) ) throttle = stick;
-			turn = - touch.x * 1.2;
+			if ( touch.y > 0.6 && Math.abs( touch.x ) < 0.75 ) {
 
-		}
+				if ( G.touchBack == null ) G.touchBack = G.camYaw + Math.PI; // 당긴 순간의 화면 쪽
+				const diff = wrapAngle( G.touchBack - h.yaw );
+				turn = Math.max( - 1.6, Math.min( 1.6, diff * 2.5 ) );
+				throttle = Math.abs( diff ) > 2 ? 0.3 * push : push;
+
+			} else {
+
+				G.touchBack = null;
+				if ( push > Math.abs( throttle ) ) throttle = push;
+				turn = - touch.x * 1.2;
+
+			}
+
+		} else G.touchBack = null;
 
 		if ( tiltActive() ) {
 
@@ -3445,7 +3535,7 @@ function updateCompanions( dt ) {
 
 function updateBottlesAndKelp( dt ) {
 
-	if ( G.diving ) return G.ui.prompt( null ); // MAP 2엔 맵 1의 유리병 · 미역 · 빛 조각이 없다
+	if ( G.diving ) return G.ui.prompt( ! G.fishing && ! G.cutsceneOn && ! G.ui.dialogOpen && nearFishSpot() ? t( 'fish.prompt' ) : null ); // MAP 2엔 맵 1의 유리병 · 미역 · 빛 조각이 없다. 낚시 자리 안내만
 
 	for ( const b of G.bottles ) {
 
@@ -3519,8 +3609,9 @@ function updateCamera( dt ) {
 		if ( G.touch ) {
 
 			// 터치는 카메라가 고래 등 뒤에 붙어 있고, 화면을 드래그해 돌려도 잠시 뒤 돌아온다
+			// 아래로 당겨 화면 쪽으로 헤엄치는 동안은 카메라가 따라 돌지 않는다 (얼굴이 보이게). 놓으면 천천히 등 뒤로
 			if ( G.time - ( G.lastDrag ?? - 99 ) > 1.8 && ! drag ) G.camOrbit *= Math.exp( - dt * 1.5 );
-			G.camYaw = h.yaw + G.camOrbit;
+			if ( G.touchBack == null ) G.camYaw += wrapAngle( h.yaw + G.camOrbit - G.camYaw ) * Math.min( 1, dt * 4 );
 
 		}
 
@@ -3583,14 +3674,17 @@ function updateHud() {
 	const t = G.objectiveTarget;
 	if ( t && ! G.cutsceneOn && ! G.ended && guideVisible() ) {
 
-		const y = sampleOcean( t.x, t.z ) + 8;
+		// 바닷속에선 목표의 실제 깊이로 (수면이 아니라)
+		const deep = G.diving && t.y !== undefined;
+		const y = deep ? t.y + 2 : sampleOcean( t.x, t.z ) + 8;
+		const dy = deep ? t.y - G.actors.hazel.root.position.y : 0;
 		_v.set( t.x, y, t.z ).project( camera );
 		const behind = _v.z > 1;
 		const onScreen = ! behind && Math.abs( _v.x ) < 0.95 && Math.abs( _v.y ) < 0.92;
 		const screen = { x: ( _v.x * 0.5 + 0.5 ) * view.w, y: ( - _v.y * 0.5 + 0.5 ) * view.h, onScreen, behind };
-		const d = G.distTo( t );
-		G.ui.updateMarker( screen, d, d > 12 );
-		G.ui.setDistance( d );
+		const d = deep ? Math.hypot( G.distTo( t ), dy ) : G.distTo( t );
+		G.ui.updateMarker( screen, d, d > 12, dy );
+		G.ui.setDistance( d, deep ? dy : null );
 
 	} else {
 
@@ -3609,6 +3703,8 @@ function updateHud() {
 
 		const next = G.map2.logs.find( ( l ) => ! l.read );
 		for ( const l of G.map2.logs ) points.push( l === next ? { x: l.pos.x, z: l.pos.z, color: '#7fe9ff', size: 4, shape: 'diamond' } : { x: l.pos.x, z: l.pos.z, color: l.read ? 'rgba(185,168,255,0.6)' : 'rgba(127,233,255,0.35)', size: 2.5 } );
+		// 낚시 자리: 초록 고리 (잠수정의 낚싯줄을 찾은 뒤, 비슷한 깊이만)
+		for ( const s of G.fishSpots ?? [] ) if ( s.group.visible && Math.abs( s.pos.y - G.diveY ) < 30 ) points.push( { x: s.pos.x, z: s.pos.z, color: '#8dffb8', size: 4, shape: 'ring' } );
 		// 경비 연합군: 쫓아올 땐 깜빡이는 빨간 점 (비슷한 깊이만)
 		for ( const g of G.guards?.list ?? [] ) if ( g.state !== 'calm' && Math.abs( g.y - G.diveY ) < 25 ) points.push( { x: g.whale.pos.x, z: g.whale.pos.z, color: g.state === 'chase' || g.state === 'spot' ? ( Math.floor( G.time * 6 ) % 2 ? '#ff3355' : '#ffd0d8' ) : 'rgba(255,90,110,0.55)', size: 3 } );
 		// 노래로 드러났거나 노리는 중인 곰치는 빨간 점 (비슷한 깊이만)
@@ -3699,6 +3795,14 @@ function update( dt ) {
 		hazelLamp.position.copy( G.actors.hazel.root.position ).y += 3;
 		if ( G.map2 ) G.map2.update( G.time, camera.position );
 		const active = ! G.cutsceneOn && ! G.ui.dialogOpen && ! G.ui.overlay && ! G.duetPlay && ! G.fainting;
+		for ( const s of G.fishSpots ?? [] ) {
+
+			s.group.visible = G.map2.logs[ 0 ].read; // 낚싯줄은 첫 기록(부서진 잠수정)에서 줍는다
+			s.buoy.position.y = Math.sin( G.time * 1.6 + s.layer ) * 0.4;
+			s.glow.material.opacity = 0.55 + 0.25 * Math.sin( G.time * 2.2 + s.layer );
+
+		}
+
 		if ( G.sea && G.diving ) G.sea.update( dt, G.time, camera.position, G.actors.hazel.root.position, flash, active );
 		if ( G.guards && G.diving ) G.guards.update( dt, G.actors.hazel.root.position, active );
 

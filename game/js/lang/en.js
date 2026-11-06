@@ -36,6 +36,28 @@ export default {
 			jelly: 'The jellyfish\'s light wraps the wound — heart restored',
 			guardStun: 'A perfect 52Hz — nearby guards freeze for a moment'
 		},
+		// MAP 2 낚시
+		fish: {
+			titleHorn: 'FISHING · LUKE\'S HORN',
+			titleFin: 'FISHING · CLUMSY FIN',
+			cast: '[E] Drop the line',
+			again: '[E] Once more · tap Stop to finish',
+			wait: 'Wait… watch the float',
+			nibble: 'Tap… tap… (not yet!)',
+			bite: 'It bit! Now [E]',
+			early: 'Too soon — the fish got away',
+			missed: 'Missed it…',
+			reel: '[E] Reel in when the white line is in the green',
+			snap: 'The line snapped! (three reds)',
+			new: 'NEW!',
+			dexCount: 'Fish log {n}/{max}',
+			jelly: 'The jellyfish was gently let go',
+			quit: 'Stop',
+			dex: 'Fish log',
+			prompt: '[E] Fish here',
+			hookToast: 'J\'s stone fishhook is on — fish bite more easily',
+			names: { blueTang: 'Blue tang', yellowTang: 'Yellow tang', chromis: 'Chromis', clownfish: 'Clownfish', angelfish: 'Angelfish', firefish: 'Firefish', mandarin: 'Mandarin dragonet', cardinalfish: 'Cardinalfish', rabbitfish: 'Rabbitfish', reefFish: 'Reef fish', grouper: 'Grouper', barracuda: 'Barracuda', stingray: 'Stingray', shark: 'Reef shark', jelly: 'Moon jellyfish', shrimp: 'Cleaner shrimp', coelacanth: 'Coelacanth', shoreCrab: 'Shore crab', reefCrab: 'Reef crab', hermit: 'Hermit crab', eel: 'Moray eel' }
+		},
 		// MAP 2 preview: portal → under the sea
 		dive: {
 			label: 'MAP 2 · A SEA BORN WITHOUT WAVES',
@@ -452,6 +474,13 @@ export default {
 					[ 'luke', '"Uninterpretable"... No. He understood it too well, so he tried to erase it.', 'luke' ],
 					[ 'hazel', '( sings at 52Hz. From behind the door, something answers )' ]
 				]
+			],
+			// 낚시를 처음 할 때
+			fishIntro: [
+				[ 'luke', 'Found this line in the wreck. Wrap it round my horn and… look, a fishing rod.', 'luke' ],
+				[ 'finn', '...We let them go after, right? Then I want to watch.', 'finn' ],
+				[ 'narrator', '{N} wrapped the line from the wreck around a fin. This might be clumsy.', 'lukeGone' ],
+				[ 'narrator', 'Each catch goes in the fish log, then back into the sea.' ]
 			],
 			// 경비 연합군: 어스름층으로 내려가기 전에 처음 보인다
 			guards: [
