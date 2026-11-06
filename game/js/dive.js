@@ -8,10 +8,10 @@ export const DIVE_BOTTOM = - 322; // 맵 2 기지 문 앞 (map2.js BASE_DEPTH + 
 
 // 깊이 층: [ 시작 깊이(m), 안개 · 배경색, 안개 밀도, 입자 색 ]. 내려갈수록 어둡고 짙어진다
 export const ZONES = [
-	[ 0, 0x0a4a8a, 0.02, 0xbfe8ff ], // 햇빛층
-	[ 40, 0x05285c, 0.026, 0x9fd0ff ], // 어스름층
-	[ 120, 0x02122e, 0.032, 0xa98cff ], // 한밤층
-	[ 250, 0x01060f, 0.04, 0x7fffd4 ] // 해구
+	[ 0, 0x0a4a8a, 0.013, 0xbfe8ff ], // 햇빛층
+	[ 40, 0x05285c, 0.018, 0x9fd0ff ], // 어스름층
+	[ 120, 0x02122e, 0.024, 0xa98cff ], // 한밤층
+	[ 250, 0x01060f, 0.03, 0x7fffd4 ] // 해구
 ].map( ( [ depth, fog, density, mote ] ) => ( { depth, fog: new THREE.Color( fog ).convertSRGBToLinear(), density, mote: new THREE.Color( mote ) } ) );
 
 // 깊이 d(m)의 층 번호와, 다음 층으로 넘어가는 비율 (경계에서 부드럽게 섞는다)
