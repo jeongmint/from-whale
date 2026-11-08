@@ -567,9 +567,10 @@ export async function map2( G ) {
 	}
 
 	// 기지 바깥, 잠수복의 J. 핀이 살아 있으면 재회, 없으면 부서진 나침반
-	G.showDiver( door );
+	await G.stageFinale( door );
+	G.showDiver();
 	await G.say( pick( T().reunion ) );
-	G.shamanAtDoor( door );
+	G.shamanAtDoor();
 	await G.say( pick( T().base ) );
 	G.camRelease();
 	G.objective( U().label, U().objBase );
