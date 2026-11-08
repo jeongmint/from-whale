@@ -25,7 +25,8 @@ export default {
 			label: 'MAP 2 · A SEA BORN WITHOUT WAVES',
 			obj: [ 'Find the wrecked submersible · Sunlight zone', 'Find the undersea lab · Twilight zone', 'Find the red terminal · Midnight zone', 'Find the whale bones · Midnight zone', 'Find the last record · The trench', 'Find the base door · The bottom' ],
 			objBase: 'Sing the stop code at the base door',
-			current: 'The current holds you back — find this layer\'s record first',
+			current: 'The current blocks the base — find more records',
+			objFind: 'Find the research logs · {n}/5 · in any order',
 			stopTitle: 'STOP CODE · 52HZ ♥ 52HZ',
 			logs: 'LOGS {n}/6',
 			coelacanth: 'Coelacanth — a \'living fossil\', 400 million years old',
@@ -191,6 +192,7 @@ export default {
 		orca: 'Alliance orca',
 		kelp: 'Written on the kelp',
 		ai: 'The Doctor\'s AI',
+		j: 'J · Diver',
 	},
 
 	mobyLetter: {
@@ -478,7 +480,8 @@ export default {
 			// 낚시를 처음 할 때
 			fishIntro: [
 				[ 'luke', 'Found this line in the wreck. Wrap it round my horn and… look, a fishing rod.', 'luke' ],
-				[ 'finn', '...We let them go after, right? Then I want to watch.', 'finn' ],
+				[ 'finn', '...This line is J\'s. Same way of tying the knot.', 'finn' ],
+				[ 'narrator', 'The knot at the end matched the drawing in J\'s records.', 'finnGone' ],
 				[ 'narrator', '{N} wrapped the line from the wreck around a fin. This might be clumsy.', 'lukeGone' ],
 				[ 'narrator', 'Each catch goes in the fish log, then back into the sea.' ]
 			],
@@ -499,28 +502,92 @@ export default {
 				[ 'finn', 'The altar of "purification." The Shaman says she first heard the Voice here.', 'finn' ],
 				[ 'luke', 'A voice, huh... Looks to me like they\'re writing down machine signals.', 'luke' ]
 			],
+			// 핀의 기억: 찾은 장소 개수 순서대로 (finn: 핀이 있을 때, gone: 핀이 없을 때 J의 녹음)
+			memories: [
+				{ title: 'The Sea Behind the Glass', finn: [
+					[ 'finn', '...Glass. Through round glass, something blue was rippling.' ],
+					[ 'finn', 'It was a long time before I learned that was the sea.' ],
+					[ 'luke', '...Born in a tank? So that\'s why you cried at every wave.', 'luke' ]
+				], gone: [
+					[ 'narrator', 'A small recorder blinked in the sand. An old voice came out.' ],
+					[ 'narrator', '"Tank 7 log. Nose pressed to the glass again. I want to show it the sea… not yet, little one."' ]
+				] },
+				{ title: 'The Fishing Line', finn: [
+					[ 'finn', 'Every evening J sat by the tank and dropped a line. Every fish J caught went to me.' ],
+					[ 'luke', '...Bet that human was a lousy angler.', 'luke' ],
+					[ 'finn', 'Yeah. Always lost them. So we laughed, the two of us.' ]
+				], gone: [
+					[ 'narrator', '"Didn\'t catch a single one today. No. 7 seemed to laugh. So the crybaby laughs too."' ],
+					[ 'narrator', 'The recording cut off there.' ]
+				] },
+				{ title: 'Crybaby No. 7', finn: [
+					[ 'finn', 'The others went quiet when the orders came. Only I cried — every time that red sound rang in my head.' ],
+					[ 'finn', 'Each time, J put a hand on the glass. Then the sound got a little quieter.' ]
+				], gone: [
+					[ 'narrator', '"No. 7 cries every time the chip signal comes in. They call it a defect…"' ],
+					[ 'narrator', '"I think it\'s proof that this child is still a whale."' ]
+				] },
+				{ title: 'The Device on My Neck', finn: [
+					[ 'finn', 'That night, J hung this on my neck. It was cold.' ],
+					[ 'finn', '"Only you can keep this. You can cry. Just don\'t let it go."' ]
+				], gone: [
+					[ 'narrator', 'The broken compass {N} carried began to tremble.' ],
+					[ 'narrator', '"I left the device with No. 7. The gentlest one. The one who\'ll live the longest."' ]
+				] },
+				{ title: 'Run', finn: [
+					[ 'finn', 'The last time I saw J, J was opening the tank door. Alarms, every red light on…' ],
+					[ 'finn', '"Go, No. 7. To where there are waves."' ],
+					[ 'finn', '...Now I remember. The beat J tapped on the glass every night. That\'s the stop code.' ],
+					[ 'narrator', 'Far below, the current guarding the base began to ease.' ]
+				], gone: [
+					[ 'narrator', 'The last recording began with an alarm.' ],
+					[ 'narrator', '"Go, No. 7. To where there are waves. …No. 7, if you\'re hearing this — what were the waves like?"' ],
+					[ 'hazel', '( answers at 52Hz. The broken compass trembles to the same beat )' ],
+					[ 'narrator', 'Far below, the current guarding the base began to ease.' ]
+				] }
+			],
+			// 기지 바깥: 잠수복의 J
+			reunion: [
+				[ 'narrator', 'Outside the base stood someone in an old diving suit.' ],
+				[ 'narrator', 'The helmet lamp shone toward an old tank window.' ],
+				[ 'luke', '...Alive. The J from the records.', 'luke' ],
+				[ 'finn', '......', 'finn' ],
+				[ 'j', '...No. 7?', 'finn' ],
+				[ 'finn', 'Then why did you make us?', 'finn' ],
+				[ 'j', '......', 'finn' ],
+				[ 'j', 'At first I wanted to protect them. Humans, and you. I believed it was the same thing.', 'finn' ],
+				[ 'j', 'I was wrong. The third order made you kill each other.', 'finn' ],
+				[ 'j', 'If I just shut the AI down, the devices in your heads break too. So I stayed. To find a way to set you free without killing you.', 'finn' ],
+				[ 'finn', '...For twenty-five years?', 'finn' ],
+				[ 'j', 'Every day at the same hour I came out here. To the window where you first saw the sea.', 'finn' ],
+				[ 'j', 'The device is on your neck. The last piece was 52Hz. …Your song.', 'finn' ],
+				[ 'hazel', '( holds out the broken compass )', 'finnGone' ],
+				[ 'j', '...This is No. 7\'s.', 'finnGone' ],
+				[ 'j', '......So you never made it back.', 'finnGone' ],
+				[ 'j', 'I made these children. To protect them. And the third order made them kill each other.', 'finnGone' ],
+				[ 'j', 'Shut the AI down and the devices in their heads break too. So I stayed here and waited. Twenty-five years.', 'finnGone' ],
+				[ 'j', 'The code is still in here. I\'ll piece it together. …You sing it, 52Hz.', 'finnGone' ]
+			],
 			base: [
-				[ 'shaman', 'So you came this far, 52 hertz.\nThe Voice of the Deep calls for you. "Purify," it says.' ],
-				[ 'shaman', 'The Voice has never been wrong. We hear, and we obey.' ],
-				[ 'ai', 'Approaching individual detected. Frequency 52Hz. Purification priority one.' ],
-				[ 'ai', 'Warning. This door will not open. Warning. Warning.' ],
-				[ 'finn', 'Shaman, did you hear that? That isn\'t a voice. It\'s a machine.', 'finn' ],
+				[ 'shaman', 'A human… and 52 hertz. Do not defile the Voice of the Deep.' ],
+				[ 'ai', 'Approaching entity detected. Frequency 52Hz. Purge priority one.' ],
+				[ 'finn', 'Shaman, that isn\'t a voice. It\'s a machine. …I don\'t cry anymore. No — it\'s okay to cry. J said so.', 'finn' ],
 				[ 'narrator', 'The Shaman\'s red eyes blinked in exactly the rhythm of the AI\'s words.', 'finnGone' ],
-				[ 'stella', '52Hz! I can hear everything from up here!\nI\'ll sing with you. You remember our rhythm, right?' ],
-				[ 'finn', 'My device will catch your song. This time... I won\'t cry.', 'finn' ],
-				[ 'narrator', 'The broken compass began to tremble faintly.', 'finnGone' ],
-				[ 'luke', 'Thinking comes later. Sing, {N}!', 'luke' ]
+				[ 'stella', '52 hertz! I can hear it all from up here!\nI\'ll sing with you. Remember our rhythm?' ],
+				[ 'j', 'Now. Sing.' ]
 			],
 			stop: [
-				[ 'ai', 'Stop code confirmed. ...All Alliance units, commands released.' ],
+				[ 'ai', 'Stop code confirmed. …All Alliance units, orders released.' ],
 				[ 'shaman', '......The Voice has stopped.' ],
-				[ 'shaman', 'Then whose voice... have we been hearing all this time?' ],
-				[ 'narrator', 'All across the sea, the Alliance\'s red eyes went dark, one by one.' ],
-				[ 'narrator', 'Behind the base windows, a small light came on. Humans.' ],
-				[ 'narrator', 'A child holding a hydrophone pressed a hand to the glass and said something.' ],
-				[ 'luke', '...Want me to translate? "I can hear the whale\'s song."', 'luke' ],
-				[ 'narrator', '{N} couldn\'t hear it, but knew all the same.', 'lukeGone' ],
-				[ 'narrator', 'For the first time, someone who was not a whale heard 52Hz.' ]
+				[ 'shaman', 'Then whose voice… have we been hearing all this time?' ],
+				[ 'narrator', 'All across the sea, the Alliance\'s red eyes went dark one by one.' ],
+				[ 'narrator', 'For the first time, the orcas swam where no one told them to.' ],
+				[ 'j', '...First time I\'ve seen you. Not listening to me.' ],
+				[ 'finn', 'J, can you hear me? I live where there are waves now.', 'finn' ],
+				[ 'j', '...Yes. I hear you.', 'finn' ],
+				[ 'narrator', 'What Finn had guarded to the end was finally heard.', 'finnGone' ],
+				[ 'luke', '...Guess you don\'t need a translator. Everyone can hear it.', 'luke' ],
+				[ 'narrator', 'For the first time, someone who wasn\'t a whale heard 52Hz.' ]
 			],
 			card: [ 'MAP 2 ENDING', 'A Song Heard', 'For the first time, someone else heard' ]
 		},

@@ -783,6 +783,27 @@ Object.assign( G, {
 
 	},
 
+	// 맵 2 마지막: 기지 바깥, 낡은 잠수복을 입은 J (마지막까지 숨겨 둔다)
+	showDiver( door ) {
+
+		if ( ! G.diver ) G.diver = makeDiver();
+		const d = G.diver;
+		const h = G.actors.hazel;
+		// 헤이즐 앞, 문 반대쪽으로 비켜선 자리 (오래된 수조 창 앞)
+		const a = Math.atan2( door.pos.x - h.pos.x, door.pos.z - h.pos.z ) - 0.9;
+		const x = h.pos.x + Math.sin( a ) * 16, z = h.pos.z + Math.cos( a ) * 16;
+		d.root.position.set( x, G.diveY + 1, z );
+		d.root.rotation.y = Math.atan2( h.pos.x - x, h.pos.z - z );
+		d.root.visible = true;
+		d.baseY = G.diveY + 1;
+		if ( G.map2.searchlight ) G.map2.searchlight.visible = false; // J가 나온 동안 탐조등은 꺼 둔다 (화면이 바래지 않게)
+		d.pos = d.root.position;
+		G.map2.group.add( d.root );
+		G.camFocus( d, { side: 1, dist: 30, height: 4 } );
+		return d;
+
+	},
+
 	// 정지 코드가 통한 뒤: 붉은 눈이 모두 꺼진다
 	calmAlliance() {
 
@@ -1078,6 +1099,44 @@ function updateOrcas( dt ) {
 		}
 
 	}
+
+}
+
+// 잠수복의 J: 낡은 황동빛 잠수복, 둥근 헬멧과 푸른 창, 등의 공기통, 헬멧 위 등불
+function makeDiver() {
+
+	const root = new THREE.Group();
+	const suit = new THREE.MeshStandardMaterial( { color: 0xb08a48, roughness: 0.75, metalness: 0.2, flatShading: true } );
+	const brass = new THREE.MeshStandardMaterial( { color: 0xc9a050, roughness: 0.4, metalness: 0.7, emissive: 0x2a1d08 } );
+	const dark = new THREE.MeshStandardMaterial( { color: 0x3a3a40, roughness: 0.6, metalness: 0.5 } );
+	const body = new THREE.Mesh( new THREE.CapsuleGeometry( 0.75, 1.5, 4, 10 ), suit );
+	body.position.y = 2.3;
+	const helmet = new THREE.Mesh( new THREE.SphereGeometry( 0.85, 16, 12 ), brass );
+	helmet.position.y = 4.1;
+	const visor = new THREE.Mesh( new THREE.CircleGeometry( 0.42, 16 ), new THREE.MeshStandardMaterial( { color: 0x7fe9ff, emissive: 0x7fe9ff, emissiveIntensity: 0.9 } ) );
+	visor.position.set( 0, 4.1, 0.84 );
+	const tank = new THREE.Mesh( new THREE.CylinderGeometry( 0.38, 0.38, 1.7, 10 ), dark );
+	tank.position.set( 0, 2.5, - 0.75 );
+	const lamp = new THREE.Sprite( new THREE.SpriteMaterial( { map: glowMap(), color: 0xfff0c0, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false } ) );
+	lamp.position.set( 0, 5.05, 0.35 );
+	lamp.scale.setScalar( 3.2 );
+	root.add( body, helmet, visor, tank, lamp );
+	for ( const sx of [ - 1, 1 ] ) {
+
+		const arm = new THREE.Mesh( new THREE.CapsuleGeometry( 0.26, 1.3, 3, 8 ), suit );
+		arm.position.set( sx * 1.0, 2.5, 0.1 );
+		arm.rotation.z = sx * 0.25;
+		const leg = new THREE.Mesh( new THREE.CapsuleGeometry( 0.3, 1.2, 3, 8 ), suit );
+		leg.position.set( sx * 0.38, 0.75, 0 );
+		const boot = new THREE.Mesh( new THREE.BoxGeometry( 0.55, 0.35, 0.8 ), dark );
+		boot.position.set( sx * 0.38, 0.05, 0.12 );
+		root.add( arm, leg, boot );
+
+	}
+
+	root.scale.setScalar( 1.6 );
+	root.visible = false;
+	return { root, helmet };
 
 }
 
@@ -3701,7 +3760,7 @@ function updateHud() {
 	// MAP 2: 소나엔 연구 일지와 동료만 (맵 1의 바위 · 미역 · 등대는 없다)
 	if ( G.diving && G.map2 ) {
 
-		const next = G.map2.logs.find( ( l ) => ! l.read );
+		const next = G.map2.logs.find( ( l ) => ! l.read && l.pos === G.objectiveTarget ) ?? null; // 지금 목표 (가장 가까운, 아직 안 간 곳)
 		for ( const l of G.map2.logs ) points.push( l === next ? { x: l.pos.x, z: l.pos.z, color: '#7fe9ff', size: 4, shape: 'diamond' } : { x: l.pos.x, z: l.pos.z, color: l.read ? 'rgba(185,168,255,0.6)' : 'rgba(127,233,255,0.35)', size: 2.5 } );
 		// 낚시 자리: 초록 고리 (잠수정의 낚싯줄을 찾은 뒤, 비슷한 깊이만)
 		for ( const s of G.fishSpots ?? [] ) if ( s.group.visible && Math.abs( s.pos.y - G.diveY ) < 30 ) points.push( { x: s.pos.x, z: s.pos.z, color: '#8dffb8', size: 4, shape: 'ring' } );
@@ -3795,6 +3854,20 @@ function update( dt ) {
 		hazelLamp.position.copy( G.actors.hazel.root.position ).y += 3;
 		if ( G.map2 ) G.map2.update( G.time, camera.position );
 		const active = ! G.cutsceneOn && ! G.ui.dialogOpen && ! G.ui.overlay && ! G.duetPlay && ! G.fainting;
+		// 잠수복의 J: 천천히 떠 있고, 헬멧에서 가끔 거품이 오른다
+		if ( G.diver?.root.visible ) {
+
+			G.diver.root.position.y = G.diver.baseY + Math.sin( G.time * 0.9 ) * 0.3;
+			G.diver.bubbleT = ( G.diver.bubbleT ?? 0 ) - dt;
+			if ( G.diver.bubbleT <= 0 ) {
+
+				G.diver.bubbleT = 2.2;
+				G.dive.rise( G.diver.helmet.getWorldPosition( new THREE.Vector3() ), 5 );
+
+			}
+
+		}
+
 		for ( const s of G.fishSpots ?? [] ) {
 
 			s.group.visible = G.map2.logs[ 0 ].read; // 낚싯줄은 첫 기록(부서진 잠수정)에서 줍는다

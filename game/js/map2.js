@@ -238,6 +238,11 @@ export function buildTrench( scene, entry ) {
 	scene.add( group );
 	return {
 		group, logs,
+		get searchlight() {
+
+			return searchlight;
+
+		},
 		update( t, cam ) {
 
 			deco.update( t );
@@ -253,7 +258,7 @@ export function buildTrench( scene, entry ) {
 
 					const d = b.position.distanceTo( cam );
 					k *= 1 - THREE.MathUtils.smoothstep( d, 120, 230 );
-					k *= 0.35 + 0.65 * THREE.MathUtils.smoothstep( d, 8, 40 ); // 바로 옆에선 눈부시지 않게
+					k *= THREE.MathUtils.smoothstep( d, 14, 50 ); // 가까이 오면 빛은 걷히고 그 자리가 보인다 (화면이 바래지 않게)
 
 				}
 

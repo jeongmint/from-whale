@@ -344,6 +344,10 @@ body.singing #sonar-bar { pointer-events: none; }
 #song.turn #song-hint { color: var(--cyan); font-weight: 700; }
 body.singing #stick, body.singing #minimap-wrap { opacity: 0; pointer-events: none; }
 
+/* MAP 2 핀의 기억: 물속이 잠깐 하얗게 바랜다 */
+#app canvas { transition: filter 0.9s; }
+body.memory #app canvas { filter: saturate(0.35) brightness(1.25) contrast(0.88) sepia(0.15); }
+
 /* ---------- MAP 2 낚시 ---------- */
 #fish {
 	position: fixed; left: 50%; bottom: 22px;
