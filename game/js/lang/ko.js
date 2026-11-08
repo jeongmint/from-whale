@@ -36,6 +36,28 @@ export default {
 			jelly: '해파리의 빛이 상처를 감쌌다 — 하트 회복',
 			guardStun: '완벽한 52Hz — 가까운 연합군이 잠시 멈췄다'
 		},
+		// MAP 2 낚시
+		fish: {
+			titleHorn: '낚시 · 루크의 뿔',
+			titleFin: '낚시 · 서툰 지느러미',
+			cast: '[E] 줄 내리기',
+			again: '[E] 한 번 더 · 그만하려면 아래 버튼',
+			wait: '기다려… 찌를 보자',
+			nibble: '톡… 톡… (아직!)',
+			bite: '쑥! 지금 [E]',
+			early: '너무 빨랐다 — 물고기가 달아났다',
+			missed: '놓쳤다…',
+			reel: '[E] 하얀 선이 초록 칸에 왔을 때 끌어올리기',
+			snap: '줄이 끊어졌다! (빨간 칸 세 번)',
+			new: 'NEW!',
+			dexCount: '도감 {n}/{max}',
+			jelly: '해파리는 조심히 놓아주었다',
+			quit: '그만',
+			dex: '도감',
+			prompt: '[E] 낚시하기',
+			hookToast: 'J의 돌 낚싯바늘을 달았다 — 물고기가 더 잘 문다',
+			names: { blueTang: '블루탱', yellowTang: '옐로탱', chromis: '크로미스', clownfish: '흰동가리', angelfish: '엔젤피시', firefish: '파이어피시', mandarin: '만다린피시', cardinalfish: '카디널피시', rabbitfish: '독가시치', reefFish: '리프피시', grouper: '그루퍼', barracuda: '바라쿠다', stingray: '가오리', shark: '암초상어', jelly: '보름달물해파리', shrimp: '청소새우', coelacanth: '실러캔스', shoreCrab: '갯게', reefCrab: '산호게', hermit: '소라게', eel: '곰치' }
+		},
 		// MAP 2 미리보기: 포털 → 바닷속
 		dive: {
 			label: 'MAP 2 · 파도 없이 태어난 바다',
@@ -454,6 +476,13 @@ export default {
 					[ 'luke', '"해석 불가"라니... 아니야. 너무 잘 알아서 지우려 한 거야.', 'luke' ],
 					[ 'hazel', '( 52Hz로 노래한다. 문 너머에서, 무언가가 대답한다 )' ]
 				]
+			],
+			// 낚시를 처음 할 때
+			fishIntro: [
+				[ 'luke', '잠수정에서 주운 낚싯줄이야. 내 뿔에 감으면… 봐, 낚싯대지.', 'luke' ],
+				[ 'finn', '...잡아도 다시 놓아주는 거지? 그럼 나도 볼래.', 'finn' ],
+				[ 'narrator', '부서진 잠수정에서 주운 낚싯줄을 지느러미에 감았다. 조금 서툴 것 같다.', 'lukeGone' ],
+				[ 'narrator', '잡은 물고기는 도감에 적고, 다시 바다에 놓아준다.' ]
 			],
 			// 경비 연합군: 어스름층으로 내려가기 전에 처음 보인다
 			guards: [

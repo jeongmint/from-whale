@@ -55,7 +55,7 @@ function wallColor( d, out ) {
 
 // 멀리서도 보이는 빛 (둥근 빛 번짐 그림)
 let glowTexture = null;
-function glowMap() {
+export function glowMap() {
 
 	if ( glowTexture ) return glowTexture;
 	const cv = document.createElement( 'canvas' );

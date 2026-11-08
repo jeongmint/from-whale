@@ -67,11 +67,13 @@ The name: the deep sea where no waves reach, and the Alliance (and Finn), born i
 - Sights: a coral garden on the sunlight-zone walls, marine snow from the twilight down and a huge old ship resting on the wall, glowing plankton in Hazel's wake from the midnight zone (singing lights up all around), and in the trench glowing hydrothermal vents with rising hot water and tube worms
 - Darkness: the moonlight fades with depth (wall outlines stay visible). Hazel's glowing pattern and her song (sonar) light the way. A rippling surface with a net of light overhead
 - Story: the Alliance is a human AI experiment. The Shaman hears the base AI's orders as "the Voice of the Deep"; the whale bones are the altar of "purification"
-- Alliance guards: patrol the middle of the trench. Spotted → a one-second stare, then a chase; slip to the walls in time and they don't follow. The moray holes in the walls are taboo
+- Alliance guards: black orcas with red eyes, patrolling the middle of the trench. Spotted → a one-second stare, then a chase; slip to the walls in time and they don't follow. The moray holes in the walls are taboo
+- Objective marker: underwater it points at the log's real depth, with ▲ / ▼ and the height difference next to the distance
 - Singing: nearby morays glow red (red dots on the sonar). Close guards freeze for 3.5 s at the "perfect song" learned from Stella; guards farther off hear it and come
 - Moray eels: hide in the wall cracks, shiver, then lunge and bite (1 heart, short stun)
+- Fishing: after picking up a line at the first log (the wrecked sub), press the song button by the floating buoy in each chamber (a green ring on the sonar). Hook it when the float dives, then reel in when the white line is in the green (three reds and the line snaps). With Luke it's his horn as a rod (generous), without him a clumsy fin; J's stone fishhook makes fish bite more easily. Each layer has its own catch, shown for a moment then let go. A sea life log of 21 kinds (saved on the device, FISH count on the MAP 2 ending)
 - Hearts: refilled by reading a log; a jellyfish touch gives 1 (that jellyfish recharges for 30 s). Fainting wakes Hazel by the last log read (no heart-stop ending)
-- Finale: the Shaman at the base door → the stop code rhythm (Stella's voice + Finn's device, or the broken compass without Finn) → the red eyes go dark and the Shaman's Voice falls silent → MAP 2 ending "A Song Heard"
+- Finale: the Shaman at the base door → the stop code rhythm (light bubbles rise on each jump beat, a plankton ring on each song beat · Stella's voice + Finn's device, or the broken compass without Finn) → the red eyes go dark and the Shaman's Voice falls silent → MAP 2 ending "A Song Heard"
 
 | Layer | Depth | Research log | Sea life · dangers |
 | --- | --- | --- | --- |
@@ -100,13 +102,13 @@ Color options (`Whale` in `game/js/actors.js`): `solidColor` for a single color,
 
 | Keyboard | Mobile | Action |
 | --- | --- | --- |
-| `W A S D` / arrow keys | Joystick | Swim (keyboard: camera-relative, A·D strafe · joystick: pull down to reverse) |
+| `W A S D` / arrow keys | Joystick | Swim (camera-relative: S or pulling the joystick down turns Hazel toward the screen so you see her face · A·D strafe) |
 | Mouse drag | Screen drag | Camera (on phones it returns behind the whale after a moment) |
 | — | Tilt (LAB, landscape) | Lean forward to swim, back to reverse, sideways to turn |
 | `Shift` | `»` | Boost (stamina) |
 | `Space` | `⤴` (UP under the sea) | Jump (invincible in the air) · ambush dodge · duet jump notes · swim up under the sea |
 | `C` | `⤵` (under the sea only) | Swim down under the sea |
-| `E` | `♪` | Sing · talk · sonar · next line · call and response · duet song notes |
+| `E` | `♪` | Sing · talk · sonar · next line · call and response · duet song notes · fishing (MAP 2) |
 | `L` / `M` / `Esc` | Top-right buttons | Letters / sound / pause |
 | Whale chip in the POD window | Whale chip in the POD window | Home page |
 
@@ -133,6 +135,7 @@ Color options (`Whale` in `game/js/actors.js`): `solidColor` for a single color,
 | `game/js/i18n.js` | Language selection |
 | `game/js/name.js` | Nickname, Korean particles (`{N은}`, `{N을}`) |
 | `game/js/dive.js` | MAP 2: portal, underwater view (water ceiling, particles, light shafts, depth layers, sonar) |
+| `game/js/fishing.js` | MAP 2 fishing: float, hook, reel, catch per layer, sea life log |
 | `game/js/guards.js` | MAP 2 Alliance guards: patrol, chase, hearing the song, wall taboo, bone altar ritual |
 | `game/js/sealife.js` | MAP 2 sea life: where each kind lives, schools, drifting jellyfish, bottom crawlers, moray eel ambushes |
 | `game/js/map2.js` | MAP 2: trench terrain, landmarks per layer (sub · lab · terminal · whale bones · base), research log positions |
