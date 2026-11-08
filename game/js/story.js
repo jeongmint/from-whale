@@ -12,7 +12,8 @@ export const SPEAKERS = {
 	stella: { portrait: 'stella', bar: 'linear-gradient(90deg,#a87a10,#ffd36b)' },
 	orca: { portrait: 'orca', bar: 'linear-gradient(90deg,#5a1030,#ff6b8b)' },
 	kelp: { portrait: null, bar: 'linear-gradient(90deg,#0c6b5a,#6dffe0)' },
-	ai: { portrait: null, bar: 'linear-gradient(90deg,#5a1020,#ff3355)' } // MAP 2: 박사의 AI
+	ai: { portrait: null, bar: 'linear-gradient(90deg,#5a1020,#ff3355)' }, // MAP 2: 박사의 AI
+	j: { portrait: null, bar: 'linear-gradient(90deg,#3a3020,#e8c37a)' } // MAP 2: 잠수복의 J
 };
 
 // 지도 (x, z). 북쪽 = -z
@@ -470,62 +471,129 @@ export async function map2( G ) {
 		none: G.party.luke !== 'on' && G.party.finn !== 'on'
 	};
 	const pick = ( arr ) => lines( ( arr ?? [] ).filter( ( [ , , c ] ) => ! c || on[ c ] ).map( ( [ who, text ] ) => [ who, text ] ) );
-
-	await G.say( pick( T().intro ) );
 	const h = G.actors.hazel;
 	const near = ( pos, r, dy ) => Math.hypot( h.pos.x - pos.x, h.pos.z - pos.z ) < r && Math.abs( G.diveY - pos.y ) < dy;
-	for ( const log of G.map2.logs ) {
+	const free = () => ! G.ui.dialogOpen && ! G.ui.overlay && ! G.fishing && ! G.cutsceneOn;
 
-		// 이 층의 기록을 읽기 전엔 물살이 더 아래를 막는다
-		G.setDiveFloor( log.depth + 14 );
-		G.objective( U().label, U().obj[ log.index ], log.pos );
-		// 어스름층으로 내려가기 전: 아래에서 경비 연합군의 붉은 눈이 보인다
-		if ( log.index === 1 ) {
+	await G.say( pick( T().intro ) );
 
-			await G.until( () => G.diveY < - 40 && ! G.ui.dialogOpen && ! G.ui.overlay );
-			G.cutscene( true );
-			await G.say( pick( T().guards ) );
-			G.cutscene( false );
+	// 방 다섯 곳(잠수정 · 연구소 · 단말기 · 고래 뼈 · 캡슐)은 어떤 순서로든 찾을 수 있다.
+	// 찾을 때마다 짧은 기록 + 핀의 기억이 하나씩, 언제나 1 → 5 순서로 떠오른다. 기지 문 앞은 다섯 번째 기억 뒤에 열린다
+	const places = G.map2.logs.slice( 0, 5 );
+	const door = G.map2.logs[ 5 ];
+	const bones = places.find( ( l ) => l.landmark === 'bones' );
+	let memories = 0, sawGuards = false, sawAltar = false;
+	G.setDiveFloor( door.depth - 26 );
+	const aim = () => {
+
+		const left = places.filter( ( l ) => ! l.read );
+		let best = null, bd = Infinity;
+		for ( const l of left ) {
+
+			const d = Math.hypot( h.pos.x - l.pos.x, G.diveY - l.pos.y, h.pos.z - l.pos.z );
+			if ( d < bd ) {
+
+				bd = d;
+				best = l;
+
+			}
 
 		}
 
-		// 고래 뼈: 연합군의 '정화' 제단
-		if ( log.landmark === 'bones' ) {
+		G.objective( U().label, U().objFind.replace( '{n}', memories ), best?.pos ?? null );
 
-			await G.until( () => near( log.pos, 60, 30 ) && ! G.ui.dialogOpen && ! G.ui.overlay );
-			G.cutscene( true );
-			await G.say( pick( T().altar ) );
-			G.cutscene( false );
+	};
 
-		}
+	aim();
+	while ( memories < 5 ) {
 
-		await G.until( () => G.nearLog( log ) && ! G.ui.dialogOpen && ! G.ui.overlay );
-		log.read = true;
-		G.logRead( log );
+		let ev = null;
+		await G.until( () => {
+
+			if ( ! free() ) return false;
+			if ( ! sawGuards && G.diveY < - 40 ) ev = 'guards';
+			else if ( ! sawAltar && ! bones.read && near( bones.pos, 60, 30 ) ) ev = 'altar';
+			else ev = places.find( ( l ) => ! l.read && G.nearLog( l ) ) ?? null;
+			return !! ev;
+
+		} );
+
 		G.cutscene( true );
-		const L = T().logs[ log.index ];
-		// 인간의 글자는 루크가 읽어 준다. 루크가 없으면 그림과 숫자만
-		await G.letter( { head: L.head, body: on.luke ? L.body : L.short, from: L.from } );
-		await G.say( pick( T().react[ log.index ] ) );
-		G.ui.toast( U().logs.replace( '{n}', log.index + 1 ) );
+		if ( ev === 'guards' ) {
+
+			// 어스름층으로 내려가기 전: 아래에서 경비 연합군의 붉은 눈이 보인다
+			sawGuards = true;
+			await G.say( pick( T().guards ) );
+
+		} else if ( ev === 'altar' ) {
+
+			// 고래 뼈: 연합군의 '정화' 제단
+			sawAltar = true;
+			await G.say( pick( T().altar ) );
+
+		} else {
+
+			const log = ev;
+			log.read = true;
+			G.logRead( log );
+			const L = T().logs[ log.index ];
+			// 인간의 글자는 루크가 읽어 준다. 루크가 없으면 그림과 숫자만
+			await G.letter( { head: L.head, body: on.luke ? L.body : L.short, from: L.from } );
+			await G.say( pick( T().react[ log.index ] ) );
+			memories ++;
+			await memory( memories );
+			G.ui.toast( U().logs.replace( '{n}', G.map2.logs.filter( ( l ) => l.read ).length ) );
+			aim();
+
+		}
+
 		G.cutscene( false );
 
 	}
 
-	// 기지 문 앞: 박사의 AI, 그리고 정지 코드
+	// 다섯 번째 기억: 기지 앞 물살이 풀린다
 	G.setDiveFloor( null );
+	G.objective( U().label, U().obj[ 5 ], door.pos );
+	await G.until( () => free() && G.nearLog( door ) );
+	door.read = true;
+	G.logRead( door );
 	G.cutscene( true );
-	G.shamanAtDoor( G.map2.logs[ G.map2.logs.length - 1 ] );
+	{
+
+		const L = T().logs[ door.index ];
+		await G.letter( { head: L.head, body: on.luke ? L.body : L.short, from: L.from } );
+		await G.say( pick( T().react[ door.index ] ) );
+
+	}
+
+	// 기지 바깥, 잠수복의 J. 핀이 살아 있으면 재회, 없으면 부서진 나침반
+	G.showDiver( door );
+	await G.say( pick( T().reunion ) );
+	G.shamanAtDoor( door );
 	await G.say( pick( T().base ) );
 	G.camRelease();
 	G.objective( U().label, U().objBase );
 	await G.duet( STOP_CHART, U().stopTitle );
 	G.openBase();
 	G.calmAlliance();
+	G.camFocus( G.diver, { side: - 1, dist: 30, height: 5 } );
 	await G.say( pick( T().stop ) );
+	G.camRelease();
 	await card( G, T().card );
 	G.cutscene( false );
 	await G.showEnding( 'deep' );
+
+	// 핀의 기억 한 장면: 물속이 잠깐 하얗게 번진다
+	async function memory( k ) {
+
+		const M = T().memories[ k - 1 ];
+		document.body.classList.add( 'memory' );
+		G.ui.banner( on.finn ? `MEMORY ${k}/5` : `RECORD · No.7 · ${k}/5`, M.title, '', 'join', 3 );
+		await G.wait( 1.6 );
+		await G.say( pick( on.finn ? M.finn : M.gone ) );
+		document.body.classList.remove( 'memory' );
+
+	}
 
 }
 
