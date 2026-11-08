@@ -139,7 +139,7 @@ export class Guards {
 
 			const w = g.whale;
 			const near = Math.abs( g.y - hazel.y ) < SHOW_RANGE;
-			w.root.visible = near;
+			w.root.visible = near && ! g.hidden;
 			if ( ! near && g.state === 'patrol' ) continue;
 			g.t += dt;
 			const dx = hazel.x - w.pos.x, dz = hazel.z - w.pos.z, dy = hazel.y - g.y;

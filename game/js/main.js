@@ -765,42 +765,64 @@ Object.assign( G, {
 
 	},
 
-	// 맵 2 기지 문 앞: 샤먼이 헤이즐과 문 사이를 막아선다
-	shamanAtDoor( door ) {
+	// 맵 2 마지막 무대: 화면을 한 번 어둡게 바꾸고, 기지 문 앞의 탁 트인 자리로 일행을 옮긴다 (돔에 파묻히지 않게)
+	async stageFinale( door ) {
 
-		const s = G.actors.shaman;
+		await G.ui.fade( 1, 0.6 );
+		const m = door.mark;
+		m.updateWorldMatrix( true, false );
+		const front = m.localToWorld( new THREE.Vector3( 0, - 6, 18.5 ) ); // 문 정면
+		const out = new THREE.Vector3( front.x - m.position.x, 0, front.z - m.position.z ).normalize(); // 문에서 바깥쪽
+		const side = new THREE.Vector3( out.z, 0, - out.x );
+		const at = ( k, s, dy = 0 ) => front.clone().addScaledVector( out, k ).addScaledVector( side, s ).setY( front.y + dy );
+		G.stage = { front, out, side, at };
 		const h = G.actors.hazel;
-		// 헤이즐 앞, 문 쪽으로 비스듬히 비켜선 자리에서 헤이즐을 마주 본다
-		const a = Math.atan2( door.pos.x - h.pos.x, door.pos.z - h.pos.z ) + 1.1;
-		const x = h.pos.x + Math.sin( a ) * 26, z = h.pos.z + Math.cos( a ) * 26;
-		s.place( x, z, Math.atan2( h.pos.x - x, h.pos.z - z ) );
-		s.depth = s.targetDepth = s.surfaceY - G.diveY + 2;
-		s.hold = true;
-		s.root.visible = true;
-		s.setGlow( 0.25, 0xff2050 );
-		G.camFocus( s, { side: 1, dist: 34, height: 6 } );
-		return s;
+		const p = at( 32, 0, 3 );
+		const yaw = Math.atan2( - out.x, - out.z ); // 문을 바라본다
+		h.place( p.x, p.z, yaw );
+		G.diveY = p.y;
+		G.diveVy = 0;
+		G.camYaw = yaw;
+		placeCompanions();
+		camera.position.set( p.x + out.x * 22, p.y + 5, p.z + out.z * 22 );
+		if ( G.map2.searchlight ) G.map2.searchlight.visible = false; // 화면이 바래지 않게
+		for ( const g of G.guards?.list ?? [] ) if ( Math.abs( g.y - p.y ) < 60 ) g.hidden = true; // 무대 둘레의 경비는 잠시 비킨다
+		await G.wait( 0.2 );
+		await G.ui.fade( 0, 0.9 );
 
 	},
 
-	// 맵 2 마지막: 기지 바깥, 낡은 잠수복을 입은 J (마지막까지 숨겨 둔다)
-	showDiver( door ) {
+	// 기지 문 앞, 낡은 잠수복을 입은 J (마지막까지 숨겨 둔다)
+	showDiver() {
 
 		if ( ! G.diver ) G.diver = makeDiver();
 		const d = G.diver;
 		const h = G.actors.hazel;
-		// 헤이즐 앞, 문 반대쪽으로 비켜선 자리 (오래된 수조 창 앞)
-		const a = Math.atan2( door.pos.x - h.pos.x, door.pos.z - h.pos.z ) - 0.9;
-		const x = h.pos.x + Math.sin( a ) * 16, z = h.pos.z + Math.cos( a ) * 16;
-		d.root.position.set( x, G.diveY + 1, z );
-		d.root.rotation.y = Math.atan2( h.pos.x - x, h.pos.z - z );
+		const p = G.stage.at( 13, - 7, 0 );
+		d.root.position.copy( p );
+		d.root.rotation.y = Math.atan2( h.pos.x - p.x, h.pos.z - p.z );
 		d.root.visible = true;
-		d.baseY = G.diveY + 1;
-		if ( G.map2.searchlight ) G.map2.searchlight.visible = false; // J가 나온 동안 탐조등은 꺼 둔다 (화면이 바래지 않게)
+		d.baseY = p.y;
 		d.pos = d.root.position;
 		G.map2.group.add( d.root );
-		G.camFocus( d, { side: 1, dist: 30, height: 4 } );
+		G.camFocus( d, { side: - 1, dist: 26, height: 3 } );
 		return d;
+
+	},
+
+	// 맵 2 기지 문 앞: 샤먼이 문 옆에서 일행을 막아선다
+	shamanAtDoor() {
+
+		const s = G.actors.shaman;
+		const h = G.actors.hazel;
+		const p = G.stage.at( 16, 15, 2 );
+		s.place( p.x, p.z, Math.atan2( h.pos.x - p.x, h.pos.z - p.z ) );
+		s.depth = s.targetDepth = s.surfaceY - p.y;
+		s.hold = true;
+		s.root.visible = true;
+		s.setGlow( 0.25, 0xff2050 );
+		G.camFocus( s, { side: 1, dist: 36, height: 5 } );
+		return s;
 
 	},
 
@@ -1102,41 +1124,104 @@ function updateOrcas( dt ) {
 
 }
 
-// 잠수복의 J: 낡은 황동빛 잠수복, 둥근 헬멧과 푸른 창, 등의 공기통, 헬멧 위 등불
+// 잠수복의 J: 클래식 황동 헬멧(둥근 앞창과 창살, 옆 창, 볼트 달린 어깨판), 낡은 캔버스 잠수복, 장갑과 무거운 부츠,
+// 등의 공기통과 호스, 헬멧 위 등불 (실제로 둘레를 비춘다)
 function makeDiver() {
 
 	const root = new THREE.Group();
-	const suit = new THREE.MeshStandardMaterial( { color: 0xb08a48, roughness: 0.75, metalness: 0.2, flatShading: true } );
-	const brass = new THREE.MeshStandardMaterial( { color: 0xc9a050, roughness: 0.4, metalness: 0.7, emissive: 0x2a1d08 } );
-	const dark = new THREE.MeshStandardMaterial( { color: 0x3a3a40, roughness: 0.6, metalness: 0.5 } );
-	const body = new THREE.Mesh( new THREE.CapsuleGeometry( 0.75, 1.5, 4, 10 ), suit );
-	body.position.y = 2.3;
-	const helmet = new THREE.Mesh( new THREE.SphereGeometry( 0.85, 16, 12 ), brass );
-	helmet.position.y = 4.1;
-	const visor = new THREE.Mesh( new THREE.CircleGeometry( 0.42, 16 ), new THREE.MeshStandardMaterial( { color: 0x7fe9ff, emissive: 0x7fe9ff, emissiveIntensity: 0.9 } ) );
-	visor.position.set( 0, 4.1, 0.84 );
-	const tank = new THREE.Mesh( new THREE.CylinderGeometry( 0.38, 0.38, 1.7, 10 ), dark );
-	tank.position.set( 0, 2.5, - 0.75 );
-	const lamp = new THREE.Sprite( new THREE.SpriteMaterial( { map: glowMap(), color: 0xfff0c0, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false } ) );
-	lamp.position.set( 0, 5.05, 0.35 );
-	lamp.scale.setScalar( 3.2 );
-	root.add( body, helmet, visor, tank, lamp );
-	for ( const sx of [ - 1, 1 ] ) {
+	const canvas = new THREE.MeshStandardMaterial( { color: 0x8f8466, roughness: 0.95 } );
+	const canvasDark = new THREE.MeshStandardMaterial( { color: 0x6f6650, roughness: 0.95 } );
+	const brass = new THREE.MeshStandardMaterial( { color: 0xc99a4a, roughness: 0.32, metalness: 0.85, emissive: 0x241605 } );
+	const copper = new THREE.MeshStandardMaterial( { color: 0xb8683a, roughness: 0.35, metalness: 0.8, emissive: 0x1a0a04 } );
+	const rubber = new THREE.MeshStandardMaterial( { color: 0x25262b, roughness: 0.7, metalness: 0.1 } );
+	const glass = new THREE.MeshStandardMaterial( { color: 0x9fe8ff, emissive: 0x4fc8ff, emissiveIntensity: 0.7, roughness: 0.1, metalness: 0.2, transparent: true, opacity: 0.85 } );
+	const add = ( geo, mat, x, y, z, rx = 0, ry = 0, rz = 0, parent = root ) => {
 
-		const arm = new THREE.Mesh( new THREE.CapsuleGeometry( 0.26, 1.3, 3, 8 ), suit );
-		arm.position.set( sx * 1.0, 2.5, 0.1 );
-		arm.rotation.z = sx * 0.25;
-		const leg = new THREE.Mesh( new THREE.CapsuleGeometry( 0.3, 1.2, 3, 8 ), suit );
-		leg.position.set( sx * 0.38, 0.75, 0 );
-		const boot = new THREE.Mesh( new THREE.BoxGeometry( 0.55, 0.35, 0.8 ), dark );
-		boot.position.set( sx * 0.38, 0.05, 0.12 );
-		root.add( arm, leg, boot );
+		const m = new THREE.Mesh( geo, mat );
+		m.position.set( x, y, z );
+		m.rotation.set( rx, ry, rz );
+		parent.add( m );
+		return m;
+
+	};
+
+	// 몸통: 가슴이 넓고 허리가 좁은 캔버스 잠수복 (회전체)
+	const torso = new THREE.LatheGeometry( [ [ 0.0, 0 ], [ 0.62, 0.05 ], [ 0.7, 0.4 ], [ 0.62, 0.8 ], [ 0.78, 1.35 ], [ 0.86, 1.8 ], [ 0.7, 2.05 ], [ 0.0, 2.1 ] ].map( ( [ x, y ] ) => new THREE.Vector2( x, y ) ), 20 );
+	add( torso, canvas, 0, 1.55, 0 );
+	add( new THREE.CylinderGeometry( 0.66, 0.66, 0.16, 20 ), rubber, 0, 2.05, 0 ); // 허리띠
+	add( new THREE.BoxGeometry( 0.5, 0.36, 0.14 ), rubber, 0, 2.95, 0.78 ); // 가슴 납추
+	// 어깨판(브레스트플레이트)과 볼트
+	const plate = new THREE.LatheGeometry( [ [ 0.0, 0.42 ], [ 0.5, 0.4 ], [ 1.02, 0.12 ], [ 1.08, 0.0 ], [ 1.0, - 0.06 ] ].map( ( [ x, y ] ) => new THREE.Vector2( x, y ) ), 24 );
+	add( plate, brass, 0, 3.55, 0 );
+	for ( let i = 0; i < 10; i ++ ) {
+
+		const a = ( i / 10 ) * Math.PI * 2;
+		add( new THREE.SphereGeometry( 0.07, 6, 4 ), copper, Math.sin( a ) * 0.98, 3.6, Math.cos( a ) * 0.98 );
 
 	}
 
-	root.scale.setScalar( 1.6 );
+	// 헬멧: 둥근 몸체, 목 테두리, 앞창(창살 셋), 양옆 작은 창, 위의 등불
+	const helmet = new THREE.Group();
+	helmet.position.set( 0, 4.45, 0 );
+	root.add( helmet );
+	add( new THREE.SphereGeometry( 0.78, 24, 18 ), copper, 0, 0, 0, 0, 0, 0, helmet );
+	add( new THREE.TorusGeometry( 0.62, 0.09, 8, 24 ), brass, 0, - 0.62, 0, Math.PI / 2, 0, 0, helmet );
+	add( new THREE.TorusGeometry( 0.36, 0.08, 10, 24 ), brass, 0, 0.02, 0.72, 0, 0, 0, helmet );
+	add( new THREE.CircleGeometry( 0.34, 24 ), glass, 0, 0.02, 0.74, 0, 0, 0, helmet );
+	for ( const x of [ - 0.14, 0, 0.14 ] ) add( new THREE.BoxGeometry( 0.035, 0.66, 0.035 ), brass, x, 0.02, 0.78, 0, 0, 0, helmet );
+	for ( const sx of [ - 1, 1 ] ) {
+
+		add( new THREE.TorusGeometry( 0.2, 0.06, 8, 18 ), brass, sx * 0.72, 0.05, 0.12, 0, sx * Math.PI / 2, 0, helmet );
+		add( new THREE.CircleGeometry( 0.19, 18 ), glass, sx * 0.75, 0.05, 0.12, 0, sx * Math.PI / 2, 0, helmet );
+
+	}
+
+	add( new THREE.CylinderGeometry( 0.13, 0.16, 0.22, 10 ), brass, 0, 0.8, 0.12, 0, 0, 0, helmet ); // 등불 받침
+	const bulb = add( new THREE.SphereGeometry( 0.11, 10, 8 ), new THREE.MeshBasicMaterial( { color: 0xfff2c8 } ), 0, 0.95, 0.2, 0, 0, 0, helmet );
+	const glow = new THREE.Sprite( new THREE.SpriteMaterial( { map: glowMap(), color: 0xfff0c0, transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending, depthWrite: false } ) );
+	glow.position.set( 0, 0.95, 0.25 );
+	glow.scale.setScalar( 2.4 );
+	helmet.add( glow );
+	const lamp = new THREE.PointLight( 0xffe2b0, 2.2, 26, 1.6 );
+	lamp.position.set( 0, 1.1, 0.8 );
+	helmet.add( lamp );
+
+	// 등의 공기통 두 개와 헬멧 뒤로 이어지는 호스
+	for ( const sx of [ - 1, 1 ] ) add( new THREE.CylinderGeometry( 0.26, 0.26, 1.5, 14 ), new THREE.MeshStandardMaterial( { color: 0x4b5560, roughness: 0.45, metalness: 0.6 } ), sx * 0.3, 2.6, - 0.85 );
+	const hose = new THREE.CatmullRomCurve3( [ new THREE.Vector3( 0, 3.4, - 0.95 ), new THREE.Vector3( 0, 4.1, - 1.15 ), new THREE.Vector3( 0, 4.55, - 0.75 ) ] );
+	add( new THREE.TubeGeometry( hose, 16, 0.08, 8 ), rubber, 0, 0, 0 );
+
+	// 팔: 위팔 · 아래팔 · 장갑 (살짝 굽혀 몸 앞으로)
+	const arms = [];
+	for ( const sx of [ - 1, 1 ] ) {
+
+		const arm = new THREE.Group();
+		arm.position.set( sx * 0.98, 3.35, 0 );
+		root.add( arm );
+		add( new THREE.CapsuleGeometry( 0.27, 0.75, 4, 10 ), canvas, 0, - 0.5, 0, 0, 0, sx * 0.12, arm );
+		const fore = new THREE.Group();
+		fore.position.set( sx * 0.08, - 1.0, 0 );
+		fore.rotation.x = - 0.5;
+		arm.add( fore );
+		add( new THREE.CapsuleGeometry( 0.24, 0.65, 4, 10 ), canvasDark, 0, - 0.45, 0, 0, 0, 0, fore );
+		add( new THREE.SphereGeometry( 0.27, 10, 8 ), rubber, 0, - 0.95, 0.02, 0, 0, 0, fore );
+		arms.push( { arm, fore, sx } );
+
+	}
+
+	// 다리와 무거운 부츠 (앞코는 구리)
+	for ( const sx of [ - 1, 1 ] ) {
+
+		add( new THREE.CapsuleGeometry( 0.31, 1.0, 4, 10 ), canvas, sx * 0.36, 1.05, 0 );
+		add( new THREE.SphereGeometry( 0.2, 8, 6 ), canvasDark, sx * 0.36, 1.1, 0.24 ); // 무릎 덧댐
+		add( new THREE.BoxGeometry( 0.52, 0.42, 0.86 ), rubber, sx * 0.36, 0.2, 0.1 );
+		add( new THREE.BoxGeometry( 0.5, 0.28, 0.2 ), copper, sx * 0.36, 0.14, 0.55 );
+
+	}
+
+	root.scale.setScalar( 1.45 );
 	root.visible = false;
-	return { root, helmet };
+	return { root, helmet, arms, bulb };
 
 }
 
@@ -3858,6 +3943,9 @@ function update( dt ) {
 		if ( G.diver?.root.visible ) {
 
 			G.diver.root.position.y = G.diver.baseY + Math.sin( G.time * 0.9 ) * 0.3;
+			G.diver.root.rotation.z = Math.sin( G.time * 0.6 ) * 0.03;
+			G.diver.helmet.rotation.y = Math.sin( G.time * 0.4 ) * 0.12;
+			for ( const a of G.diver.arms ) a.arm.rotation.x = Math.sin( G.time * 0.8 + a.sx ) * 0.08 - 0.15;
 			G.diver.bubbleT = ( G.diver.bubbleT ?? 0 ) - dt;
 			if ( G.diver.bubbleT <= 0 ) {
 

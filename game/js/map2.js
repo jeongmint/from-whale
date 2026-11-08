@@ -230,7 +230,7 @@ export function buildTrench( scene, entry ) {
 		capsule.position.copy( pos );
 		if ( log.landmark === 'door' ) capsule.position.y += 6;
 		group.add( capsule );
-		return { ...log, index: i, pos: capsule.position.clone(), capsule, read: false };
+		return { ...log, index: i, pos: capsule.position.clone(), capsule, mark, read: false };
 
 	} );
 
