@@ -3389,7 +3389,7 @@ function updatePlayer( dt ) {
 
 		// 정지 코드 리듬 중엔 Space가 박자 입력이라 위로 헤엄치지 않는다
 		const v = control && ! G.duetPlay ? ( keys.has( 'Space' ) || touch.up ? 1 : 0 ) - ( keys.has( 'KeyC' ) || touch.down ? 1 : 0 ) : 0;
-		G.diveVy += ( v * ( boost ? 18 : 9 ) - G.diveVy ) * Math.min( 1, dt * 3 ); // 가속 중엔 위아래도 빠르게
+		G.diveVy += ( v * ( boost ? 26 : 14 ) - G.diveVy ) * Math.min( 1, dt * 4 ); // 가속 중엔 위아래도 빠르게
 		const floor = G.diveFloor ?? DIVE_BOTTOM;
 		G.diveY = THREE.MathUtils.clamp( G.diveY + G.diveVy * dt, floor, DIVE_TOP );
 		if ( G.diveY === floor || G.diveY === DIVE_TOP ) G.diveVy *= 0.5;
