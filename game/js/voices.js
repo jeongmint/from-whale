@@ -12,6 +12,15 @@ const HAZEL_SCALE = [ 57, 60, 62, 64, 67, 69, 72, 69, 67, 64 ]; // 누를 때마
 export const SONG_KEYS = [ 'listen', 'lead', 'alone' ];
 
 const mtof = ( m ) => 440 * Math.pow( 2, ( m - 69 ) / 12 );
+
+// {who}를 이름으로. 한국어 '{who}이'는 받침에 맞게 '이' / '가' (12번이, 혹등고래의 노래가)
+function fillWho( text, who ) {
+
+	const last = who.charCodeAt( who.length - 1 );
+	const batchim = last >= 0xac00 && last <= 0xd7a3 ? ( last - 0xac00 ) % 28 > 0 : /[0-9]$/.test( who ) ? ! /[2459]$/.test( who ) : true;
+	return text.replace( /\{who\}이/g, who + ( batchim ? '이' : '가' ) ).replace( /\{who\}/g, who );
+
+}
 const T = () => lang().ui.map3;
 
 // 범고래의 휘파람 같은 소리. shaky가 클수록 떨리고 끝이 처진다 (울먹임)
@@ -70,14 +79,14 @@ export function chooseSong( G, who ) {
 		const box = $( 'choice' ), list = $( 'choice-list' );
 		let sel = 0;
 		$( 'choice-title' ).textContent = T().choiceTitle;
-		$( 'choice-hint' ).textContent = G.ui.dev( T().choiceHint.replace( '{who}', who ) );
+		$( 'choice-hint' ).textContent = G.ui.dev( fillWho( T().choiceHint, who ) );
 		list.replaceChildren( ...SONG_KEYS.map( ( k, i ) => {
 
 			const b = document.createElement( 'button' );
 			b.type = 'button';
 			b.className = 'choice';
 			b.dataset.k = k;
-			b.innerHTML = `<b><span class="mono">${i + 1}</span> ${T().songs[ k ].name}</b><small>${G.ui.dev( T().songs[ k ].desc.replace( '{who}', who ) )}</small>`;
+			b.innerHTML = `<b><span class="mono">${i + 1}</span> ${T().songs[ k ].name}</b><small>${G.ui.dev( fillWho( T().songs[ k ].desc, who ) )}</small>`;
 			b.onpointerdown = ( e ) => {
 
 				e.stopPropagation();
@@ -160,11 +169,11 @@ export function listenSong( G, actor, phrases, who ) {
 		const box = $( 'song' ), beatsEl = $( 'song-beats' ), hint = $( 'song-hint' );
 		const later = timers();
 		const now = () => performance.now() / 1000;
-		const say = ( text ) => hint.textContent = G.ui.dev( text.replace( '{who}', who ) );
+		const say = ( text ) => hint.textContent = G.ui.dev( fillWho( text, who ) );
 		let round = 0, fails = 0, dots = [];
 		const state = { turn: false, taps: [], tap };
 		G.puzzle = state;
-		openSong( G, T().listenTitle.replace( '{who}', who ) );
+		openSong( G, fillWho( T().listenTitle, who ) );
 		box.onpointerdown = ( e ) => {
 
 			e.stopPropagation();
@@ -297,10 +306,10 @@ export function leadSong( G, actor, who, rounds = 3 ) {
 		const box = $( 'song' ), beatsEl = $( 'song-beats' ), hint = $( 'song-hint' );
 		const later = timers();
 		const now = () => performance.now() / 1000;
-		const say = ( text ) => hint.textContent = G.ui.dev( text.replace( '{who}', who ) );
+		const say = ( text ) => hint.textContent = G.ui.dev( fillWho( text, who ) );
 		let round = 0, start = 0, taps = [], open = false, raf = 0, bar, cursor;
 		G.puzzle = { tap };
-		openSong( G, T().leadTitle.replace( '{who}', who ) );
+		openSong( G, fillWho( T().leadTitle, who ) );
 		box.classList.add( 'lead' );
 		box.onpointerdown = ( e ) => {
 
@@ -442,6 +451,215 @@ export function soloSong( G ) {
 
 		} );
 		later( 4.6, resolve );
+
+	} );
+
+}
+
+// 루크의 뿔피리 같은 소리 (삼각파, 한 옥타브 아래가 받쳐 준다)
+export function hornNote( G, midi ) {
+
+	const a = G.audio, ctx = a.ctx;
+	if ( ! ctx ) return;
+	const f = mtof( midi ), t = ctx.currentTime + 0.01;
+	a.voice( t, [ [ 0, f * 0.96 ], [ 0.08, f ], [ 0.55, f ] ], { vel: 0.08, vibrato: 5, type: 'triangle', reverb: 0.9 } );
+	a.voice( t, [ [ 0, f / 2 ], [ 0.6, f / 2 ] ], { vel: 0.05, vibrato: 4, reverb: 1 } );
+
+}
+
+// 등대의 종소리 (대답하는 고래가 아무도 없을 때)
+export function bellNote( G, midi ) {
+
+	const a = G.audio, ctx = a.ctx;
+	if ( ! ctx ) return;
+	a.ep( ctx.currentTime + 0.01, midi, 0.16, 1.4, a.sfx, 0.9 );
+
+}
+
+// 옛 고래들의 노래 (노래 바위). 루크가 있으면 뿔로 들려준다
+export function playOldSong( G, kind ) {
+
+	const a = G.audio, ctx = a.ctx;
+	if ( ! ctx ) return;
+	const t = ctx.currentTime + 0.05;
+	if ( kind === 'hump' ) {
+
+		// 혹등고래: 길게 오르내리는 노래가 되풀이된다
+		[ [ 0, 260, 470, 330 ], [ 1.6, 300, 560, 360 ], [ 3.2, 240, 420, 280 ] ].forEach( ( [ d, f0, f1, f2 ] ) => a.voice( t + d, [ [ 0, f0 ], [ 0.6, f1 ], [ 1.4, f2 ] ], { vel: 0.1, vibrato: 4, reverb: 1.4 } ) );
+
+	} else if ( kind === 'blue' ) {
+
+		// 대왕고래: 아주 낮고 긴 소리
+		a.voice( t, [ [ 0, 92 ], [ 2.2, 84 ], [ 4.2, 70 ] ], { vel: 0.26, type: 'triangle', vibrato: 1.5, reverb: 1.6 } );
+		a.voice( t + 0.3, [ [ 0, 184 ], [ 2.2, 168 ], [ 4, 140 ] ], { vel: 0.05, vibrato: 1.5, reverb: 1.6 } );
+
+	} else {
+
+		// 향유고래: 무리마다 다른 딸깍 박자 (점 점 점 쉬고 점)
+		[ 0, 0.22, 0.44, 0.9, 1.6, 1.82, 2.04, 2.5 ].forEach( ( d ) => a.noiseHit( t + d, { freq: 2600, q: 5, vel: 0.14, dur: 0.035, bus: a.sfx } ) );
+
+	}
+
+}
+
+// 대답하는 노래 (등대의 첫 합주): 헤이즐이 4박 동안 노래하면, 함께 온 목소리들이 하나씩 제 소리로 대답한다
+// responders: [ { actor, play( midi ), color, rest?, restColor? } ] (rest: 끝나고 돌아갈 빛). onBeat: 헤이즐 차례의 박자마다 (루크가 없으면 등대 불빛이 깜빡인다)
+export function answerSong( G, { responders, rounds = 2, onBeat = null } ) {
+
+	return new Promise( ( resolve ) => {
+
+		const box = $( 'song' ), beatsEl = $( 'song-beats' ), hint = $( 'song-hint' );
+		const later = timers();
+		const now = () => performance.now() / 1000;
+		const say = ( text ) => hint.textContent = G.ui.dev( text );
+		const span = LEAD_BEATS * BEAT;
+		let round = 0, start = 0, taps = [], open = false, raf = 0, bar, cursor;
+		G.puzzle = { tap };
+		openSong( G, T().answerTitle );
+		box.classList.add( 'lead' );
+		box.onpointerdown = ( e ) => {
+
+			e.stopPropagation();
+			tap();
+
+		};
+
+		G.audio.setMix( { melody: 0.15 }, 1 );
+
+		function draw() {
+
+			beatsEl.innerHTML = `<div class="lead-bar" style="height:${26 + responders.length * 9}px">${'<s></s>'.repeat( LEAD_BEATS - 1 )}<i></i></div>`;
+			bar = beatsEl.firstChild;
+			cursor = bar.querySelector( 'i' );
+			[ ...bar.querySelectorAll( 's' ) ].forEach( ( s, i ) => s.style.left = `${( i + 1 ) / LEAD_BEATS * 100}%` );
+
+		}
+
+		function mark( at, row, color ) {
+
+			const m = document.createElement( 'em' );
+			m.className = row < 0 ? 'me' : 'them';
+			m.style.left = `${Math.min( 0.98, at / span ) * 100}%`;
+			if ( row >= 0 ) {
+
+				m.style.top = `${12 + row * 9}px`;
+				m.style.bottom = 'auto';
+				const c = `#${color.toString( 16 ).padStart( 6, '0' )}`;
+				m.style.background = c;
+				m.style.boxShadow = `0 0 10px ${c}`;
+
+			}
+
+			bar.appendChild( m );
+
+		}
+
+		function ready() {
+
+			taps = [];
+			draw();
+			say( round ? T().answerAgain : T().answerReady );
+			box.classList.remove( 'turn' );
+			later( 0.4, () => G.audio.play( 'blip' ) );
+			later( 0.4 + BEAT, () => {
+
+				open = true;
+				start = now();
+				box.classList.add( 'turn' );
+				say( T().leadTurn );
+				for ( let b = 0; b < LEAD_BEATS; b ++ ) later( b * BEAT, () => {
+
+					G.audio.play( 'blip' );
+					onBeat?.();
+
+				} );
+				later( span, close );
+				raf = requestAnimationFrame( move );
+
+			} );
+
+		}
+
+		function move() {
+
+			if ( ! open ) return;
+			cursor.style.left = `${Math.min( 1, ( now() - start ) / span ) * 100}%`;
+			raf = requestAnimationFrame( move );
+
+		}
+
+		function tap() {
+
+			if ( ! open || taps.length >= 8 ) return;
+			const at = now() - start;
+			if ( taps.length && at - taps[ taps.length - 1 ].at < 0.1 ) return;
+			const midi = HAZEL_SCALE[ taps.length % HAZEL_SCALE.length ];
+			taps.push( { at, midi } );
+			hazelNote( G, midi );
+			const h = G.actors.hazel;
+			G.world.ring( h.pos.x, h.pos.z, { color: 0xffd36b, to: 12, life: 0.6, width: 0.3 } );
+			mark( at, - 1 );
+
+		}
+
+		// 한 명씩 차례로, 같은 박자를 제 소리로 (조금씩 어긋나도 괜찮다)
+		function close() {
+
+			open = false;
+			cancelAnimationFrame( raf );
+			box.classList.remove( 'turn' );
+			if ( taps.length < 2 ) {
+
+				say( T().leadEmpty );
+				return later( 1.2, ready );
+
+			}
+
+			say( T().answerEcho );
+			const len = taps[ taps.length - 1 ].at;
+			let at = 0.5;
+			responders.forEach( ( r, row ) => {
+
+				for ( const tp of taps ) later( at + tp.at + ( Math.random() - 0.5 ) * 0.08, () => {
+
+					r.play( tp.midi );
+					r.actor.setGlow?.( 0.75, r.color );
+					later( 0.16, () => r.actor.setGlow?.( r.rest ?? 0.15, r.restColor ?? r.color ) );
+					G.world.ring( r.actor.pos.x, r.actor.pos.z, { color: r.color, to: 14, life: 0.6, width: 0.3 } );
+					mark( tp.at, row, r.color );
+
+				} );
+				at += len + 0.6;
+
+			} );
+			later( at + 0.6, () => {
+
+				G.audio.play( 'pickup' );
+				round ++;
+				if ( round < rounds ) return ready();
+				say( T().answerDone );
+				G.audio.play( 'heal' );
+				const h = G.actors.hazel;
+				G.world.ring( h.pos.x, h.pos.z, { color: 0xffd36b, to: 60, life: 1.6 } );
+				later( 1.8, () => {
+
+					later.clear();
+					G.puzzle = null;
+					box.onpointerdown = null;
+					box.classList.remove( 'turn', 'lead' );
+					G.ui.show( 'song', false );
+					document.body.classList.remove( 'singing' );
+					G.audio.setMix( { melody: 1 }, 2 );
+					for ( const r of responders ) r.actor.setGlow?.( r.rest ?? 0, r.restColor ?? r.color ); // 루크의 등불처럼 원래 빛으로
+					resolve();
+
+				} );
+
+			} );
+
+		}
+
+		ready();
 
 	} );
 

@@ -14,7 +14,8 @@ export const DAWN_PLACES = {
 	north: { x: 60, z: - 900 },
 	fleet: { x: - 430, z: 130 }, // 침몰한 함대 (서쪽)
 	storm: { x: 470, z: 700 }, // 폭풍의 바다 (남동쪽)
-	deep: { x: 470, z: 1000 } // 8번이 숨으러 내려가는 쪽
+	deep: { x: 470, z: 1000 }, // 8번이 숨으러 내려가는 쪽
+	lighthouse: { x: - 70, z: - 330 } // 잊힌 등대: 맵 1의 루크 등대, 얼어붙은 항로 끝
 };
 const STORM_R = 270; // 폭풍 반지름
 const STORM_EYE = 26; // 가운데 고요한 자리
@@ -125,6 +126,7 @@ export class DawnSea {
 		this.colliders.push( ...this.floes );
 		this.buildFleet();
 		this.buildStorm();
+		this.buildStones();
 
 	}
 
@@ -137,6 +139,7 @@ export class DawnSea {
 		const fits = ( x, z, r ) => {
 
 			if ( Math.hypot( x - P.x, z - P.z ) < POOL_R + r ) return false;
+			if ( Math.hypot( x - DAWN_PLACES.lighthouse.x, z - DAWN_PLACES.lighthouse.z ) < 58 + r ) return false; // 등대 섬과 노래 바위 둘레
 			if ( channelDist( x, z ) < CHANNEL_HALF + r ) return false;
 			for ( const f of list ) if ( Math.hypot( f.x - x, f.z - z ) < f.r + r + 1.2 ) return false;
 			return true;
@@ -633,6 +636,64 @@ export class DawnSea {
 
 	}
 
+	// ---- 잊힌 등대: 섬 둘레의 노래 바위 셋 (루크가 뿔로 새긴 옛 고래들의 노래) ----
+	buildStones() {
+
+		const L = DAWN_PLACES.lighthouse;
+		this.stoneGroup = new THREE.Group();
+		this.stoneGroup.visible = false;
+		this.group.add( this.stoneGroup );
+		this.stones = [ 'hump', 'blue', 'sperm' ].map( ( kind, i ) => {
+
+			const a = - 0.95 + i * 0.95; // 동쪽(헤이즐이 오는 쪽)으로 부채꼴
+			const x = L.x + Math.cos( a ) * 40, z = L.z + Math.sin( a ) * 40;
+			const mat = new THREE.MeshStandardMaterial( { color: 0x2a3446, roughness: 0.9, flatShading: true, emissive: 0x7fe9ff, emissiveIntensity: 0.3 } );
+			const mesh = new THREE.Mesh( new THREE.CylinderGeometry( 1.4, 2.4, 9, 6 ), mat );
+			mesh.position.set( x, 1.5, z );
+			mesh.rotation.set( ( i - 1 ) * 0.12, a, 0.08 );
+			this.stoneGroup.add( mesh );
+			// 새긴 선: 바위를 두른 가는 고리 셋
+			const ringMat = new THREE.MeshBasicMaterial( { color: 0x7fe9ff, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false } );
+			for ( let k = 0; k < 3; k ++ ) {
+
+				const ring = new THREE.Mesh( new THREE.TorusGeometry( 1.95 - k * 0.2, 0.06, 4, 20 ), ringMat );
+				ring.rotation.x = Math.PI / 2;
+				ring.position.y = - 1.5 + k * 1.6;
+				mesh.add( ring );
+
+			}
+
+			const st = {
+				kind, index: i, x, z, pos: { x, z }, mat, ringMat, done: false, glow: 0,
+				setGlow( v ) {
+
+					this.glow = v;
+
+				}
+			};
+			return st;
+
+		} );
+
+	}
+
+	// 노래 바위가 깨어났다: 금빛으로
+	restoreStone( st ) {
+
+		st.done = true;
+		st.mat.emissive.set( 0xc07830 );
+		st.ringMat.color.set( 0xffd36b );
+
+	}
+
+	showStones() {
+
+		if ( this.stoneGroup.visible ) return;
+		this.stoneGroup.visible = true;
+		for ( const st of this.stones ) this.colliders.push( { x: st.x, z: st.z, r: 3 } );
+
+	}
+
 	// ---- 만나는 고래: 12번(얼어붙은 항로) · 9번(침몰한 함대) · 8번(폭풍의 바다) ----
 	// state: idle(제자리를 맴돈다) · face(헤이즐을 본다) · follow(따라온다) · leave(제 길로 떠난다)
 	makeVoice( key, { home, length = 9, recolor, radius = 9, speed = 4.5, spout = false } ) {
@@ -781,6 +842,15 @@ export class DawnSea {
 		// 함대: 깨어난 배의 창이 따뜻하게 일렁이고, 군함엔 붉은 경고등
 		for ( const wr of this.wrecks ) if ( wr.woke ) wr.winMat.color.setRGB( 1, 0.72 + Math.sin( t * 3 + wr.x ) * 0.06, 0.4 ).multiplyScalar( 0.85 + Math.sin( t * 2.1 + wr.z ) * 0.15 );
 		this.warnLight.material.opacity = Math.max( 0, Math.sin( t * 2.4 ) ) * 0.9;
+
+		// 노래 바위: 아직이면 숨 쉬듯 희미하게, 노래할 땐 밝게, 깨어나면 금빛
+		if ( this.stoneGroup.visible ) for ( const st of this.stones ) {
+
+			const base = st.done ? 0.5 + Math.sin( t * 1.2 + st.index ) * 0.08 : 0.35 + Math.sin( t * 1.8 + st.index ) * 0.2;
+			st.mat.emissiveIntensity = base + st.glow * 1.4;
+			st.ringMat.opacity = Math.min( 0.85, ( st.done ? 0.6 : 0.4 ) + st.glow * 0.5 );
+
+		}
 
 		// 폭풍
 		this.updateStorm( dt, hazel, cam, active );

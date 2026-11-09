@@ -1,7 +1,7 @@
 // 이야기 진행. 대사·편지·안내 문장은 lang/ko.js, lang/en.js, lang/ja.js 에 있다.
 import { lang } from './i18n.js';
 import { DAWN_PLACES } from './map3.js';
-import { chooseSong, listenSong, leadSong, soloSong } from './voices.js';
+import { chooseSong, listenSong, leadSong, soloSong, answerSong, playOldSong, hornNote, orcaNote, bellNote } from './voices.js';
 
 // 화자 모양 (이름은 언어 파일의 speakers)
 export const SPEAKERS = {
@@ -32,6 +32,12 @@ export const NINE_PHRASES = [
 	[ [ 0, 69 ], [ 0.5, 69 ], [ 1.5, 72 ] ],
 	[ [ 0, 69 ], [ 0.5, 72 ], [ 1, 74 ], [ 2, 72 ] ],
 	[ [ 0, 74 ], [ 0.5, 72 ], [ 1, 69 ], [ 1.5, 72 ], [ 2.5, 76 ] ]
+];
+// 잊힌 등대의 노래 바위 (루크가 없으면 헤이즐이 하나씩 되살린다): 혹등고래 · 대왕고래 · 향유고래
+export const STONE_PHRASES = [
+	[ [ [ 0, 67 ], [ 1, 72 ], [ 2, 74 ], [ 3, 72 ] ] ],
+	[ [ [ 0, 57 ], [ 2, 55 ], [ 3, 57 ] ] ],
+	[ [ [ 0, 79 ], [ 0.5, 79 ], [ 1, 79 ], [ 2, 84 ] ] ]
 ];
 // 8번: 작고 높고 빠른 소리 (겁에 질려 있다)
 export const EIGHT_PHRASES = [
@@ -703,6 +709,9 @@ export async function map3( G ) {
 	}
 
 	await G.say( pick( T().gathered ) );
+
+	// 3단계 · 잊힌 등대
+	await lighthouse();
 	G.objective( U().label, U().objNext );
 	G.ui.toast( U().preview );
 
@@ -798,6 +807,83 @@ export async function map3( G ) {
 		await G.say( pick( F.dawn[ way ] ) );
 		G.camRelease();
 		await voiceCard( U().fleetCard[ way ] );
+		G.cutscene( false );
+
+	}
+
+	// 잊힌 등대: 노래 바위 셋 → 등대에 불 → 첫 합주 (헤이즐이 부르면 모두가 제 소리로 대답)
+	async function lighthouse() {
+
+		const Lh = T().light;
+		const LP = DAWN_PLACES.lighthouse;
+		const at = { x: LP.x, y: 0, z: LP.z };
+		G.showLighthouse();
+		G.objective( U().label, U().objLight, LP );
+		await G.until( () => free() && dist( LP ) < 85 );
+		G.cutscene( true );
+		G.camFocus( at, { side: 1, dist: 70, height: 20 } );
+		await G.say( pick( Lh.arrive ) );
+		G.camRelease();
+		G.cutscene( false );
+		G.ui.toast( U().stoneHint );
+
+		// 노래 바위: 루크가 있으면 루크가 읽고 들려주고, 없으면 헤이즐이 듣는 노래로 되살린다
+		const stones = sea.stones;
+		const aimStone = () => {
+
+			const rest = stones.filter( ( st ) => ! st.done ).sort( ( a, b ) => dist( a ) - dist( b ) );
+			G.objective( U().label, U().objStones.replace( '{n}', stones.length - rest.length ), rest[ 0 ] ?? null );
+
+		};
+
+		aimStone();
+		while ( stones.some( ( st ) => ! st.done ) ) {
+
+			await G.untilEvent( 'sing' );
+			const st = stones.find( ( x ) => ! x.done && dist( x ) < 18 );
+			if ( ! st ) continue;
+			G.cutscene( true );
+			G.camFocus( { x: st.x, y: 0, z: st.z }, { side: 1, dist: 24, height: 7 } );
+			if ( on.luke ) {
+
+				st.setGlow( 0.8 );
+				G.actors.luke.setGlow( 1.2, 0xffb070 );
+				playOldSong( G, st.kind );
+				await G.wait( 4.5 );
+				G.actors.luke.setGlow( 0.3, 0xffd36b );
+
+			} else await listenSong( G, st, STONE_PHRASES[ st.index ], U().stones[ st.index ] );
+			st.setGlow( 0 );
+			sea.restoreStone( st );
+			G.audio.play( 'heal' );
+			await G.say( pick( Lh.stones[ st.index ] ) );
+			G.camRelease();
+			G.cutscene( false );
+			aimStone();
+
+		}
+
+		// 등대에 불이 들어온다
+		G.cutscene( true );
+		G.lighthouseOn();
+		G.camFocus( at, { side: - 1, dist: 85, height: 24 } );
+		await G.wait( 2.5 );
+		G.dawnTo( G.dawnTarget + 0.06 );
+		await G.say( pick( Lh.lamp ) );
+
+		// 첫 합주: 대답하는 목소리 (루크 → 핀 → 함께 온 고래들). 아무도 없으면 등대가 종소리로 대답한다
+		const responders = [];
+		if ( on.luke ) responders.push( { actor: G.actors.luke, play: ( m ) => hornNote( G, m - 12 ), color: 0xffb070, rest: 0.3, restColor: 0xffd36b } );
+		if ( on.finn ) responders.push( { actor: G.actors.finn, play: ( m ) => orcaNote( G, m + 17 ), color: 0x9d8cff } );
+		const joined = Object.values( sea.voices ).filter( ( v ) => v.state === 'follow' );
+		joined.forEach( ( v, i ) => responders.push( { actor: v.whale, play: ( m ) => orcaNote( G, m + 12 + [ 4, 7, 9 ][ i % 3 ] ), color: 0x7fe9ff } ) );
+		if ( ! responders.length ) responders.push( { actor: { pos: LP, setGlow: ( v ) => v > 0.5 && G.lighthouseBeat() }, play: ( m ) => bellNote( G, m + 12 ), color: 0xffe9b0 } );
+		G.camFocus( at, { side: 1, dist: 60, height: 12 } );
+		await answerSong( G, { responders, onBeat: on.luke ? null : () => G.lighthouseBeat() } );
+		await G.say( pick( joined.length || on.finn || on.luke ? Lh.together : Lh.solo ) );
+		await G.say( pick( Lh.end ) );
+		G.camRelease();
+		await card( G, U().lightCard );
 		G.cutscene( false );
 
 	}

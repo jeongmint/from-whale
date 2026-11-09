@@ -42,9 +42,9 @@ export default {
 			label: 'MAP 3 · A Song That Calls the Dawn',
 			card: [ 'MAP 3', 'A Song That Calls the Dawn', 'Song of Liberation' ],
 			objFrozen: 'Follow the broken song · The Frozen Lane',
-			objNext: 'Swim the dawn sea · the Forgotten Lighthouse is still being made',
+			objNext: 'Swim the dawn sea · the coastal city is still being made',
 			iceHint: 'Take the narrow channel between the ice — you can\'t swim through it',
-			preview: 'That\'s all of the MAP 3 preview for now — the Forgotten Lighthouse is on its way',
+			preview: 'That\'s all of the MAP 3 preview for now — the coastal city is on its way',
 			twelve: 'No.12',
 			choiceTitle: 'How will you sing?',
 			choiceHint: 'Choose a song for {who} · 1 2 3 or tap',
@@ -89,7 +89,17 @@ export default {
 				listen: [ 'VOICE', 'The Storm Sea', 'No.8 rides the waves for the first time' ],
 				lead: [ 'VOICE', 'The Storm Sea', 'No.8 follows, hearing only {N}\'s beat' ],
 				alone: [ 'VOICE', 'The Storm Sea', 'No.8 went back down where there are no waves' ]
-			}
+			},
+			objLight: 'To the Forgotten Lighthouse',
+			objStones: 'Sing beside the song stones below the lighthouse [E] · {n}/3',
+			stoneHint: 'Sing beside a song stone [E] to wake the old whale song Luke carved there',
+			stones: [ 'the humpback stone', 'the blue whale stone', 'the sperm whale stone' ],
+			answerTitle: 'ANSWER · 52HZ → EVERYONE',
+			answerReady: '{N} goes first — sing freely for 4 beats [E]',
+			answerAgain: 'Once more — try a different beat',
+			answerEcho: 'The answers come back… each in its own voice',
+			answerDone: 'Different voices became one song',
+			lightCard: [ 'MAP 3', 'The Forgotten Lighthouse', 'The Language of the Sea' ]
 		},
 		// MAP 2 낚시
 		fish: {
@@ -849,7 +859,52 @@ export default {
 				[ 'narrator', 'The Frozen Lane, the sunken ships, the Storm Sea.\nThe scattered voices had each chosen their own way.' ],
 				[ 'luke', '{N}, let\'s go to the lighthouse now. The whale songs I\'ve written down all my life are there.', 'luke' ],
 				[ 'narrator', 'Far away stood a lighthouse, its light gone out.', 'lukeGone' ]
-			]
+			],
+			light: {
+				arrive: [
+					[ 'narrator', 'A dark lighthouse. At the end of the Frozen Lane, it once lit the old whales\' way.' ],
+					[ 'luke', '…It\'s been a while. My lighthouse.', 'luke' ],
+					[ 'luke', 'I spent my whole life here writing down whale songs. I carved one into each stone below the light.\nSongs from before the Alliance, when the sea still sang in its own language.', 'luke' ],
+					[ 'luke', 'Sing beside the stones, {N}. I\'ll read them for you.', 'luke' ],
+					[ 'narrator', 'Something was carved into each stone below the lighthouse. Lines scratched with a horn.', 'lukeGone' ],
+					[ 'narrator', 'Luke wasn\'t there. {N} decided to bring the lines he left back to life, one song at a time.', 'lukeGone' ]
+				],
+				stones: [
+					[
+						[ 'luke', 'The humpback song. They sing the same song for hours, changing it a little every year.\nPods on the far side of the sea change theirs to match. Not by order — because they like it.', 'luke' ],
+						[ 'narrator', 'The carving: a whale with its tail held high, and an endless line of waves.\nIt seemed to say the song carries across the sea.', 'lukeGone' ]
+					],
+					[
+						[ 'luke', 'The blue whale song. So low that humans can\'t even hear it. Yet it reaches thousands of kilometers away.\nJust because it isn\'t heard doesn\'t mean it isn\'t there. …Like you, {N}.', 'luke' ],
+						[ 'narrator', 'The carving: one enormous whale, and one long line stretching to the edge of the sea.\nIt seemed to say a song can reach without being heard.', 'lukeGone' ]
+					],
+					[
+						[ 'luke', 'The sperm whale clicks. Every pod has its own rhythm. That rhythm is its name, and its home.\nThey understand each other without sharing a beat.', 'luke' ],
+						[ 'narrator', 'The carving: dot, dot, dot, a pause, dot. Several whales gathered in a circle.\nIt seemed to say different beats can still be together.', 'lukeGone' ]
+					]
+				],
+				lamp: [
+					[ 'narrator', 'As the third song woke, the lighthouse came alight.' ],
+					[ 'luke', 'They were born in the sea, but never learned the language of the sea.\n{N}, I\'ll carry your song to them.', 'luke' ],
+					[ 'luke', 'You sing first. I\'ll be the first to answer. The others will follow, each in its own voice.', 'luke' ],
+					[ 'narrator', 'The lighthouse light blinked slowly, as if counting the beat.\nIt was the light Luke left behind.', 'lukeGone' ]
+				],
+				together: [
+					[ 'luke', 'Hear that? Every voice was different. And yet it was one song.', 'luke' ],
+					[ 'luke', 'That\'s the language of the sea. Not orders — answers.', 'luke' ],
+					[ 'narrator', 'The voices that came along answered {N}\'s song, each in its own way. The lighthouse kept their beat.', 'lukeGone' ]
+				],
+				solo: [
+					[ 'narrator', 'No voice answered. Only the lighthouse blinked along with {N}\'s beat.' ],
+					[ 'narrator', 'Still, the song didn\'t break. Somewhere out at sea were voices that had not answered yet.' ]
+				],
+				end: [
+					[ 'narrator', 'The lighthouse beam swept east. Human lights dotted the coast.' ],
+					[ 'narrator', 'And toward those lights, the Shaman\'s pod swam in long lines.' ],
+					[ 'finn', 'It\'s the Shaman… already close to the coast.', 'finn' ],
+					[ 'luke', 'Let\'s hurry, {N}. This time, we have to sing first.', 'luke' ]
+				]
+			}
 		},
 		epilogue: {
 			card: [ 'EPILOGUE', 'Looking for Stella' ],

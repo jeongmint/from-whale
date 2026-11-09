@@ -885,7 +885,42 @@ Object.assign( G, {
 
 	},
 
-	// 침몰한 함대: 노래로 배의 기억이 깨어난다
+	// 잊힌 등대: 맵 1의 루크 등대를 불 꺼진 채로 다시 세우고, 둘레에 노래 바위
+	showLighthouse() {
+
+		const lh = G.world.lighthouse;
+		if ( ! lh.group.visible ) {
+
+			lh.group.visible = true;
+			lh.on = 0;
+			lh.setOn( false );
+			const L = DAWN_PLACES.lighthouse;
+			G.map3.colliders.push( { x: L.x, z: L.z, r: 24 } );
+
+		}
+
+		G.map3.showStones();
+
+	},
+
+	// 등대에 불이 들어온다
+	lighthouseOn() {
+
+		const L = DAWN_PLACES.lighthouse;
+		G.world.lighthouse.setOn( true );
+		G.audio.play( 'join' );
+		for ( let i = 0; i < 3; i ++ ) G.world.ring( L.x, L.z, { color: 0xffe9b0, to: 120, life: 2, delay: i * 0.4 } );
+
+	},
+
+	// 루크가 없으면 등대 불빛이 박자를 센다 (박자마다 환하게)
+	lighthouseBeat() {
+
+		G.world.lighthouse.on = 1.9;
+
+	},
+
+		// 침몰한 함대: 노래로 배의 기억이 깨어난다
 	wakeWreck( w ) {
 
 		G.audio.play( 'join' );
@@ -4084,6 +4119,8 @@ function updateHud() {
 		const s = G.actors.shaman;
 		if ( s.root.visible ) points.push( { x: s.pos.x, z: s.pos.z, color: '#ff6b8b', size: 4 } );
 		for ( const v of Object.values( m.voices ) ) if ( v.whale.root.visible ) points.push( { x: v.whale.pos.x, z: v.whale.pos.z, color: '#dce9f6', size: 3 } );
+		// 아직 깨우지 않은 노래 바위: 하늘색 고리
+		if ( m.stoneGroup.visible ) for ( const st of m.stones ) if ( ! st.done ) points.push( { x: st.x, z: st.z, color: '#7fe9ff', size: 3.5, shape: 'ring' } );
 		// 깨어나지 않은 배: 소나에 주황 점
 		for ( const w of m.wrecks ) if ( w.memory >= 0 && ! w.woke && Math.hypot( w.x - h.pos.x, w.z - h.pos.z ) < 260 ) points.push( { x: w.x, z: w.z, color: '#ffb070', size: 3.5, shape: 'ring' } );
 		for ( const key of [ 'luke', 'finn' ] ) if ( G.party[ key ] === 'on' ) points.push( { x: G.actors[ key ].pos.x, z: G.actors[ key ].pos.z, color: '#eaf6ff', size: 3 } );
