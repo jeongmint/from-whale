@@ -49,6 +49,7 @@ export class Sky {
 			uHorizon: { value: new THREE.Color( 0x16408f ).convertSRGBToLinear() },
 			uGlow: { value: new THREE.Color( 0x3a7dff ).convertSRGBToLinear() },
 			uDawn: { value: 0 }, // MAP 3: 0 밤 ~ 1 해돋이
+			uStorm: { value: 0 }, // MAP 3 폭풍의 바다: 하늘이 먹구름처럼 어두워진다
 			uSunDir: { value: SUN_DIR.clone() }
 		};
 		this.starFade = { value: 1 };
@@ -88,10 +89,12 @@ export class Sky {
 				}
 			`,
 			fragmentShader: /* glsl */`
+				uniform float uTime;
 				uniform vec3 uZenith;
 				uniform vec3 uHorizon;
 				uniform vec3 uGlow;
 				uniform float uDawn;
+				uniform float uStorm;
 				uniform vec3 uSunDir;
 				varying vec3 vDir;
 				float hash( vec3 p ) {
@@ -136,6 +139,12 @@ export class Sky {
 						col += warm * pow( sun, 3.0 ) * low * uDawn * 1.3;
 						col += vec3( 0.38, 0.2, 0.18 ) * pow( sun, 1.2 ) * exp( - max( h, 0.0 ) * 2.0 ) * uDawn * 0.35;
 						col += vec3( 1.0, 0.8, 0.55 ) * pow( sun, 400.0 ) * smoothstep( 0.75, 1.0, uDawn ) * 6.0;
+					}
+					// 폭풍: 구름 낀 어두운 하늘 (구름 결은 fbm으로)
+					if ( uStorm > 0.0 ) {
+						float cloud = fbm( d * 3.0 + vec3( 0.0, 0.0, uTime * 0.02 ) );
+						vec3 grey = vec3( 0.02, 0.025, 0.035 ) + vec3( 0.03, 0.035, 0.045 ) * cloud;
+						col = mix( col, grey, uStorm * 0.8 );
 					}
 					gl_FragColor = vec4( col, 1.0 );
 				}
@@ -427,6 +436,15 @@ export class Sky {
 		u.uDawn.value = k;
 		this.starFade.value = 1 - THREE.MathUtils.smoothstep( k, 0.1, 0.85 ) * 0.94;
 		this.moonUniforms.uFade.value = 1 - k * 0.6;
+
+	}
+
+	// MAP 3 폭풍 (0 ~ 1): 하늘이 어둡고 별 · 달이 가려진다
+	setStorm( k ) {
+
+		this.uniforms.uStorm.value = k;
+		this.starFade.value = ( 1 - THREE.MathUtils.smoothstep( this.dawn, 0.1, 0.85 ) * 0.94 ) * ( 1 - k );
+		this.moonUniforms.uFade.value = ( 1 - this.dawn * 0.6 ) * ( 1 - k * 0.85 );
 
 	}
 

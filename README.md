@@ -10,7 +10,7 @@ A sea adventure of **Hazel**, a whale who sings at 52Hz. Another world, the year
 
 - MAP 1 · **The Night the Stars Fell** — the night sea: lighthouse, kelp, the Alliance, Moby Dick, Stella
 - MAP 2 · **A Sea Born Without Waves** — down a trench to the base where the Alliance was made
-- MAP 3 · **A Song That Calls the Dawn** — from night to dawn, the scattered voices of the Alliance (phase 1 preview)
+- MAP 3 · **A Song That Calls the Dawn** — from night to dawn, the scattered voices of the Alliance
 
 | Lighthouse and ringed planet | Moby Dick boss fight |
 | --- | --- |
@@ -38,7 +38,7 @@ A sea adventure of **Hazel**, a whale who sings at 52Hz. Another world, the year
 - **Stella (hidden ending)** — all 6 letters in bottles (Moby's prologue letter included) → 12-bar blues duet (PERFECT ±25 ms · EXCELLENT ±60 ms · GOOD ±150 ms, 450 max, S from 85% · A from 60%, a shooting star per jump note) → name the song and leave it with your nickname and score on the shared **Duet TOP 10**. After meeting Stella, "Sing the duet again" on the title or ending screen replays just the duet (save data untouched). Remaining letters can be found in the epilogue after the ending
 - **Space and sea** — Gerstner waves, glittering ripples, ringed planet, shooting stars, bloom
 - **MAP 2 · A Sea Born Without Waves** — a second map that opens after meeting Stella. Descend a trench and uncover the Alliance's secret (see MAP 2 below)
-- **MAP 3 · A Song That Calls the Dawn (phase 1 preview)** — back to the surface after the MAP 2 ending. How you sing is the choice (see MAP 3 below)
+- **MAP 3 · A Song That Calls the Dawn** — back to the surface after the MAP 2 ending. How you sing is the choice (see MAP 3 below)
 - **Retro blue UI** — window-style HUD, sonar minimap (tap its title bar to fold it, remembered on the device), chapter cards, PC controls guide, current objective inside the HAZEL window (top center left clear). Portrait phones: one bottom row of joystick · sonar · 2×2 buttons (right thumb, screen center clear). One-line dialog at the bottom, two-column title, and the call-and-response window at the bottom left in tilt mode on landscape phones
 - **Light models** — 500–650 vertices per whale, 512px textures. Phone support
 
@@ -56,6 +56,8 @@ A sea adventure of **Hazel**, a whale who sings at 52Hz. Another world, the year
 | The Broken Compass | ○ | ✕ |
 | Sacrifice | ✕ | ✕ |
 | The Late Whale | any | any |
+
+- MAP 3 endings: **Everyone's Song** if No.12, No.9 and No.8 all come along, otherwise **A 52Hz Dawn**. Whether you met Luke, Finn and Stella and how you sang change the symphony's lines and the last scene
 
 ### MAP 2 · A Sea Born Without Waves
 
@@ -86,34 +88,58 @@ The name: the deep sea where no waves reach, and the Alliance (and Finn), born i
 | Trench | 250–318 m | Grad student J's last record (270 m), with a stone fishhook | Coelacanths · guards, morays |
 | Base | 318 m– | The Doctor's memo (312 m) | Crabs, urchins, starfish, shrimp · the Shaman |
 
-### MAP 3 · A Song That Calls the Dawn (phase 1 preview)
+### MAP 3 · A Song That Calls the Dawn
 
 Subtitle: Song of Liberation (working title). After the red eyes go dark, an Alliance that is free but has nowhere to go.
 
-- Getting there: "Toward the dawn" on the MAP 2 ending screen → the surface. Everything from MAPs 1 and 2 is gone
+- Getting there: "Toward the dawn" on the MAP 2 ending screen → the surface. After seeing the MAP 2 ending, straight from "MAP 3 · Toward the dawn" on the title. Everything from MAPs 1 and 2 is gone
 - Sky: a slow shift from night to dawn. Red spreads from the eastern horizon; stars, the Milky Way and the moon fade. Sea color, fog and light follow (brighter with each voice gathered)
 - Prologue · the silent Alliance: the Alliance surfaces and won't move, even at the Shaman's command → three ways (whales who follow the Shaman · whales who want revenge · whales who refuse the war) → the Shaman's new order: the whole Alliance leaps together twice toward the coast, then marches toward the rising sun and the human coast
 - The Frozen Lane: an ice field to the north. Ice floes block the way (shown on the sonar), a winding narrow channel, snow, thick fog
-- No.12: an orca circling a pool in the ice, spouting now and then. From the same tank as Finn
-- Choosing a song (1 · 2 · 3 or tap):
+- Choosing a song (each time you meet a whale, 1 · 2 · 3 or tap):
 
 | Song | How | Result |
 | --- | --- | --- |
-| Listening Song | Hear No.12's melody, then answer in the same rhythm. Hazel keeps her own voice an octave below; No.12's shaking eases with each phrase; after three misses No.12 matches you first | The ice splits; No.12 swims beside you |
-| Leading Song | Sing freely for 4 beats and No.12 sings it straight back (3 times) | The ice splits; No.12 follows right behind you (much like the Shaman's way) |
-| Solo Song | Just 52Hz, three times | No.12 dives under the ice and heads north alone |
+| Listening Song | Hear that whale's melody, then answer in the same rhythm. Hazel keeps her own voice an octave below; the shaking eases with each phrase; after three misses the other whale matches you first | Comes along, in its own place beside Hazel |
+| Leading Song | Sing freely for 4 beats and the other whale sings it straight back (3 times) | Comes along, in a line behind Hazel (much like the Shaman's way) |
+| Solo Song | Just 52Hz, three times | Doesn't come; goes its own way |
 
-- End: card "VOICE 1 · The Frozen Lane" → free swim in the dawn sea (next region in progress)
+- Scattered voices (after No.12, in any order):
+
+| Sea | Play | Whale | With a Solo Song |
+| --- | --- | --- | --- |
+| The Frozen Lane (north) | A channel through the ice | No.12: circles a pool in the ice, spouting now and then. The ice splits if it comes along | North under the ice, alone |
+| The Sunken Fleet (west) | Sing beside three sunken ships → their windows light up with No.9's memories (the hands that changed the water · the day of the chip · the night the stars fell). Orange rings on the sonar | No.9: wants revenge, swims roughly between the ships | To the coast, the way of revenge |
+| The Storm Sea (southeast) | Dark clouds · rain · lightning · high seas. Big waves spread from the center; jump just before each reaches you (or get swept back) | No.8: the youngest, seeing waves for the first time, curled up by the rocks. The storm settles if it comes along | Down to the deep where there are no waves |
+
+- Dawn: brighter with each voice gathered (more if it comes along, a little even if not). Card "VOICE n"
+- The Forgotten Lighthouse (after the three seas): Luke's lighthouse, dark, at the end of the Frozen Lane
+  - Three song stones (humpback · blue whale · sperm whale): sing beside one to wake the old whale song Luke carved with his horn. With Luke, he plays and reads it; without him, Hazel brings each stone's melody back with a Listening Song and sees only the carving
+  - With all three awake, the lighthouse lights up → the first ensemble, the Answering Song: Hazel sings for 4 beats, then Luke (horn) → Finn → the whales who came along answer the same beat in turn, each in its own voice (twice). Without Luke the light blinks each beat; with no voice at all, the lighthouse answers with a bell
+  - End: beyond the beam, the Shaman's pod marching on the coast → card "The Forgotten Lighthouse · The Language of the Sea"
+- The coastal city and the march (far east, toward the sunrise)
+  - The human coastal city: lit buildings, a sea wall, ships in the harbor, searchlights sweeping the sea. No swimming past the shoreline
+  - The Shaman's march: the Alliance in three rows with the Shaman glowing red at the front. On every drumbeat they all surge forward; every sixteen beats they leap together. The drum grows louder as you approach
+  - Drum rings: every four beats a red ring spreads from the Shaman. Sing the moment it reaches you to hold your ground (a golden ring), or get pushed back
+  - The standoff: the Shaman's question "What were you made for!" → the Alliance's scattered answers (No.9, if sent off alone, stands in the line of revenge) → with Finn, No.7 says no by his own will for the first time; without him, No.7's story spreads through J's records → card "The Coastal City · Before the March"
+- The Whale Symphony (rhythm)
+  - Moby Dick comes from behind ("I too once tried to cover the whole sea with my song alone"), and Stella too if you've met her
+  - Lanes: the Shaman's drum on top · the voices you gathered (Luke → Finn → the whales who came along → Moby Dick → Stella) · Hazel at the bottom
+  - A friend sings an off-beat phrase for one bar; answer in the same places the next bar. No notes shown ahead, only what was heard lingers briefly. Generous timing (±0.19 s); after two misses the other voice matches you first
+  - Each voice you reach keeps repeating its phrase from the next bar → an ensemble that grows a lane at a time, and as many of the Alliance break free of the drum
+  - The Shaman's drum keeps hitting every beat. Tapping on the drum grows the Shaman's chorus (red bar) and makes the Alliance flinch forward — not following orders is the answer
+  - Last bar: everyone together; when Hazel sings, every voice answers in its own note. Hazel stays 52Hz to the end
+- Dawn: the Shaman asks "Without orders, what are we supposed to live for?" → Hazel sings instead of answering → the Shaman's first sound of its own → sunrise, the lighthouse goes dark → farewells (whales who came with a Listening Song name their own way; those who came with a Leading Song wait for orders, then choose for themselves for the first time) → everyone to their own sea → closing narration → MAP 3 ending
 
 ### Characters
 
 | Name | Role | Model |
 | --- | --- | --- |
 | Hazel | 52Hz finless porpoise, glowing pattern on the back | `data/hazel/Hazel.glb` |
-| Luke | Narwhal lighthouse keeper, translator | `data/luke/Luke.glb` |
+| Luke | Narwhal lighthouse keeper, translator. In MAP 3, the conductor who wrote down the whales' songs | `data/luke/Luke.glb` |
 | Finn | Crybaby orca guide | `data/finn/Finn.glb` |
 | The Alliance | Orca pod; guards of the trench in MAP 2, scattered three ways in MAP 3 | `data/orca_army/Orca_Army.glb` |
-| No.12 | Orca of the Frozen Lane, from the same tank as Finn (MAP 3) | `Orca_Army.glb` + `recolor` |
+| No.12 · No.9 · No.8 | Orcas from the same tank as Finn (MAP 3): the Frozen Lane · the Sunken Fleet · the Storm Sea | `Orca_Army.glb` + `recolor` (No.8 smaller) |
 | Alliance chief · Shaman | Pink orca; hears the base AI as "the Voice of the Deep" (MAP 2) | `Orca_Army.glb` + `recolor` |
 | Moby Dick | Sperm whale, final boss | `data/moby/Moby.glb` |
 | Stella | Yellow blue whale, another 52Hz, throat pleats, sparkling six-point star on the back | `data/stella/Stella.glb` (generated by `tools/make_stella.py`) |
@@ -149,12 +175,12 @@ Color options (`Whale` in `game/js/actors.js`): `solidColor` for a single color,
 | `index.html`, `landing.css`, `landing.js` | Home page |
 | `game/index.html`, `game/style.css` | Game screen, HUD |
 | `game/js/ocean.js` | Gerstner waves (GPU + matching CPU version) |
-| `game/js/sky.js` | Night sky, ringed planet, shooting stars, reflection cubemap, dawn (MAP 3) |
+| `game/js/sky.js` | Night sky, ringed planet, shooting stars, reflection cubemap, dawn · storm sky (MAP 3) |
 | `game/js/world.js` | Seabed, rocks, lighthouse, kelp, bottles, light shards |
 | `game/js/actors.js` | Whale models, swim shader, recoloring, portraits |
 | `game/js/audio.js` | Synthesized music, sound effects |
 | `game/js/ui.js` | HUD, dialog box, chapter cards, sonar |
-| `game/js/story.js` | Chapter flow, branching endings, map coordinates, MAP 2 story · stop code, MAP 3 story · No.12's song |
+| `game/js/story.js` | Chapter flow, branching endings, map coordinates, MAP 2 story · stop code, MAP 3 story · each whale's song (No.12 · No.9 · No.8) |
 | `game/js/lang/*.js` | Text per language (ko / en / ja) |
 | `game/js/i18n.js` | Language selection |
 | `game/js/name.js` | Nickname, Korean particles (`{N은}`, `{N을}`) |
@@ -163,8 +189,9 @@ Color options (`Whale` in `game/js/actors.js`): `solidColor` for a single color,
 | `game/js/guards.js` | MAP 2 Alliance guards: patrol, chase, hearing the song, wall taboo, bone altar ritual |
 | `game/js/sealife.js` | MAP 2 sea life: where each kind lives, schools, drifting jellyfish, bottom crawlers, moray eel ambushes |
 | `game/js/map2.js` | MAP 2: trench terrain, landmarks per layer (sub · lab · terminal · whale bones · base), research log positions |
-| `game/js/map3.js` | MAP 3: dawn sea colors, ice field · channel, snow, the silent Alliance, No.12 |
-| `game/js/voices.js` | MAP 3 song choice: Listening · Leading · Solo Song |
+| `game/js/map3.js` | MAP 3: dawn sea colors, ice field · channel, snow, the Sunken Fleet, the storm (rain · lightning · big waves), song stones, the coastal city, the Shaman's march · drum, the silent Alliance, the whales you meet |
+| `game/js/symphony.js` | MAP 3 Whale Symphony: the Shaman's drum · answering friends' off-beat phrases · lanes that build up · a Shaman's chorus that grows when you follow the drum |
+| `game/js/voices.js` | MAP 3 songs: song choice (Listening · Leading · Solo), the lighthouse's Answering Song, the old whale songs |
 | `game/js/scores.js` | Duet scoreboard window (saves on this device only when the server can't be reached) |
 | `game/js/main.js` | Rendering, bloom, input, Alliance AI, boss fight, routes · ending gallery, epilogue |
 | `netlify/functions/duet-scores.mjs` | Duet scoreboard server (Netlify Functions + Blobs). Keeps the TOP 50; checks length, banned words, score matching the judgment counts, 20 s between posts. Remove entries in the Netlify dashboard → Blobs → `duet-scores` → `top-v2` |
@@ -178,7 +205,7 @@ Color options (`Whale` in `game/js/actors.js`): `solidColor` for a single color,
 - `?stella` start at the ending with all 6 letters (Stella → duet → sub ending). Save data untouched
 - `?route=light|friends|compass|sacrifice|late` start ch. 4 onward on that route (with `?chapter=4` or `?chapter=5`, e.g. `?chapter=5&route=compass`)
 - `?duet` just the duet, once you've met Stella (same as the title / ending screen button; scores go to the scoreboard; save data untouched)
-- `?dive` start at the MAP 2 preview (portal → under the sea). Save data untouched
-- `?dawn` start at the MAP 3 preview (the surface before dawn). Save data untouched
+- `?dive` start at MAP 2 (portal → under the sea). Save data untouched
+- `?dawn` start at MAP 3 (the surface before dawn). Save data untouched
 - `?gold` preview the all-endings reward (golden sea). Save data untouched
 - `?q=low` low-spec mode (automatic on touch devices)

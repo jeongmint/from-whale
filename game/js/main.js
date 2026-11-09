@@ -18,7 +18,7 @@ import { buildTrench, trenchCenter, trenchRadius, glowMap } from './map2.js';
 import { loadSealife, Sealife } from './sealife.js';
 import { Guards } from './guards.js';
 import { startFishing, dexCount, DEX_KEYS } from './fishing.js';
-import { DawnSea, DAWN_PLACES, applyDawnSea, frostFog } from './map3.js';
+import { DawnSea, DAWN_PLACES, SHORE_X, applyDawnSea, frostFog } from './map3.js';
 
 const BASE = window.FW_ASSET_BASE ?? '../';
 const query = new URLSearchParams( location.search );
@@ -61,6 +61,8 @@ const ENDING_ORDER = [ ...Object.keys( ROUTES ), 'heart' ]; // heart: 한 장에
 const ENDINGS_KEY = 'fromwhale.endings';
 // 듀엣 다시 부르기 (?duet 또는 타이틀 버튼): 스텔라를 만난 적 있을 때만. 이어하기 저장은 건드리지 않는다
 let duetMode = query.has( 'duet' ) && loadEndings().includes( 'stella' );
+// MAP 2 엔딩을 본 적 있으면 타이틀에서 바로 MAP 3 (새벽)으로. 이어하기 저장은 건드리지 않는다
+let dawnMode = false;
 // 테스트 옵션 ?route=light|friends|compass|sacrifice|late: 4장 이후를 그 갈래로 시작 (?chapter와 함께)
 const ROUTE_TEST = ROUTES[ query.get( 'route' ) ] ? query.get( 'route' ) : null;
 const newRoute = ( key ) => ( { hits: 0, luke: true, finn: true, late: false, ...ROUTES[ key ] } );
@@ -885,7 +887,157 @@ Object.assign( G, {
 
 	},
 
-	// 노래가 얼음을 가른다 (12번이 함께 가기로 했을 때)
+	// 교향곡 직전: 등 뒤의 바다에서 모비 딕이, 스텔라를 만난 적 있으면 스텔라도 떠오른다
+	finaleArrive( stella ) {
+
+		const h = G.actors.hazel;
+		const f = h.forward;
+		const m = G.actors.moby;
+		m.place( h.pos.x - f.x * 70 + f.z * 30, h.pos.z - f.z * 70 - f.x * 30, h.yaw );
+		Object.assign( m, { falling: false, hold: true } );
+		m.depth = 8;
+		m.targetDepth = 0;
+		m.setOpacity( 1 );
+		m.setGlow( 0.15, 0xbcd6ff );
+		m.root.visible = true;
+		G.world.ring( m.pos.x, m.pos.z, { color: 0xbcd6ff, to: 70, life: 2 } );
+		G.audio.whaleCall( null, 'moby' );
+		if ( stella ) {
+
+			const s = G.actors.stella;
+			s.place( h.pos.x - f.x * 230 - f.z * 60, h.pos.z - f.z * 230 + f.x * 60, h.yaw );
+			s.depth = 50;
+			s.targetDepth = 0;
+			s.hold = true;
+			s.root.visible = true;
+			s.setGlow( 0.12, 0xffb020 );
+			G.world.ring( s.pos.x, s.pos.z, { color: 0xffd36b, to: 160, life: 3 } );
+			setTimeout( () => G.audio.whaleCall( null, 'stella' ), 1200 );
+
+		}
+
+		return m;
+
+	},
+
+	// 교향곡에 목소리가 모일수록 연합군이 북에서 풀려나고, 북에 맞춰 누르면 움찔 나아간다
+	symphonyJoin( frac ) {
+
+		G.map3.freeArmy( frac );
+
+	},
+
+	symphonyDrumTap() {
+
+		G.map3.armyFlinch();
+		const s = G.actors.shaman;
+		s.setGlow( 0.9, 0xff2050 );
+		setTimeout( () => s.setGlow( 0.3, 0xff2050 ), 250 );
+		G.world.ring( s.pos.x, s.pos.z, { color: 0xff3355, to: 40, life: 0.8, width: 0.25 } );
+
+	},
+
+	// 새벽: 북이 멎고, 해가 떠오르고, 등대 불빛이 꺼지고, 모두 저마다의 바다로
+	sunrise() {
+
+		G.dawnTo( 1 );
+		G.world.lighthouse.setOn( false );
+		if ( G.map3.march ) G.map3.march.on = false;
+
+	},
+
+	// 샤먼이 처음으로 내는 제 소리 (서툴고 아주 작은)
+	shamanOwnVoice() {
+
+		const s = G.actors.shaman;
+		s.setGlow( 0, 0x000000 );
+		const a = G.audio;
+		if ( a.ctx ) a.voice( a.ctx.currentTime + 0.05, [ [ 0, 300 ], [ 0.5, 330 ], [ 1.4, 290 ] ], { vel: 0.05, vibrato: 7, depth: 0.03, reverb: 1.2 } );
+		G.world.ring( s.pos.x, s.pos.z, { color: 0xffd0e0, to: 18, life: 2, width: 0.2 } );
+
+	},
+
+	scatterAll() {
+
+		G.map3.scatterArmy();
+
+	},
+
+	// 샤먼의 진군: 해안 도시 앞에 줄지어 선 연합군, 맨 앞에 붉게 빛나는 샤먼
+	startMarch() {
+
+		const s = G.actors.shaman;
+		const A = DAWN_PLACES.army;
+		s.place( A.x + 30, A.z, Math.PI / 2 );
+		s.depth = s.targetDepth = 0;
+		s.hold = false;
+		s.root.visible = true;
+		s.setOpacity( 1 );
+		s.setGlow( 0.3, 0xff2050 );
+		G.shamanMarch = false;
+		G.map3.buildArmy( s );
+
+	},
+
+	// 북소리 고리를 멈춘다 (대면 장면 · 미리보기 끝)
+	quietMarch() {
+
+		if ( G.map3.march ) G.map3.march.on = false;
+
+	},
+
+	// 샤먼이 헤이즐을 마주 본다
+	shamanFace() {
+
+		G.actors.shaman.hold = true;
+
+	},
+
+	// 잊힌 등대: 맵 1의 루크 등대를 불 꺼진 채로 다시 세우고, 둘레에 노래 바위
+	showLighthouse() {
+
+		const lh = G.world.lighthouse;
+		if ( ! lh.group.visible ) {
+
+			lh.group.visible = true;
+			lh.on = 0;
+			lh.setOn( false );
+			const L = DAWN_PLACES.lighthouse;
+			G.map3.colliders.push( { x: L.x, z: L.z, r: 24 } );
+
+		}
+
+		G.map3.showStones();
+
+	},
+
+	// 등대에 불이 들어온다
+	lighthouseOn() {
+
+		const L = DAWN_PLACES.lighthouse;
+		G.world.lighthouse.setOn( true );
+		G.audio.play( 'join' );
+		for ( let i = 0; i < 3; i ++ ) G.world.ring( L.x, L.z, { color: 0xffe9b0, to: 120, life: 2, delay: i * 0.4 } );
+
+	},
+
+	// 루크가 없으면 등대 불빛이 박자를 센다 (박자마다 환하게)
+	lighthouseBeat() {
+
+		G.world.lighthouse.on = 1.9;
+
+	},
+
+		// 침몰한 함대: 노래로 배의 기억이 깨어난다
+	wakeWreck( w ) {
+
+		G.audio.play( 'join' );
+		for ( let i = 0; i < 3; i ++ ) G.world.ring( w.x, w.z, { color: 0xffc070, to: w.len * 0.8, life: 1.6, delay: i * 0.3 } );
+		G.world.splash( w.x, 1, w.z, { count: 60, power: 8, color: 0xffe0b0 } );
+
+	},
+
+		// 노래가 얼음을 가른다 (12번이 함께 가기로 했을 때)
 	openIce() {
 
 		const p = DAWN_PLACES.pool;
@@ -965,6 +1117,7 @@ Object.assign( G, {
 
 		G.ended = true;
 		if ( forced === 'deep' ) return showMap2Ending();
+		if ( forced === 'chorus' || forced === 'lone' ) return showMap3Ending( forced );
 		if ( ! forced ) {
 
 			G.save.chapter = 0;
@@ -1023,6 +1176,29 @@ async function showMap2Ending() {
 		`FISH ${dexCount()}/${DEX_KEYS.length}`,
 		G.flags.duetRank ? `STOP CODE ${G.flags.duetRank}` : '',
 		t( 'ending.deepHint' )
+	].filter( Boolean ).join( '<br>' );
+	$( 'btn-again' ).textContent = t( 'ending.again' );
+	await G.ui.fade( 0.6, 2 );
+	G.ui.show( 'hud', false );
+	G.ui.show( 'ending' );
+
+}
+
+// MAP 3 엔딩 화면: 모은 목소리, 교향곡
+async function showMap3Ending( key ) {
+
+	const minutes = Math.floor( G.stats.time / 60 ), seconds = Math.floor( G.stats.time % 60 );
+	saveEnding( key );
+	$( 'ending-head' ).textContent = `MAP 3 ENDING · ${t( `endings.${key}.name` )}`;
+	renderEndings( $( 'ending-list' ), key );
+	for ( const id of [ 'btn-duet-end', 'btn-dive', 'btn-search', 'btn-dawn' ] ) $( id ).classList.add( 'hidden' );
+	$( 'ending-quote' ).innerHTML = t( 'ending.dawnQuote' );
+	const voices = G.voices ?? [];
+	$( 'ending-stats' ).innerHTML = [
+		`PLAY TIME ${minutes}:${String( seconds ).padStart( 2, '0' )}`,
+		`VOICES ${voices.filter( ( v ) => v.way !== 'alone' ).length}/${voices.length} · ${voices.map( ( v ) => ( { listen: '♪', lead: '▸', alone: '·' } )[ v.way ] ).join( ' ' )}`,
+		G.symphony ? `SYMPHONY · DRUM ${G.symphony.drumTaps}` : '',
+		t( 'ending.dawnHint' )
 	].filter( Boolean ).join( '<br>' );
 	$( 'btn-again' ).textContent = t( 'ending.again' );
 	await G.ui.fade( 0.6, 2 );
@@ -1757,6 +1933,8 @@ function renderEndings( el, current ) {
 		: `<li>◇ ??? <small>${G.ui.dev( t( `endings.${k}.hint` ) )}</small></li>` );
 	if ( seen.includes( 'stella' ) ) items.push( `<li class="seen star">★ ${t( 'endings.stella' )}</li>` );
 	if ( seen.includes( 'deep' ) ) items.push( `<li class="seen star${current === 'deep' ? ' now' : ''}">◈ MAP 2 · ${t( 'endings.deep.name' )}</li>` );
+	for ( const k of [ 'lone', 'chorus' ] ) if ( seen.includes( k ) ) items.push( `<li class="seen star${current === k ? ' now' : ''}">☀ MAP 3 · ${t( `endings.${k}.name` )}</li>` );
+	if ( seen.includes( 'lone' ) && ! seen.includes( 'chorus' ) ) items.push( `<li>☀ MAP 3 · ??? <small>${G.ui.dev( t( 'endings.chorus.hint' ) )}</small></li>` );
 	el.innerHTML = `<li class="head">ENDINGS ${count}/${ENDING_ORDER.length}</li>${items.join( '' )}`;
 
 }
@@ -2740,6 +2918,7 @@ function sing() {
 	}
 	else for ( let i = 0; i < 3; i ++ ) G.world.ring( h.pos.x, h.pos.z, { color: 0x7fe9ff, to: 58, life: 1.6, delay: i * 0.28 } );
 	G.emit( 'sing' );
+	G.lastSingAt = G.time; // MAP 3: 샤먼의 북소리를 52Hz로 버틴다
 	if ( G.map3 ) return; // MAP 3: 노래는 고래를 만났을 때 고른다
 
 	let revealed = 0;
@@ -3016,6 +3195,15 @@ async function boot() {
 	};
 
 	duetTitle();
+	$( 'btn-dawn-title' ).classList.toggle( 'hidden', ! seen.includes( 'deep' ) );
+	$( 'btn-dawn-title' ).onclick = () => {
+
+		setName( $( 'nickname' ).value );
+		dawnMode = true;
+		start( 5 );
+
+	};
+
 	$( 'btn-duet' ).onclick = () => {
 
 		setName( $( 'nickname' ).value );
@@ -3327,7 +3515,7 @@ async function start( chapter ) {
 
 	if ( duetMode ) return runDuetAgain();
 	if ( DIVE_TEST ) return openDivePortal();
-	if ( DAWN_TEST ) return enterDawn();
+	if ( DAWN_TEST || dawnMode ) return enterDawn();
 
 	if ( chapter >= EPILOGUE ) {
 
@@ -3489,26 +3677,84 @@ async function enterDawn() {
 	G.setStarfall( false );
 	G.compass = null;
 	G.ui.setCompass( null );
+	G.metStella = loadEndings().includes( 'stella' ) || !! G.flags.subEnding; // 스텔라를 만난 적 있으면 교향곡에 함께 온다
 	G.objectiveTarget = null;
 	G.ui.setObjective( t( 'map3.label' ), '—' ); // 앞 맵의 목표는 지운다 (프롤로그 뒤에 새 목표)
 	if ( ! G.map3 ) {
 
 		G.map3 = new DawnSea( { scene, models: G.models } );
 		G.map3.onSpout = ( p ) => G.world.splash( p.x, 0.8, p.z, { count: 36, power: 9, color: 0xeaf6ff } );
-		// 연합군이 뛰어오를 때 · 떨어질 때 물보라 (소리는 너무 겹치지 않게)
+		// 연합군이 뛰어오를 때 · 떨어질 때 물보라
 		G.map3.onSplash = ( p, land ) => {
 
 			G.world.splash( p.x, 0.5, p.z, { count: land ? 70 : 34, power: land ? 11 : 7 } );
 			if ( land ) G.world.ring( p.x, p.z, { color: 0xbfeaff, from: 3, to: 16, life: 0.9, width: 0.3 } );
-			if ( G.time - ( G.lastLeapSound ?? - 1 ) > 0.18 ) {
+			// 소리는 큰 물소리 대신 은은한 '뿅' (여러 마리가 겹쳐도 귀가 아프지 않게)
+			if ( G.time - ( G.lastLeapSound ?? - 1 ) > 0.12 ) {
 
 				G.lastLeapSound = G.time;
-				G.audio.play( 'splash' );
+				G.audio.play( 'pop', { up: ! land, f: 440 + Math.random() * 260 } );
 
 			}
 
 		};
-		G.map3.makeTwelve();
+		G.map3.makeVoices();
+		// 폭풍의 바다: 번개와 천둥, 큰 파도
+		G.map3.onLightning = ( k ) => {
+
+			G.flash( 0.35 + k * 0.3 );
+			setTimeout( () => G.audio.play( 'boom' ), 300 + Math.random() * 900 );
+
+		};
+
+		G.map3.onFreed = ( p ) => G.world.ring( p.x, p.z, { color: 0x7fe9ff, to: 14, life: 1.2, width: 0.25 } );
+		// 샤먼의 진군: 북소리 (가까울수록 크게), 고리에 밀리거나 52Hz로 버틴다
+		G.map3.onDrum = ( k, accent ) => G.audio.play( 'drum', { vel: k * ( accent ? 0.5 : 0.3 ) } );
+		G.map3.onDrumHit = ( dir ) => {
+
+			const h = G.actors.hazel;
+			G.knock.set( dir.x * 30, 0, dir.z * 30 );
+			G.stun = Math.max( G.stun, 0.4 );
+			G.world.ring( h.pos.x, h.pos.z, { color: 0xff3355, from: 2, to: 14, life: 0.7, width: 0.3 } );
+			G.audio.play( 'miss' );
+			if ( ! G.drumHinted ) {
+
+				G.drumHinted = true;
+				G.ui.toast( t( 'map3.drumHit' ) );
+
+			}
+
+		};
+
+		G.map3.onDrumBlock = () => {
+
+			const h = G.actors.hazel;
+			G.world.ring( h.pos.x, h.pos.z, { color: 0xffd36b, from: 3, to: 26, life: 0.9, width: 0.25 } );
+			G.audio.play( 'pickup' );
+			if ( ! G.drumBlocked ) {
+
+				G.drumBlocked = true;
+				G.ui.toast( t( 'map3.drumBlock' ) );
+
+			}
+
+		};
+
+		G.map3.onWave = ( dir ) => {
+
+			const h = G.actors.hazel;
+			G.knock.set( dir.x * 26, 0, dir.z * 26 );
+			G.stun = Math.max( G.stun, 0.35 );
+			G.world.splash( h.pos.x, h.root.position.y, h.pos.z, { count: 80, power: 11 } );
+			G.audio.play( 'splash' );
+			if ( ! G.waveHinted ) {
+
+				G.waveHinted = true;
+				G.ui.toast( t( 'map3.waveHit' ) );
+
+			}
+
+		};
 
 	}
 
@@ -3539,27 +3785,35 @@ async function enterDawn() {
 function updateDawn( dt ) {
 
 	G.dawn += THREE.MathUtils.clamp( G.dawnTarget - G.dawn, - dt * 0.03, dt * 0.03 );
-	if ( Math.abs( G.dawn - G.dawnApplied ) > 0.003 ) {
+	const storm = G.map3.storm.k;
+	if ( Math.abs( G.dawn - G.dawnApplied ) > 0.003 || Math.abs( storm - ( G.stormApplied ?? 0 ) ) > 0.01 ) {
 
 		G.sky.setDawn( G.dawn );
+		G.sky.setStorm( storm );
 		G.dawnFog = applyDawnSea( G.dawn, { fog, ocean: G.ocean, hemi: hemiLight, moon: moonLight } );
 		G.dawnApplied = G.dawn;
+		G.stormApplied = storm;
 		// 바다에 비치는 하늘(반사)도 가끔 다시 찍는다
-		if ( Math.abs( G.dawn - G.dawnCaptured ) > 0.025 ) {
+		if ( Math.abs( G.dawn - G.dawnCaptured ) > 0.025 || Math.abs( storm - ( G.stormCaptured ?? 0 ) ) > 0.06 ) {
 
 			G.sky.capture( renderer );
 			G.dawnCaptured = G.dawn;
+			G.stormCaptured = storm;
 
 		}
 
 	}
 
 	const h = G.actors.hazel;
-	G.map3.update( dt, G.time, { hazel: h, cam: camera.position } );
-	frostFog( fog, G.dawnFog, G.map3.frost, G.ocean );
-	hemiLight.intensity *= 1 + G.dawn * 0.6;
-	moonLight.intensity *= 1 + G.dawn * 0.25;
-	ambientLight.intensity *= 1 + G.dawn * 0.5;
+	const active = ! G.cutsceneOn && ! G.ui.dialogOpen && ! G.ui.overlay && ! G.puzzle && ! G.ended;
+	G.map3.update( dt, G.time, { hazel: h, cam: camera.position, active, sangAt: G.lastSingAt ?? - 99 } );
+	// 해안선 너머(인간의 땅)로는 못 간다
+	for ( const w of [ h, G.actors.luke, G.actors.finn ] ) if ( w.pos.x > SHORE_X - 8 ) w.pos.x = SHORE_X - 8;
+	frostFog( fog, G.dawnFog, G.map3.frost, G.ocean, storm );
+	G.targetWaves = 0.65 + storm * 0.95; // 폭풍 속에선 파도가 높다
+	hemiLight.intensity *= ( 1 + G.dawn * 0.6 ) * ( 1 - storm * 0.45 );
+	moonLight.intensity *= ( 1 + G.dawn * 0.25 ) * ( 1 - storm * 0.6 );
+	ambientLight.intensity *= ( 1 + G.dawn * 0.5 ) * ( 1 - storm * 0.3 );
 	// 샤먼은 해가 뜨는 쪽으로 진군한다
 	const s = G.actors.shaman;
 	if ( G.shamanMarch && s.root.visible ) {
@@ -4041,10 +4295,15 @@ function updateHud() {
 	if ( G.map3 ) {
 
 		const m = G.map3;
+		for ( const o of m.army ?? [] ) points.push( { x: o.whale.pos.x, z: o.whale.pos.z, color: 'rgba(255,90,110,0.7)', size: 2.5 } );
 		for ( const o of m.alliance ) if ( o.whale.root.visible ) points.push( { x: o.whale.pos.x, z: o.whale.pos.z, color: 'rgba(255,140,160,0.55)', size: 2.5 } );
 		const s = G.actors.shaman;
 		if ( s.root.visible ) points.push( { x: s.pos.x, z: s.pos.z, color: '#ff6b8b', size: 4 } );
-		if ( m.twelve?.whale.root.visible ) points.push( { x: m.twelve.whale.pos.x, z: m.twelve.whale.pos.z, color: '#dce9f6', size: 3 } );
+		for ( const v of Object.values( m.voices ) ) if ( v.whale.root.visible ) points.push( { x: v.whale.pos.x, z: v.whale.pos.z, color: '#dce9f6', size: 3 } );
+		// 아직 깨우지 않은 노래 바위: 하늘색 고리
+		if ( m.stoneGroup.visible ) for ( const st of m.stones ) if ( ! st.done ) points.push( { x: st.x, z: st.z, color: '#7fe9ff', size: 3.5, shape: 'ring' } );
+		// 깨어나지 않은 배: 소나에 주황 점
+		for ( const w of m.wrecks ) if ( w.memory >= 0 && ! w.woke && Math.hypot( w.x - h.pos.x, w.z - h.pos.z ) < 260 ) points.push( { x: w.x, z: w.z, color: '#ffb070', size: 3.5, shape: 'ring' } );
 		for ( const key of [ 'luke', 'finn' ] ) if ( G.party[ key ] === 'on' ) points.push( { x: G.actors[ key ].pos.x, z: G.actors[ key ].pos.z, color: '#eaf6ff', size: 3 } );
 		if ( G.objectiveTarget ) points.push( { x: G.objectiveTarget.x, z: G.objectiveTarget.z, color: '#ffd36b', size: 4, shape: 'diamond', clamp: true } );
 		G.ui.drawMinimap( { px: h.pos.x, pz: h.pos.z, yaw: G.camYaw, heading: h.yaw - G.camYaw, range: 220, time: G.time, rocks: m.colliders, points, objective: t, signal: 1 } );

@@ -352,6 +352,36 @@ body.singing #stick, body.singing #minimap-wrap { opacity: 0; pointer-events: no
 .lead-bar em.me { top: 3px; background: var(--gold); box-shadow: 0 0 10px var(--gold); }
 .lead-bar em.them { bottom: 3px; background: var(--cyan); box-shadow: 0 0 10px var(--cyan); }
 
+/* MAP 3: 고래의 교향곡 — 줄마다 한 목소리, 맨 위는 샤먼의 북 (미리 보여 주지 않고 들린 것만 잠깐 남는다) */
+#sym {
+	position: fixed; left: 50%; bottom: 22px;
+	transform: translateX(-50%);
+	width: min(520px, calc(100vw - 24px));
+	z-index: 5;
+	cursor: pointer;
+}
+#sym-meters { display: flex; gap: 8px; margin-bottom: 8px; }
+#sym-meters .m { flex: 1; height: 6px; background: rgba(0, 0, 0, 0.35); border: 1px solid var(--line); }
+#sym-meters .m b { display: block; height: 100%; width: 0; transition: width 0.4s; }
+#sym-meters .gold b { background: var(--gold); box-shadow: 0 0 8px var(--gold); }
+#sym-meters .red b { background: #ff3355; box-shadow: 0 0 8px #ff3355; }
+#sym-lanes .lane { display: flex; align-items: center; gap: 8px; height: 18px; margin: 3px 0; }
+#sym-lanes .nm { width: 64px; flex: none; font-size: 11px; color: var(--ink-dim); text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#sym-lanes .trk { position: relative; flex: 1; height: 100%; border: 1px solid var(--line); background: rgba(0, 0, 0, 0.3); }
+#sym-lanes .trk s { position: absolute; top: 2px; bottom: 2px; width: 1px; background: var(--line); }
+#sym-lanes .head { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--ink); opacity: 0.7; }
+#sym-lanes em { position: absolute; top: 50%; width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; transform: rotate(45deg); background: var(--cyan); animation: symfade 2.4s forwards; }
+#sym-lanes em.soft { opacity: 0.45; }
+#sym-lanes em.d { background: #ff3355; box-shadow: 0 0 8px #ff3355; width: 6px; height: 6px; margin: -3px 0 0 -3px; }
+#sym-lanes em.ok { background: var(--gold); box-shadow: 0 0 10px var(--gold); }
+#sym-lanes em.bad { background: #ff3355; box-shadow: 0 0 10px #ff3355; }
+#sym-lanes .me .nm { color: var(--gold); }
+#sym-lanes .drum .nm { color: #ff6b8b; }
+@keyframes symfade { 0% { opacity: 1; } 70% { opacity: 0.8; } 100% { opacity: 0; } }
+#sym-hint { margin: 8px 0 0; font-size: 14px; color: var(--ink-dim); text-align: center; }
+#sym.turn #sym-hint { color: var(--cyan); font-weight: 700; }
+body.touch #sym { bottom: 150px; }
+
 /* MAP 3: 어떻게 노래할까 */
 #choice {
 	position: fixed; left: 50%; bottom: 22px;

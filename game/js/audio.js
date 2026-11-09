@@ -888,6 +888,34 @@ export class AudioEngine {
 				this.voice( t, [ [ 0, 420 ], [ 0.35, 1250 ] ], { vel: 0.08, vibrato: 0.1, reverb: 0.6, type: 'triangle' } );
 				[ 76, 81, 88, 93 ].forEach( ( m, i ) => this.ep( t + i * 0.05, m, 0.14, 0.5, this.sfx, 0.6 ) );
 				break;
+			case 'drum': {
+
+				// MAP 3 샤먼의 북: 낮고 둔탁한 둥
+				const ctx = this.ctx;
+				const vel = opt.vel ?? 0.3;
+				const o = ctx.createOscillator();
+				o.frequency.setValueAtTime( 78, t );
+				o.frequency.exponentialRampToValueAtTime( 42, t + 0.22 );
+				const g = ctx.createGain();
+				g.gain.setValueAtTime( vel, t );
+				g.gain.exponentialRampToValueAtTime( 0.0001, t + 0.45 );
+				o.connect( g ).connect( this.sfx );
+				o.start( t ); o.stop( t + 0.5 );
+				this.noiseHit( t, { type: 'lowpass', freq: 500, q: 0.7, vel: vel * 0.4, dur: 0.15, bus: this.sfx } );
+				break;
+
+			}
+
+			case 'pop': {
+
+				// MAP 3 연합군의 도약: 작고 은은한 '뿅'. 뛰어오를 땐 올라가고(up), 떨어질 땐 내려간다
+				const f = opt.f ?? 520;
+				const pts = opt.up ? [ [ 0, f ], [ 0.14, f * 1.5 ] ] : [ [ 0, f * 1.3 ], [ 0.2, f * 0.85 ] ];
+				this.voice( t, pts, { vel: 0.03, vibrato: 0.1, depth: 0, reverb: 0.5 } );
+				break;
+
+			}
+
 			case 'sob':
 				this.noiseHit( t, { freq: 2600, q: 6, vel: 0.06, dur: 0.04, bus: this.sfx } );
 				this.voice( t, [ [ 0, 880 ], [ 0.07, 1120 ], [ 0.3, 720 ] ], { vel: 0.1, vibrato: 11, depth: 0.03, reverb: 0.6 } );
