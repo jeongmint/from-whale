@@ -26,6 +26,8 @@ export function zoneAt( d ) {
 }
 
 const _c = new THREE.Color();
+// 진주빛: 흰빛에 분홍 · 하늘 · 연보라 · 연금빛이 살짝 도는 알갱이들
+const PEARL = [ [ 1, 0.97, 0.93 ], [ 1, 0.84, 0.92 ], [ 0.82, 0.95, 1 ], [ 0.9, 0.86, 1 ], [ 1, 0.93, 0.78 ] ];
 
 // 둥근 빛 알갱이 (네모난 점 대신)
 function dotTexture() {
@@ -44,8 +46,8 @@ function dotTexture() {
 }
 const PARTICLES = 520;
 const SNOW = 420; // 바다 눈: 어스름층부터 천천히 내려오는 하얀 부스러기
-const PLANKTON = 600; // 한밤층부터: 헤이즐이 지나간 자리에서 빛나는 플랑크톤
-const BUBBLES = 260; // 정지 코드 리듬의 점프 박자: 위로 솟구치는 빛 거품
+const PLANKTON = 1100; // 한밤층부터: 헤이즐이 지나간 자리에서 빛나는 플랑크톤
+const BUBBLES = 420; // 정지 코드 리듬의 점프 박자: 위로 솟구치는 빛 거품
 const SHAFTS = 9;
 const SPAN = 70; // 입자 · 빛줄기가 카메라 둘레에 퍼지는 범위
 
@@ -168,10 +170,11 @@ export class Dive {
 		const pk = new THREE.BufferGeometry();
 		pk.setAttribute( 'position', new THREE.BufferAttribute( new Float32Array( PLANKTON * 3 ), 3 ) );
 		pk.setAttribute( 'color', new THREE.BufferAttribute( new Float32Array( PLANKTON * 3 ), 3 ) );
-		this.plankton = new THREE.Points( pk, new THREE.PointsMaterial( { map: dot, size: 0.7, vertexColors: true, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false } ) );
+		this.plankton = new THREE.Points( pk, new THREE.PointsMaterial( { map: dot, size: 0.3, vertexColors: true, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false } ) );
 		this.plankton.frustumCulled = false;
 		this.group.add( this.plankton );
 		this.pkBorn = new Float32Array( PLANKTON ).fill( - 99 );
+		this.pkTint = new Float32Array( PLANKTON * 3 ).fill( 1 ); // 알갱이마다 진주빛 (분홍 · 하늘 · 연보라 · 흰빛)
 		this.pkLife = new Float32Array( PLANKTON ).fill( 1 );
 		this.pkNext = 0;
 		this.pkCarry = 0;
@@ -181,7 +184,7 @@ export class Dive {
 		const bg = new THREE.BufferGeometry();
 		bg.setAttribute( 'position', new THREE.BufferAttribute( new Float32Array( BUBBLES * 3 ), 3 ) );
 		bg.setAttribute( 'color', new THREE.BufferAttribute( new Float32Array( BUBBLES * 3 ), 3 ) );
-		this.bubbles = new THREE.Points( bg, new THREE.PointsMaterial( { map: dot, size: 0.8, vertexColors: true, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false } ) );
+		this.bubbles = new THREE.Points( bg, new THREE.PointsMaterial( { map: dot, size: 0.32, vertexColors: true, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false } ) );
 		this.bubbles.frustumCulled = false;
 		this.group.add( this.bubbles );
 		this.bub = { vel: new Float32Array( BUBBLES * 3 ), born: new Float32Array( BUBBLES ).fill( - 99 ), next: 0 };
@@ -265,14 +268,14 @@ export class Dive {
 	}
 
 	// 정지 코드의 점프 박자: 헤이즐 둘레에서 빛 거품이 위로 솟구친다
-	rise( pos, n = 34 ) {
+	rise( pos, n = 70 ) {
 
 		const p = this.bubbles.geometry.attributes.position, b = this.bub;
 		for ( let k = 0; k < n; k ++ ) {
 
 			const i = b.next;
 			b.next = ( i + 1 ) % BUBBLES;
-			const a = Math.random() * Math.PI * 2, r = Math.random() * 3.5;
+			const a = Math.random() * Math.PI * 2, r = Math.random() * 4.5;
 			p.setXYZ( i, pos.x + Math.cos( a ) * r, pos.y + ( Math.random() - 0.5 ) * 2, pos.z + Math.sin( a ) * r );
 			b.vel.set( [ Math.cos( a ) * 1.5, 9 + Math.random() * 9, Math.sin( a ) * 1.5 ], i * 3 );
 			b.born[ i ] = this.pkTime;
@@ -303,6 +306,7 @@ export class Dive {
 		this.plankton.geometry.attributes.position.setXYZ( i, x, y, z );
 		this.pkBorn[ i ] = this.pkTime;
 		this.pkLife[ i ] = life;
+		this.pkTint.set( PEARL[ Math.floor( Math.random() * PEARL.length ) ], i * 3 );
 
 	}
 
@@ -330,7 +334,9 @@ export class Dive {
 
 			const age = ( this.pkTime - this.pkBorn[ i ] ) / this.pkLife[ i ];
 			const k = age < 0 || age > 1 ? 0 : ( age < 0.1 ? age / 0.1 : ( 1 - age ) ** 2 );
-			col.setXYZ( i, 0.35 * k, 0.95 * k, 1.0 * k );
+			// 자글자글 반짝이게: 알갱이마다 다른 박자로 깜빡인다
+			const tw = k * ( 0.35 + 0.65 * Math.sin( this.pkTime * 9 + i * 2.37 ) ** 2 );
+			col.setXYZ( i, this.pkTint[ i * 3 ] * tw, this.pkTint[ i * 3 + 1 ] * tw, this.pkTint[ i * 3 + 2 ] * tw );
 
 		}
 
@@ -352,7 +358,9 @@ export class Dive {
 			b.vel[ i * 3 + 1 ] *= 1 - dt * 0.9;
 			bp.setXYZ( i, bp.getX( i ) + ( b.vel[ i * 3 ] + Math.sin( this.pkTime * 6 + i ) * 0.8 ) * dt, bp.getY( i ) + b.vel[ i * 3 + 1 ] * dt, bp.getZ( i ) + ( b.vel[ i * 3 + 2 ] + Math.cos( this.pkTime * 5 + i ) * 0.8 ) * dt );
 			const k = ( 1 - age ) ** 1.5;
-			bc.setXYZ( i, 1.0 * k, ( 0.82 + age * 0.18 ) * k, ( 0.45 + age * 0.55 ) * k );
+			const tw = k * ( 0.4 + 0.6 * Math.sin( this.pkTime * 10 + i * 1.91 ) ** 2 );
+			const pc = PEARL[ i % PEARL.length ];
+			bc.setXYZ( i, pc[ 0 ] * tw, pc[ 1 ] * tw, pc[ 2 ] * tw );
 
 		}
 
@@ -365,16 +373,16 @@ export class Dive {
 	pulse( pos ) {
 
 		// 한밤층부터는 둘레의 플랑크톤도 한꺼번에 깨어난다
-		if ( this.active && pos.y < - 100 ) for ( let i = 0; i < 160; i ++ ) {
+		if ( this.active ) for ( let i = 0; i < 280; i ++ ) {
 
-			const r = 4 + Math.random() * 16, a = Math.random() * Math.PI * 2, b = ( Math.random() - 0.5 ) * Math.PI;
+			const r = 3 + Math.random() ** 0.7 * 14, a = Math.random() * Math.PI * 2, b = ( Math.random() - 0.5 ) * Math.PI;
 			this.spark( pos.x + Math.cos( a ) * Math.cos( b ) * r, pos.y + Math.sin( b ) * r * 0.6, pos.z + Math.sin( a ) * Math.cos( b ) * r, 2.5 + Math.random() * 1.5 );
 
 		}
 
 		const m = new THREE.Mesh(
 			new THREE.SphereGeometry( 1, 24, 16 ),
-			new THREE.MeshBasicMaterial( { color: 0x7fe9ff, transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.BackSide, fog: false } )
+			new THREE.MeshBasicMaterial( { color: 0x7fe9ff, transparent: true, opacity: 0.12, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.BackSide, fog: false } )
 		);
 		m.position.copy( pos );
 		this.scene.add( m );
@@ -399,7 +407,7 @@ export class Dive {
 			const p = this.pulses[ i ];
 			p.age += dt;
 			p.m.scale.setScalar( 2 + p.age * 55 );
-			p.m.material.opacity = 0.35 * Math.max( 0, 1 - p.age / 1.4 );
+			p.m.material.opacity = 0.12 * Math.max( 0, 1 - p.age / 1.4 );
 			if ( p.age > 1.4 ) {
 
 				this.scene.remove( p.m );
