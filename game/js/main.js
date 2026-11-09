@@ -862,6 +862,20 @@ Object.assign( G, {
 
 	},
 
+	// 샤먼의 새 명령에 연합군이 다 함께 해안 쪽으로 뛰어오른다 (샤먼도). 끝날 때까지 기다린다
+	allianceLeap() {
+
+		const c = DAWN_PLACES.gather, C = DAWN_PLACES.coast;
+		const dir = new THREE.Vector3( C.x - c.x, 0, C.z - c.z ).normalize();
+		const s = G.actors.shaman;
+		s.hold = false;
+		const seconds = G.map3.leap( dir, { jumps: 2, extra: [ s ] } );
+		G.audio.whaleCall( null, 'far' );
+		setTimeout( () => G.audio.whaleCall( null, 'far' ), 900 );
+		return G.wait( seconds + 0.6 );
+
+	},
+
 	// 샤먼의 새 명령: 연합군이 세 갈래로 흩어지고, 샤먼은 해가 뜨는 쪽(인간의 해안)으로
 	allianceMarch() {
 
@@ -3481,6 +3495,19 @@ async function enterDawn() {
 
 		G.map3 = new DawnSea( { scene, models: G.models } );
 		G.map3.onSpout = ( p ) => G.world.splash( p.x, 0.8, p.z, { count: 36, power: 9, color: 0xeaf6ff } );
+		// 연합군이 뛰어오를 때 · 떨어질 때 물보라 (소리는 너무 겹치지 않게)
+		G.map3.onSplash = ( p, land ) => {
+
+			G.world.splash( p.x, 0.5, p.z, { count: land ? 70 : 34, power: land ? 11 : 7 } );
+			if ( land ) G.world.ring( p.x, p.z, { color: 0xbfeaff, from: 3, to: 16, life: 0.9, width: 0.3 } );
+			if ( G.time - ( G.lastLeapSound ?? - 1 ) > 0.18 ) {
+
+				G.lastLeapSound = G.time;
+				G.audio.play( 'splash' );
+
+			}
+
+		};
 		G.map3.makeTwelve();
 
 	}

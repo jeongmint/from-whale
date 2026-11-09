@@ -637,6 +637,9 @@ export async function map3( G ) {
 	G.camFocus( shaman, { side: - 1, dist: 34, height: 8 } );
 	await G.say( pick( T().factions ) );
 	await G.say( pick( T().order ) );
+	// 다 함께 해안 쪽으로 뛰어오른다
+	G.camFocus( shaman, { side: 1, dist: 46, height: 5 } );
+	await G.allianceLeap();
 	G.allianceMarch();
 	G.camFocus( shaman, { side: 1, dist: 90, height: 30 } );
 	await G.wait( 3.5 );

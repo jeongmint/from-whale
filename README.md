@@ -6,7 +6,7 @@
 
 **[▶ Play now](https://from-whale.netlify.app/game/)** · [Home page](https://from-whale.netlify.app/) · No install, runs in the browser (PC · phone)
 
-A sea adventure of **Hazel**, a whale who sings at 52Hz. Another world, the year 2066, a night sea. (BETA)
+A sea adventure of **Hazel**, a whale who sings at 52Hz. Another world, the year 2066, a night sea.
 
 - MAP 1 · **The Night the Stars Fell** — the night sea: lighthouse, kelp, the Alliance, Moby Dick, Stella
 - MAP 2 · **A Sea Born Without Waves** — down a trench to the base where the Alliance was made
@@ -37,8 +37,8 @@ A sea adventure of **Hazel**, a whale who sings at 52Hz. Another world, the year
 - **Moby Dick boss fight** — 6 songs that reach him win him over. Body hits and falling stars cost a heart; stun 1.1 s from stars, 1.5 s from charges (with Finn's Tears, a song clears it at once)
 - **Stella (hidden ending)** — all 6 letters in bottles (Moby's prologue letter included) → 12-bar blues duet (PERFECT ±25 ms · EXCELLENT ±60 ms · GOOD ±150 ms, 450 max, S from 85% · A from 60%, a shooting star per jump note) → name the song and leave it with your nickname and score on the shared **Duet TOP 10**. After meeting Stella, "Sing the duet again" on the title or ending screen replays just the duet (save data untouched). Remaining letters can be found in the epilogue after the ending
 - **Space and sea** — Gerstner waves, glittering ripples, ringed planet, shooting stars, bloom
-- **MAP 2 · A Sea Born Without Waves (BETA)** — a second map that opens after meeting Stella. Descend a trench and uncover the Alliance's secret (see MAP 2 below)
-- **MAP 3 · A Song That Calls the Dawn (BETA · phase 1)** — back to the surface after the MAP 2 ending. How you sing is the choice (see MAP 3 below)
+- **MAP 2 · A Sea Born Without Waves** — a second map that opens after meeting Stella. Descend a trench and uncover the Alliance's secret (see MAP 2 below)
+- **MAP 3 · A Song That Calls the Dawn (phase 1 preview)** — back to the surface after the MAP 2 ending. How you sing is the choice (see MAP 3 below)
 - **Retro blue UI** — window-style HUD, sonar minimap (tap its title bar to fold it, remembered on the device), chapter cards, PC controls guide, current objective inside the HAZEL window (top center left clear). Portrait phones: one bottom row of joystick · sonar · 2×2 buttons (right thumb, screen center clear). One-line dialog at the bottom, two-column title, and the call-and-response window at the bottom left in tilt mode on landscape phones
 - **Light models** — 500–650 vertices per whale, 512px textures. Phone support
 
@@ -57,7 +57,7 @@ A sea adventure of **Hazel**, a whale who sings at 52Hz. Another world, the year
 | Sacrifice | ✕ | ✕ |
 | The Late Whale | any | any |
 
-### MAP 2 · A Sea Born Without Waves (BETA)
+### MAP 2 · A Sea Born Without Waves
 
 The name: the deep sea where no waves reach, and the Alliance (and Finn), born in tanks at the base, never knowing waves.
 
@@ -86,13 +86,13 @@ The name: the deep sea where no waves reach, and the Alliance (and Finn), born i
 | Trench | 250–318 m | Grad student J's last record (270 m), with a stone fishhook | Coelacanths · guards, morays |
 | Base | 318 m– | The Doctor's memo (312 m) | Crabs, urchins, starfish, shrimp · the Shaman |
 
-### MAP 3 · A Song That Calls the Dawn (BETA · phase 1)
+### MAP 3 · A Song That Calls the Dawn (phase 1 preview)
 
 Subtitle: Song of Liberation (working title). After the red eyes go dark, an Alliance that is free but has nowhere to go.
 
 - Getting there: "Toward the dawn" on the MAP 2 ending screen → the surface. Everything from MAPs 1 and 2 is gone
 - Sky: a slow shift from night to dawn. Red spreads from the eastern horizon; stars, the Milky Way and the moon fade. Sea color, fog and light follow (brighter with each voice gathered)
-- Prologue · the silent Alliance: the Alliance surfaces and won't move, even at the Shaman's command → three ways (whales who follow the Shaman · whales who want revenge · whales who refuse the war) → the Shaman's new order, a march toward the rising sun and the human coast
+- Prologue · the silent Alliance: the Alliance surfaces and won't move, even at the Shaman's command → three ways (whales who follow the Shaman · whales who want revenge · whales who refuse the war) → the Shaman's new order: the whole Alliance leaps together twice toward the coast, then marches toward the rising sun and the human coast
 - The Frozen Lane: an ice field to the north. Ice floes block the way (shown on the sonar), a winding narrow channel, snow, thick fog
 - No.12: an orca circling a pool in the ice, spouting now and then. From the same tank as Finn
 - Choosing a song (1 · 2 · 3 or tap):

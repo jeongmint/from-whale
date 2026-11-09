@@ -100,8 +100,8 @@ export default {
 			label: 'MAP 2 · A SEA BORN WITHOUT WAVES',
 			objPortal: 'Swim into the glowing whirlpool',
 			objSwim: 'Try swimming under the sea',
-			card: [ 'MAP 2', 'A Sea Born Without Waves', 'Preview · in development' ],
-			hint: '[Space] up · [C] down · [E] sing to light the dark — MAP 2 is still in development from here',
+			card: [ 'MAP 2', 'A Sea Born Without Waves', 'A story of whales whose voices were taken' ],
+			hint: '[Space] up · [C] down · [E] sing to light the dark',
 			zones: [ 'Sunlight zone', 'Twilight zone', 'Midnight zone', 'The trench' ],
 			zoneSub: [ 'Where the light shafts reach', 'The light fades — the glow on your back lights the way', 'Pitch dark — sing and the dark lights up like sonar', 'The end of a narrow canyon — something waits below' ]
 		},
@@ -149,7 +149,7 @@ export default {
 		ending: {
 			search: 'Find the rest of the letters · {n}/{total}',
 			again: 'Play again',
-			deepHint: 'MAP 2 is still being built — the controls and the story will keep getting better',
+			deepHint: 'The story continues above the waves, toward the dawn — MAP 3 preview',
 			dive: '▼ Into the deep (MAP 2 preview)',
 			dawn: '▲ Toward the dawn (MAP 3 preview)',
 			allEndings: '★ All 6 endings found — the sea now glitters gold',
@@ -651,10 +651,10 @@ export default {
 			order: [
 				[ 'shaman', 'Listen. We were born to protect the humans.' ],
 				[ 'shaman', 'If the humans are gone, no one can ever command us again.' ],
-				[ 'shaman', 'So the humans must be wiped out.\nToward the rising sun. To the human coast!' ],
-				[ 'narrator', 'The first order the Shaman ever chose was another war.' ]
+				[ 'shaman', 'So the humans must be wiped out.\nToward the rising sun. To the human coast!' ]
 			],
 			leave: [
+				[ 'narrator', 'The first order the Shaman ever chose was another war.' ],
 				[ 'narrator', 'The Alliance split three ways. After the Shaman, after revenge, and nowhere at all.' ],
 				[ 'luke', '{N}, most of those whales still don\'t know where to go.\nWhoever shows them a way, they\'ll follow it — wherever it leads.', 'luke' ],
 				[ 'finn', 'Up north… someone is crying. Toward the Frozen Lane.\nNot a command signal. Just crying.', 'finn' ],

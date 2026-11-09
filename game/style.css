@@ -545,16 +545,6 @@ body.fishing #stick, body.fishing #minimap-wrap { opacity: 0; pointer-events: no
 	text-shadow: 4px 4px 0 var(--blue), 8px 8px 0 rgba(0, 4, 20, 0.6), 0 0 50px rgba(58, 160, 255, 0.55);
 }
 .logo span { color: var(--cyan); }
-/* 아직 개발 중 표시 */
-.logo .beta {
-	display: inline-block;
-	margin-left: 0.4em;
-	padding: 3px 6px 1px;
-	font: 12px var(--mono); letter-spacing: 0.1em;
-	color: var(--deep); background: var(--cyan);
-	text-shadow: none;
-	vertical-align: top;
-}
 .tagline { margin: 0; color: var(--ink-dim); line-height: 1.7; font-size: 15px; }
 .home-link {
 	position: fixed; top: calc(16px + env(safe-area-inset-top, 0px)); left: 16px;
@@ -861,7 +851,6 @@ body.tilt #stick { display: none; }
 	.title-inner { display: grid; grid-template-columns: auto auto; column-gap: clamp(24px, 6vw, 64px); row-gap: 6px; align-items: center; justify-items: center; }
 	#logo-whale { grid-area: 1 / 1; width: 80px; height: 60px; }
 	.logo { grid-area: 2 / 1; font-size: clamp(30px, 6.5vw, 54px); }
-	.logo .beta { font-size: 10px; padding: 2px 5px 1px; }
 	.tagline { grid-area: 3 / 1; font-size: 12px; line-height: 1.55; max-width: 46vw; }
 	.quote { grid-area: 4 / 1; font-size: 12px; line-height: 1.55; margin: 0; }
 	#loading, #title-buttons { grid-area: 1 / 2 / 5 / 3; }

@@ -107,6 +107,8 @@ export class DawnSea {
 		this.time = 0;
 		this.frost = 0;
 		this.onSpout = null; // 12번이 숨을 내뿜을 때 ( 위치 )
+		this.onSplash = null; // 연합군이 뛰어오르고 떨어질 때 ( 위치, 떨어졌으면 true )
+		this.leapers = []; // 함께 뛰어오르는 고래 (샤먼처럼 연합군 목록 밖의 고래도)
 		this.buildIce();
 		this.buildSnow();
 
@@ -293,6 +295,56 @@ export class DawnSea {
 
 	}
 
+	// 한꺼번에 뛰어오른다: 모두 dir(해안) 쪽으로 몸을 돌리고, 뒤에서 앞으로 물결처럼 jumps번씩.
+	// extra: 연합군 목록 밖에서 함께 뛰는 고래 (샤먼). 다 끝나는 데 걸리는 시간(초)을 돌려준다
+	leap( dir, { jumps = 2, extra = [] } = {} ) {
+
+		const list = [ ...this.alliance.map( ( o ) => o.whale ), ...extra ];
+		let lo = Infinity, hi = - Infinity;
+		const proj = list.map( ( w ) => w.pos.x * dir.x + w.pos.z * dir.z );
+		for ( const p of proj ) {
+
+			lo = Math.min( lo, p );
+			hi = Math.max( hi, p );
+
+		}
+
+		this.leapers = list.map( ( w, i ) => ( {
+			whale: w,
+			dir,
+			jumps,
+			wait: 1.1 + ( proj[ i ] - lo ) * 0.03 + Math.random() * 0.08, // 맨 뒤부터
+			air: false
+		} ) );
+		return 1.1 + ( hi - lo ) * 0.03 + jumps * 2.3;
+
+	}
+
+	updateLeap( dt ) {
+
+		for ( const l of this.leapers ) {
+
+			const w = l.whale;
+			// 해안 쪽으로 몸을 돌리며 천천히 나아간다
+			steerTo( w, w.pos.x + l.dir.x * 60, w.pos.z + l.dir.z * 60, 9, dt, 2.4 );
+			w.depth += ( 0 - w.depth ) * Math.min( 1, dt * 2 );
+			if ( l.air && ! w.airborne ) this.onSplash?.( w.pos, true );
+			l.air = w.airborne;
+			if ( l.jumps <= 0 || w.airborne ) continue;
+			l.wait -= dt;
+			if ( l.wait > 0 ) continue;
+			w.breach( 19 + Math.random() * 3 );
+			l.air = true;
+			l.jumps --;
+			l.wait = 2.3;
+			this.onSplash?.( w.pos, false );
+
+		}
+
+		this.leapers = this.leapers.filter( ( l ) => l.jumps > 0 || l.whale.airborne );
+
+	}
+
 	// 세 갈래로 흩어진다: 따르는 고래 · 복수하는 고래는 해안(동쪽)으로, 거부하는 고래는 저마다 아무 데로나
 	scatter() {
 
@@ -358,11 +410,17 @@ export class DawnSea {
 		}
 
 		// 연합군
+		const leaping = new Set( this.leapers.map( ( l ) => l.whale ) );
+		if ( leaping.size ) this.updateLeap( dt );
 		for ( const o of this.alliance ) {
 
 			const w = o.whale;
 			if ( ! w.root.visible ) continue;
-			if ( o.target ) {
+			if ( leaping.has( w ) ) {
+
+				// 뛰어오르는 중: 위치는 updateLeap이 정한다
+
+			} else if ( o.target ) {
 
 				o.delay -= dt;
 				if ( o.delay <= 0 ) {
