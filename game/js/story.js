@@ -1,5 +1,7 @@
 // 이야기 진행. 대사·편지·안내 문장은 lang/ko.js, lang/en.js, lang/ja.js 에 있다.
 import { lang } from './i18n.js';
+import { DAWN_PLACES } from './map3.js';
+import { chooseSong, listenSong, leadSong, soloSong } from './voices.js';
 
 // 화자 모양 (이름은 언어 파일의 speakers)
 export const SPEAKERS = {
@@ -13,8 +15,16 @@ export const SPEAKERS = {
 	orca: { portrait: 'orca', bar: 'linear-gradient(90deg,#5a1030,#ff6b8b)' },
 	kelp: { portrait: null, bar: 'linear-gradient(90deg,#0c6b5a,#6dffe0)' },
 	ai: { portrait: null, bar: 'linear-gradient(90deg,#5a1020,#ff3355)' }, // MAP 2: 박사의 AI
-	j: { portrait: null, bar: 'linear-gradient(90deg,#3a3020,#e8c37a)' } // MAP 2: 잠수복의 J
+	j: { portrait: null, bar: 'linear-gradient(90deg,#3a3020,#e8c37a)' }, // MAP 2: 잠수복의 J
+	twelve: { portrait: 'orca', bar: 'linear-gradient(90deg,#2a3a4e,#dce9f6)' } // MAP 3: 얼어붙은 항로의 12번
 };
+
+// MAP 3 · 12번의 노래 (듣는 노래). [ 박, 음(MIDI) ]. 구절마다 길어지고, 처음엔 떨리던 소리가 또렷해진다
+export const TWELVE_PHRASES = [
+	[ [ 0, 76 ], [ 1, 79 ], [ 2, 76 ] ],
+	[ [ 0, 76 ], [ 1, 79 ], [ 1.5, 81 ], [ 3, 79 ] ],
+	[ [ 0, 81 ], [ 1, 79 ], [ 1.5, 81 ], [ 2, 84 ], [ 3, 81 ] ]
+];
 
 // 지도 (x, z). 북쪽 = -z
 export const PLACES = {
@@ -595,6 +605,97 @@ export async function map2( G ) {
 		document.body.classList.remove( 'memory' );
 
 	}
+
+}
+
+// ---------------------------------------------------------------
+// MAP 3 · 새벽을 부르는 노래 (1단계): 침묵한 연합군 → 얼어붙은 항로의 12번 → 어떻게 노래할지 고르기
+// 대사의 세 번째 칸은 map2와 같은 조건
+// ---------------------------------------------------------------
+export async function map3( G ) {
+
+	const T = () => lang().story.map3;
+	const U = () => lang().ui.map3;
+	const on = {
+		luke: G.party.luke === 'on', lukeGone: G.party.luke !== 'on',
+		finn: G.party.finn === 'on', finnGone: G.party.finn !== 'on',
+		none: G.party.luke !== 'on' && G.party.finn !== 'on'
+	};
+	const pick = ( arr ) => lines( ( arr ?? [] ).filter( ( [ , , c ] ) => ! c || on[ c ] ).map( ( [ who, text ] ) => [ who, text ] ) );
+	const h = G.actors.hazel;
+	const sea = G.map3;
+	const pool = DAWN_PLACES.pool;
+	const free = () => ! G.ui.dialogOpen && ! G.ui.overlay && ! G.cutsceneOn;
+	G.voices ??= [];
+
+	// 프롤로그 · 침묵한 연합군: 붉은 눈이 꺼진 뒤의 고요
+	G.cutscene( true );
+	const shaman = G.silentAlliance();
+	G.camFocus( shaman, { side: 1, dist: 70, height: 22 } );
+	await card( G, U().card );
+	await G.say( pick( T().silence ) );
+	G.camFocus( shaman, { side: - 1, dist: 34, height: 8 } );
+	await G.say( pick( T().factions ) );
+	await G.say( pick( T().order ) );
+	// 다 함께 해안 쪽으로 뛰어오른다
+	G.camFocus( shaman, { side: 1, dist: 46, height: 5 } );
+	await G.allianceLeap();
+	G.allianceMarch();
+	G.camFocus( shaman, { side: 1, dist: 90, height: 30 } );
+	await G.wait( 3.5 );
+	G.camRelease();
+	G.dawnTo( 0.16 );
+	await G.say( pick( T().leave ) );
+	G.cutscene( false );
+	G.objective( U().label, U().objFrozen, pool );
+
+	// 얼어붙은 항로: 눈이 내리고, 얼음 사이로 좁은 물길이 하나
+	await G.until( () => free() && sea.frost > 0.5 );
+	G.dawnTo( 0.22 );
+	await G.say( pick( T().ice ) );
+	G.ui.toast( U().iceHint );
+
+	// 12번: 얼음 웅덩이를 맴도는 범고래
+	const tw = sea.twelve;
+	await G.until( () => free() && Math.hypot( h.pos.x - pool.x, h.pos.z - pool.z ) < 40 );
+	G.cutscene( true );
+	tw.state = 'face';
+	G.camFocus( tw.whale, { side: 1, dist: 32, height: 10 } );
+	await G.say( pick( T().meet ) );
+
+	// 어떻게 노래할까
+	const who = U().twelve;
+	const way = await chooseSong( G, who );
+	await G.say( pick( T().before[ way ] ) );
+	if ( way === 'listen' ) await listenSong( G, tw.whale, TWELVE_PHRASES, who );
+	else if ( way === 'lead' ) await leadSong( G, tw.whale, who );
+	else await soloSong( G );
+	await G.say( pick( T().after[ way ] ) );
+
+	if ( way === 'alone' ) {
+
+		// 혼자의 길: 12번은 얼음 밑으로 잠수해 북쪽으로 간다 (함께 오지 않는다)
+		tw.state = 'leave';
+		G.dawnTo( 0.3 );
+
+	} else {
+
+		// 함께: 노래가 얼음을 가르고, 12번이 따라온다. 듣는 노래면 옆에서 제 목소리로, 이끄는 노래면 바로 뒤에서
+		G.openIce();
+		tw.state = 'follow';
+		tw.slot = way === 'listen' ? { x: 16, z: 2 } : { x: 0, z: - 15 };
+		G.dawnTo( 0.38 );
+
+	}
+
+	G.voices.push( { who: 'twelve', way } );
+	await G.wait( 2.5 );
+	await G.say( pick( T().dawn[ way ] ) );
+	G.camRelease();
+	await card( G, U().voiceCard[ way ] );
+	G.cutscene( false );
+	G.objective( U().label, U().objNext );
+	G.ui.toast( U().preview );
 
 }
 

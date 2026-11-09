@@ -3,6 +3,28 @@ import * as THREE from 'three';
 // 하늘 오브젝트는 레이어 1에도 올려서 CubeCamera(반사용)가 하늘만 찍게 한다
 const SKY_LAYER = 1;
 
+// MAP 3 새벽: 해는 동쪽(+x)에서 뜬다. [ 새벽 정도, 천정, 지평선, 지평선 빛 ]
+export const SUN_DIR = new THREE.Vector3( 0.96, 0.03, - 0.28 ).normalize();
+const DAWN_SKY = [
+	[ 0, 0x030a1e, 0x16408f, 0x3a7dff ],
+	[ 0.5, 0x0a1840, 0x4e4676, 0xc86e46 ],
+	[ 1, 0x2c5aa0, 0xeea268, 0xffc672 ]
+];
+const _a = new THREE.Color(), _b = new THREE.Color();
+
+// 정해 둔 색 사이를 k(0~1)로 섞는다 (sRGB로 적은 색을 선형으로)
+export function dawnColor( stops, i, k, out ) {
+
+	let j = 0;
+	while ( j < stops.length - 2 && k > stops[ j + 1 ][ 0 ] ) j ++;
+	const [ k0 ] = stops[ j ], [ k1 ] = stops[ j + 1 ];
+	const f = THREE.MathUtils.clamp( ( k - k0 ) / ( k1 - k0 ), 0, 1 );
+	_a.set( stops[ j ][ i ] ).convertSRGBToLinear();
+	_b.set( stops[ j + 1 ][ i ] ).convertSRGBToLinear();
+	return out.copy( _a ).lerp( _b, f );
+
+}
+
 function onSkyLayer( obj ) {
 
 	obj.traverse( ( o ) => o.layers.enable( SKY_LAYER ) );
@@ -25,8 +47,12 @@ export class Sky {
 			uTime: { value: 0 },
 			uZenith: { value: new THREE.Color( 0x030a1e ).convertSRGBToLinear() },
 			uHorizon: { value: new THREE.Color( 0x16408f ).convertSRGBToLinear() },
-			uGlow: { value: new THREE.Color( 0x3a7dff ).convertSRGBToLinear() }
+			uGlow: { value: new THREE.Color( 0x3a7dff ).convertSRGBToLinear() },
+			uDawn: { value: 0 }, // MAP 3: 0 밤 ~ 1 해돋이
+			uSunDir: { value: SUN_DIR.clone() }
 		};
+		this.starFade = { value: 1 };
+		this.dawn = 0;
 
 		this.dome = this.makeDome();
 		this.stars = this.makeStars();
@@ -65,6 +91,8 @@ export class Sky {
 				uniform vec3 uZenith;
 				uniform vec3 uHorizon;
 				uniform vec3 uGlow;
+				uniform float uDawn;
+				uniform vec3 uSunDir;
 				varying vec3 vDir;
 				float hash( vec3 p ) {
 					p = fract( p * 0.3183099 + 0.1 );
@@ -93,13 +121,22 @@ export class Sky {
 					// 은하수
 					vec3 bandN = normalize( vec3( 0.35, 0.55, 0.75 ) );
 					float bandX = dot( d, bandN ) * 4.2;
-					float band = exp( - bandX * bandX );
+					float band = exp( - bandX * bandX ) * ( 1.0 - uDawn * 0.9 ); // 새벽이 오면 은하수가 옅어진다
 					float n = fbm( d * 5.0 );
 					float dust = fbm( d * 14.0 + 3.0 );
 					col += vec3( 0.06, 0.1, 0.26 ) * band * smoothstep( 0.25, 0.85, n ) * 1.6;
 					col += vec3( 0.16, 0.08, 0.28 ) * band * smoothstep( 0.55, 0.9, dust ) * 0.5;
 					col *= 1.0 - band * smoothstep( 0.55, 0.75, fbm( d * 9.0 + 7.0 ) ) * 0.4;
 					col += uGlow * exp( - abs( h ) * 9.0 ) * 0.45;
+					// 새벽: 해가 뜨는 쪽(동쪽) 지평선부터 따뜻하게 번진다
+					if ( uDawn > 0.0 ) {
+						float sun = max( dot( d, uSunDir ), 0.0 );
+						float low = exp( - max( h, 0.0 ) * 4.0 );
+						vec3 warm = mix( vec3( 0.78, 0.22, 0.1 ), vec3( 1.0, 0.55, 0.16 ), uDawn ); // 따뜻한 주황
+						col += warm * pow( sun, 3.0 ) * low * uDawn * 1.3;
+						col += vec3( 0.38, 0.2, 0.18 ) * pow( sun, 1.2 ) * exp( - max( h, 0.0 ) * 2.0 ) * uDawn * 0.35;
+						col += vec3( 1.0, 0.8, 0.55 ) * pow( sun, 400.0 ) * smoothstep( 0.75, 1.0, uDawn ) * 6.0;
+					}
 					gl_FragColor = vec4( col, 1.0 );
 				}
 			`
@@ -145,7 +182,7 @@ export class Sky {
 		geo.setAttribute( 'color', new THREE.BufferAttribute( color, 3 ) );
 
 		const mat = new THREE.ShaderMaterial( {
-			uniforms: { uTime: this.uniforms.uTime, uPixelRatio: { value: Math.min( window.devicePixelRatio, 1.5 ) } },
+			uniforms: { uTime: this.uniforms.uTime, uPixelRatio: { value: Math.min( window.devicePixelRatio, 1.5 ) }, uFade: this.starFade },
 			transparent: true,
 			depthWrite: false,
 			blending: THREE.AdditiveBlending,
@@ -155,13 +192,14 @@ export class Sky {
 				attribute vec3 color;
 				uniform float uTime;
 				uniform float uPixelRatio;
+				uniform float uFade;
 				varying vec3 vColor;
 				varying float vTw;
 				void main() {
 					vColor = color;
 					vTw = 0.65 + 0.35 * sin( uTime * ( 1.2 + fract( phase ) * 2.5 ) + phase );
 					float horizon = smoothstep( -0.02, 0.12, normalize( position ).y );
-					vTw *= horizon;
+					vTw *= horizon * uFade;
 					vec4 mv = modelViewMatrix * vec4( position, 1.0 );
 					gl_Position = projectionMatrix * mv;
 					gl_PointSize = size * uPixelRatio * ( 0.8 + 0.4 * vTw );
@@ -190,7 +228,7 @@ export class Sky {
 	makeMoon() {
 
 		// 달 색 (엔딩 6개 보상에선 금빛 달 + 하늘색 달무리)
-		this.moonUniforms = { uDisc: { value: new THREE.Vector3( 0.82, 0.9, 1.0 ) }, uHalo: { value: new THREE.Vector3( 0.3, 0.55, 1.0 ) }, uGold: { value: 0 } };
+		this.moonUniforms = { uDisc: { value: new THREE.Vector3( 0.82, 0.9, 1.0 ) }, uHalo: { value: new THREE.Vector3( 0.3, 0.55, 1.0 ) }, uGold: { value: 0 }, uFade: { value: 1 } };
 		const mat = new THREE.ShaderMaterial( {
 			uniforms: this.moonUniforms,
 			transparent: true,
@@ -204,6 +242,7 @@ export class Sky {
 				uniform vec3 uDisc;
 				uniform vec3 uHalo;
 				uniform float uGold; // 1이면 달무리를 원반 밖에만 (원반 색이 하얗게 섞이지 않게)
+				uniform float uFade; // 새벽엔 달이 옅어진다
 				varying vec2 vUv;
 				void main() {
 					vec2 c = vUv - 0.5;
@@ -212,7 +251,7 @@ export class Sky {
 					float crater = 0.85 + 0.15 * sin( c.x * 40.0 + 1.3 ) * sin( c.y * 37.0 );
 					float halo = exp( - d * 6.0 ) * 0.22 + exp( - d * 14.0 ) * 0.5;
 					vec3 col = uDisc * disc * crater * 2.4 + uHalo * halo * ( 1.0 - disc * uGold );
-					gl_FragColor = vec4( col, 1.0 );
+					gl_FragColor = vec4( col * uFade, 1.0 );
 				}
 			`
 		} );
@@ -374,6 +413,20 @@ export class Sky {
 	shower( count, seconds, aim = null ) {
 
 		this.burst = { left: count, every: seconds / count, wait: 0, aim: aim && aim.clone() };
+
+	}
+
+	// MAP 3: 밤(0)에서 해돋이(1)로. 별과 달이 옅어지고 동쪽 지평선이 밝아진다
+	setDawn( k ) {
+
+		this.dawn = k;
+		const u = this.uniforms;
+		dawnColor( DAWN_SKY, 1, k, u.uZenith.value );
+		dawnColor( DAWN_SKY, 2, k, u.uHorizon.value );
+		dawnColor( DAWN_SKY, 3, k, u.uGlow.value );
+		u.uDawn.value = k;
+		this.starFade.value = 1 - THREE.MathUtils.smoothstep( k, 0.1, 0.85 ) * 0.94;
+		this.moonUniforms.uFade.value = 1 - k * 0.6;
 
 	}
 

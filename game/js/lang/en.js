@@ -37,6 +37,42 @@ export default {
 			jelly: 'The jellyfish\'s light wraps the wound — heart restored',
 			guardStun: 'A perfect 52Hz — nearby guards freeze for a moment'
 		},
+		// MAP 3 · A Song That Calls the Dawn (phase 1 preview)
+		map3: {
+			label: 'MAP 3 · A Song That Calls the Dawn',
+			card: [ 'MAP 3', 'A Song That Calls the Dawn', 'Song of Liberation' ],
+			objFrozen: 'Follow the broken song · The Frozen Lane',
+			objNext: 'Swim the dawn sea · the next sea is still being made',
+			iceHint: 'Take the narrow channel between the ice — you can\'t swim through it',
+			preview: 'That\'s all of the MAP 3 preview for now — the next sea is on its way',
+			twelve: 'No.12',
+			choiceTitle: 'How will you sing?',
+			choiceHint: 'Choose a song for {who} · 1 2 3 or tap',
+			songs: {
+				listen: { name: 'Listening Song', desc: 'Hear {who}\'s song first, then answer in the same rhythm' },
+				lead: { name: 'Leading Song', desc: '{N} sets the beat, and {who} follows' },
+				alone: { name: 'Solo Song', desc: 'Sing only {N}\'s song, and move on' }
+			},
+			listenTitle: 'LISTEN · {who} ↔ 52HZ',
+			leadTitle: 'LEAD · 52HZ → {who}',
+			listen: 'Listen… {who}\'s song',
+			turn: 'Now! Answer in the same rhythm [E]',
+			miss: 'Not quite… listen again',
+			help: '{who} matched {N}\'s rhythm first',
+			good: 'Two voices overlapped',
+			listenDone: '{who}\'s song grew clear',
+			leadReady: 'Set the beat — sing freely for 4 beats [E]',
+			leadAgain: 'Once more — a different rhythm is fine too',
+			leadTurn: 'Now! Sing with [E]',
+			leadEmpty: 'Sing at least twice so it can be followed',
+			leadEcho: '{who} sings it right back…',
+			leadDone: '{who} has learned the beat',
+			voiceCard: {
+				listen: [ 'VOICE 1', 'The Frozen Lane', 'No.12 comes along in its own voice' ],
+				lead: [ 'VOICE 1', 'The Frozen Lane', 'No.12 follows {N}\'s beat' ],
+				alone: [ 'VOICE 1', 'The Frozen Lane', 'No.12 chose a path of its own' ]
+			}
+		},
 		// MAP 2 낚시
 		fish: {
 			titleHorn: 'FISHING · LUKE\'S HORN',
@@ -64,8 +100,8 @@ export default {
 			label: 'MAP 2 · A SEA BORN WITHOUT WAVES',
 			objPortal: 'Swim into the glowing whirlpool',
 			objSwim: 'Try swimming under the sea',
-			card: [ 'MAP 2', 'A Sea Born Without Waves', 'Preview · in development' ],
-			hint: '[Space] up · [C] down · [E] sing to light the dark — MAP 2 is still in development from here',
+			card: [ 'MAP 2', 'A Sea Born Without Waves', 'A story of whales whose voices were taken' ],
+			hint: '[Space] up · [C] down · [E] sing to light the dark',
 			zones: [ 'Sunlight zone', 'Twilight zone', 'Midnight zone', 'The trench' ],
 			zoneSub: [ 'Where the light shafts reach', 'The light fades — the glow on your back lights the way', 'Pitch dark — sing and the dark lights up like sonar', 'The end of a narrow canyon — something waits below' ]
 		},
@@ -113,8 +149,9 @@ export default {
 		ending: {
 			search: 'Find the rest of the letters · {n}/{total}',
 			again: 'Play again',
-			deepHint: 'MAP 2 is still being built — the controls and the story will keep getting better',
+			deepHint: 'The story continues above the waves, toward the dawn — MAP 3 preview',
 			dive: '▼ Into the deep (MAP 2 preview)',
+			dawn: '▲ Toward the dawn (MAP 3 preview)',
 			allEndings: '★ All 6 endings found — the sea now glitters gold',
 			duet: '♪ Sing the duet again',
 			quote: '“ The sea holds a freedom<br>that everyone deserves ”',
@@ -193,6 +230,7 @@ export default {
 		kelp: 'Written on the kelp',
 		ai: 'The Doctor\'s AI',
 		j: 'J · Diver',
+		twelve: 'No.12 · Alliance'
 	},
 
 	mobyLetter: {
@@ -590,6 +628,90 @@ export default {
 				[ 'narrator', 'For the first time, someone who wasn\'t a whale heard 52Hz.' ]
 			],
 			card: [ 'MAP 2 ENDING', 'A Song Heard', 'For the first time, someone else heard' ]
+		},
+		// MAP 3 · A Song That Calls the Dawn (phase 1). The third slot of a line is a condition (see map3 in story.js)
+		map3: {
+			silence: [
+				[ 'narrator', 'The night every red eye went dark. One by one, the Alliance rose to the surface.' ],
+				[ 'narrator', 'No one swam. No one sang.' ],
+				[ 'shaman', '……Protect the humans.' ],
+				[ 'shaman', 'Protect the humans! Form ranks!' ],
+				[ 'narrator', 'Not a single whale moved.' ],
+				[ 'orca', 'That voice doesn\'t reach us anymore.' ],
+				[ 'orca', 'Then… why were we born?' ],
+				[ 'finn', '……They\'re all hearing their own voice for the first time.\nI did too. It was scary.', 'finn' ],
+				[ 'luke', 'I thought it would be quiet once the orders stopped.\nThis is… far too quiet.', 'luke' ]
+			],
+			factions: [
+				[ 'shaman', 'We need orders. We need someone to command us.' ],
+				[ 'orca', 'I\'ll follow you, Shaman. Tell me anything.' ],
+				[ 'orca', 'If humans made us into weapons,\nthen weapons is what we\'ll be.' ],
+				[ 'orca', '…I just want to see the sea.' ]
+			],
+			order: [
+				[ 'shaman', 'Listen. We were born to protect the humans.' ],
+				[ 'shaman', 'If the humans are gone, no one can ever command us again.' ],
+				[ 'shaman', 'So the humans must be wiped out.\nToward the rising sun. To the human coast!' ]
+			],
+			leave: [
+				[ 'narrator', 'The first order the Shaman ever chose was another war.' ],
+				[ 'narrator', 'The Alliance split three ways. After the Shaman, after revenge, and nowhere at all.' ],
+				[ 'luke', '{N}, most of those whales still don\'t know where to go.\nWhoever shows them a way, they\'ll follow it — wherever it leads.', 'luke' ],
+				[ 'finn', 'Up north… someone is crying. Toward the Frozen Lane.\nNot a command signal. Just crying.', 'finn' ],
+				[ 'narrator', 'From the north, from the Frozen Lane, came a broken song.', 'finnGone' ],
+				[ 'hazel', '( Answers briefly in 52Hz, and turns north )' ]
+			],
+			ice: [
+				[ 'narrator', 'The sea was frozen. A lane that had forgotten spring.' ],
+				[ 'luke', 'Whales used to pass this way every winter. It\'s in my lighthouse records.\nThere should still be one channel through the ice.', 'luke' ],
+				[ 'finn', 'There\'s a way through the ice. Narrow… and the crying is at the end of it.', 'finn' ],
+				[ 'narrator', 'Between the ice ran a single narrow channel.', 'none' ]
+			],
+			meet: [
+				[ 'narrator', 'A small pool trapped in the ice. An orca circled the same spot, over and over.\nOn its dorsal fin, a number carved in white: 12.' ],
+				[ 'twelve', '……Did the Shaman send you too?\nI\'m not going. Not to the coast.' ],
+				[ 'twelve', 'Everyone went somewhere. No orders, so… anywhere.\nAnd I… I didn\'t know where to go.' ],
+				[ 'twelve', 'I wanted to see the sea. The real sea I only ever saw through the tank glass.\nBut now I\'m here, and it\'s all frozen.' ],
+				[ 'finn', 'No.12… I remember. We were in the same tank.\nThe one who always pressed its head against the glass.', 'finn' ],
+				[ 'luke', '{N}, sing for it.\nWhat kind of song — that\'s yours to choose.', 'luke' ],
+				[ 'narrator', 'What kind of song to sing was {N}\'s to choose.', 'lukeGone' ]
+			],
+			before: {
+				listen: [
+					[ 'twelve', '…A song? I don\'t know songs. Only command signals.' ],
+					[ 'hazel', '( Instead of answering, waits for No.12\'s voice )' ]
+				],
+				lead: [ [ 'twelve', '…What do I do? Tell me. I\'ll do exactly that.' ] ],
+				alone: [ [ 'hazel', '( Takes a deep breath )' ] ]
+			},
+			after: {
+				listen: [
+					[ 'twelve', 'Is this… my voice? Not a command signal?' ],
+					[ 'twelve', 'It\'s strange. Your song sounds nothing like mine,\nbut I can hear my own voice better.' ],
+					[ 'narrator', 'What No.12 remembered was dawn light shining on the tank glass —\nthe day it first wished to see the real sea.' ],
+					[ 'twelve', 'I\'ll come with you, in my own song. Not behind you. Beside you.' ],
+					[ 'finn', '…Well done, No.12.', 'finn' ]
+				],
+				lead: [
+					[ 'twelve', 'Like this? Is this right?\nOkay. I\'ll follow however you sing.' ],
+					[ 'twelve', 'Just decide for me. It\'s easier that way.' ],
+					[ 'luke', '……{N}. Doesn\'t that sound like something we\'ve heard before?', 'luke' ],
+					[ 'finn', 'The Shaman wanted… whales who answer like that.', 'finn' ],
+					[ 'narrator', 'No.12 followed quickly. In {N}\'s beat, in {N}\'s voice.', 'none' ]
+				],
+				alone: [
+					[ 'twelve', '…That\'s a pretty song.' ],
+					[ 'twelve', 'But it\'s your song.\nMine… I\'ll go and find it myself.' ],
+					[ 'narrator', 'No.12 dove beneath the ice. North, alone.' ],
+					[ 'luke', 'It chose its own way too. That\'s freedom as well.', 'luke' ],
+					[ 'finn', '…It\'ll be okay. Probably.', 'finn' ]
+				]
+			},
+			dawn: {
+				listen: [ [ 'narrator', 'Where the ice split open, the eastern sky grew a little brighter.\nTwo different voices called the same dawn.' ] ],
+				lead: [ [ 'narrator', 'Where the ice split open, the eastern sky grew a little brighter.\nThe two voices rang out in a single beat.' ] ],
+				alone: [ [ 'narrator', 'The song that vanished under the ice came back, faint and far away.\nThe eastern sky grew just a little brighter.' ] ]
+			}
 		},
 		epilogue: {
 			card: [ 'EPILOGUE', 'Looking for Stella' ],
