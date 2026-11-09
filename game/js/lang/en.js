@@ -42,9 +42,9 @@ export default {
 			label: 'MAP 3 · A Song That Calls the Dawn',
 			card: [ 'MAP 3', 'A Song That Calls the Dawn', 'Song of Liberation' ],
 			objFrozen: 'Follow the broken song · The Frozen Lane',
-			objNext: 'Swim the dawn sea · the next sea is still being made',
+			objNext: 'Swim the dawn sea · the Forgotten Lighthouse is still being made',
 			iceHint: 'Take the narrow channel between the ice — you can\'t swim through it',
-			preview: 'That\'s all of the MAP 3 preview for now — the next sea is on its way',
+			preview: 'That\'s all of the MAP 3 preview for now — the Forgotten Lighthouse is on its way',
 			twelve: 'No.12',
 			choiceTitle: 'How will you sing?',
 			choiceHint: 'Choose a song for {who} · 1 2 3 or tap',
@@ -71,6 +71,24 @@ export default {
 				listen: [ 'VOICE 1', 'The Frozen Lane', 'No.12 comes along in its own voice' ],
 				lead: [ 'VOICE 1', 'The Frozen Lane', 'No.12 follows {N}\'s beat' ],
 				alone: [ 'VOICE 1', 'The Frozen Lane', 'No.12 chose a path of its own' ]
+			},
+			objVoices: 'Find the scattered voices · The Sunken Fleet · The Storm Sea · any order',
+			objWrecks: 'Sing beside the sunken ships [E] · {n}/3',
+			objEye: 'Into the heart of the storm · jump big waves with [Space]',
+			fleetHint: 'Sing beside a sunken ship [E] to wake the memories left aboard',
+			stormHint: 'Big waves are rolling in — [Space] jump as each one reaches you',
+			waveHit: 'Swept back by a wave — jump [Space] just before it hits',
+			nine: 'No.9',
+			eight: 'No.8',
+			fleetCard: {
+				listen: [ 'VOICE', 'The Sunken Fleet', 'No.9 chose a song over revenge' ],
+				lead: [ 'VOICE', 'The Sunken Fleet', 'No.9 follows {N}\'s beat' ],
+				alone: [ 'VOICE', 'The Sunken Fleet', 'No.9 left for the coast' ]
+			},
+			stormCard: {
+				listen: [ 'VOICE', 'The Storm Sea', 'No.8 rides the waves for the first time' ],
+				lead: [ 'VOICE', 'The Storm Sea', 'No.8 follows, hearing only {N}\'s beat' ],
+				alone: [ 'VOICE', 'The Storm Sea', 'No.8 went back down where there are no waves' ]
 			}
 		},
 		// MAP 2 낚시
@@ -230,7 +248,9 @@ export default {
 		kelp: 'Written on the kelp',
 		ai: 'The Doctor\'s AI',
 		j: 'J · Diver',
-		twelve: 'No.12 · Alliance'
+		twelve: 'No.12 · Alliance',
+		nine: 'No.9 · Alliance',
+		eight: 'No.8 · Alliance'
 	},
 
 	mobyLetter: {
@@ -711,7 +731,125 @@ export default {
 				listen: [ [ 'narrator', 'Where the ice split open, the eastern sky grew a little brighter.\nTwo different voices called the same dawn.' ] ],
 				lead: [ [ 'narrator', 'Where the ice split open, the eastern sky grew a little brighter.\nThe two voices rang out in a single beat.' ] ],
 				alone: [ [ 'narrator', 'The song that vanished under the ice came back, faint and far away.\nThe eastern sky grew just a little brighter.' ] ]
-			}
+			},
+			next: [
+				[ 'luke', '{N}, I hear voices all over the sea.\nSunken ships to the west, and a storm on the southern sea.', 'luke' ],
+				[ 'finn', 'Alliance signals cut out in two places.\nBy the sunken ships… and inside the storm.', 'finn' ],
+				[ 'narrator', 'Scattered voices called from across the sea. From the sunken ships, and from inside the storm.', 'none' ]
+			],
+			fleet: {
+				enter: [
+					[ 'narrator', 'Sunken ships lifted their rusted bodies above the water.\nHuman ships that fell into the sea on the night the stars fell.' ],
+					[ 'narrator', 'An orca swam roughly between them.' ],
+					[ 'luke', 'Those ships… they carried the Alliance. ALLY is painted on their sides.', 'luke' ],
+					[ 'finn', 'I know how those ships smell. Like tank water.', 'finn' ]
+				],
+				memories: [
+					[
+						[ 'narrator', 'A warm light came on in the ship\'s windows. No.9\'s first memory.' ],
+						[ 'narrator', 'A rocking tank. Someone changing the water all night, humming a clumsy song.' ]
+					],
+					[
+						[ 'narrator', 'The research ship\'s windows lit up. No.9\'s second memory.' ],
+						[ 'narrator', 'White light, bound fins. The day something came down over its head.\nThat day, No.9 heard its first order.' ]
+					],
+					[
+						[ 'narrator', 'The warship\'s windows lit up. No.9\'s third memory.' ],
+						[ 'narrator', 'Humans waving from the deck. The faces it was taught to protect.\nThat night the stars fell, and the ships sank into the sea.' ]
+					]
+				],
+				meet: [
+					[ 'nine', '…Was it you who woke those ships with a song?' ],
+					[ 'nine', 'See? Humans hammered orders into our heads.\nSo this time, it\'s our turn to finish it.' ],
+					[ 'nine', 'The Shaman says to go to the coast. Just this once, I\'ll gladly follow.' ],
+					[ 'finn', 'No.9… do you remember the one who changed our water? That was a human too.', 'finn' ],
+					[ 'luke', '{N}, there won\'t be an easy song for this one.', 'luke' ]
+				],
+				before: {
+					listen: [ [ 'nine', 'A song? …Fine. I\'ll listen once.' ] ],
+					lead: [ [ 'nine', 'Set the beat. Let\'s see if it\'s stronger than mine.' ] ],
+					alone: [ [ 'hazel', '( Takes a deep breath )' ] ]
+				},
+				after: {
+					listen: [
+						[ 'nine', '…So that\'s how angry my voice was.' ],
+						[ 'nine', 'The hands that changed the water and the hands that put in the chip were both human.\nI\'ll remember both.' ],
+						[ 'nine', 'I\'m not going to the coast. I haven\'t forgiven everything.\nBut I\'ll think it over, beside your song.' ],
+						[ 'finn', '…Thank you, No.9.', 'finn' ]
+					],
+					lead: [
+						[ 'nine', '…Fine, your beat is strong. I\'ll follow.' ],
+						[ 'nine', 'But give clear orders. Hesitate, and I\'m off to the coast alone.' ],
+						[ 'luke', '……{N}. Maybe what it wants isn\'t a song, but a new order.', 'luke' ],
+						[ 'narrator', 'No.9 followed {N}\'s beat, as if that beat were an order.', 'lukeGone' ]
+					],
+					alone: [
+						[ 'nine', '…A pretty song won\'t change anything.' ],
+						[ 'narrator', 'No.9 swam toward the rising sun, toward the human coast.' ],
+						[ 'luke', 'We can\'t hold on to everyone. It chose its own way.', 'luke' ],
+						[ 'finn', '…Next time we meet, maybe it\'ll listen.', 'finn' ]
+					]
+				},
+				dawn: {
+					listen: [ [ 'narrator', 'One by one, the sunken ships\' windows flickered warm.\nThe eastern sky grew a little brighter.' ] ],
+					lead: [ [ 'narrator', 'One by one, the sunken ships\' windows flickered.\nThe eastern sky grew a little brighter.' ] ],
+					alone: [ [ 'narrator', 'The ships\' windows stayed lit. The memories remained, but No.9 was gone.\nEven so, the eastern sky grew just a little brighter.' ] ]
+				}
+			},
+			storm: {
+				enter: [
+					[ 'narrator', 'The sky went dark. For the first time, the sea stood up.' ],
+					[ 'narrator', 'A sea the whales born without waves had never seen.' ],
+					[ 'finn', 'Right in the middle… that\'s No.8. The youngest.\nIt cried whenever the tank water so much as sloshed.', 'finn' ],
+					[ 'luke', 'Jump just before each wave hits, {N}. Don\'t fight it — ride it.', 'luke' ],
+					[ 'narrator', 'In the heart of the storm, a small whale was curled up tight.', 'finnGone' ]
+				],
+				meet: [
+					[ 'eight', 'Don\'t come! The waves are coming! The sea is angry…' ],
+					[ 'eight', 'It\'s because I didn\'t obey, isn\'t it? I\'ll listen again. I\'ll listen again…' ],
+					[ 'eight', 'In the tank the water never moved like this. I\'m scared.' ],
+					[ 'finn', 'No.8, it\'s me. No.7. Crybaby No.7.\nI was scared at first too.', 'finn' ]
+				],
+				before: {
+					listen: [
+						[ 'eight', '…A song? My voice is so small…' ],
+						[ 'hazel', '( Instead of answering, waits for No.8\'s small voice )' ]
+					],
+					lead: [ [ 'eight', 'I\'ll only listen to you. Everything else is scary.' ] ],
+					alone: [ [ 'hazel', '( Takes a deep breath )' ] ]
+				},
+				after: {
+					listen: [
+						[ 'eight', '…The waves aren\'t angry.' ],
+						[ 'eight', 'The sea is just breathing. Like me.' ],
+						[ 'narrator', 'As No.8\'s small song spread between the waves, the storm began to settle.' ],
+						[ 'eight', 'I want to ride the waves. In my own voice.' ],
+						[ 'finn', '…See, No.8? We\'re not crybabies anymore.', 'finn' ]
+					],
+					lead: [
+						[ 'eight', 'When I hear your beat, I\'m not scared at all.' ],
+						[ 'eight', 'Keep counting. Never stop.' ],
+						[ 'narrator', 'The storm began to settle. No.8 swam pressed close to {N}\'s beat.' ],
+						[ 'luke', '…It isn\'t listening to the sea. It\'s only listening to {N}.', 'luke' ]
+					],
+					alone: [
+						[ 'eight', '…You\'re not scared. I still am.' ],
+						[ 'eight', 'I want to go back where there are no waves. Deep down.' ],
+						[ 'narrator', 'No.8 sank beneath the storm, down into the deep where no waves reach.' ],
+						[ 'finn', 'No.8…', 'finn' ]
+					]
+				},
+				dawn: {
+					listen: [ [ 'narrator', 'As the clouds broke, the eastern sky showed through — a little brighter than before.' ] ],
+					lead: [ [ 'narrator', 'As the clouds broke, the eastern sky showed through — a little brighter than before.' ] ],
+					alone: [ [ 'narrator', 'The storm went on. Somewhere beyond the clouds, the sky was growing just a little brighter.' ] ]
+				}
+			},
+			gathered: [
+				[ 'narrator', 'The Frozen Lane, the sunken ships, the Storm Sea.\nThe scattered voices had each chosen their own way.' ],
+				[ 'luke', '{N}, let\'s go to the lighthouse now. The whale songs I\'ve written down all my life are there.', 'luke' ],
+				[ 'narrator', 'Far away stood a lighthouse, its light gone out.', 'lukeGone' ]
+			]
 		},
 		epilogue: {
 			card: [ 'EPILOGUE', 'Looking for Stella' ],

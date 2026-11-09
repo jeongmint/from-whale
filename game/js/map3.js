@@ -1,7 +1,7 @@
 // MAP 3 · 새벽을 부르는 노래: 밤이 새벽으로 바뀌는 수면. 1단계는 '얼어붙은 항로'와 고립된 범고래 12번
 // 하늘 · 바다 · 안개 색은 새벽 정도(0 밤 ~ 1 해돋이)를 따라 바뀐다. 얼음 조각은 바위처럼 헤이즐을 막는다
 import * as THREE from 'three';
-import { sampleOcean } from './ocean.js';
+import { sampleOcean, makeSurfaceDecal } from './ocean.js';
 import { Whale, steerTo, followSlot } from './actors.js';
 import { dawnColor } from './sky.js';
 
@@ -11,8 +11,16 @@ export const DAWN_PLACES = {
 	gather: { x: 150, z: 255 },
 	pool: { x: 105, z: - 215 }, // 얼음에 갇힌 웅덩이 (12번)
 	coast: { x: 1250, z: 240 }, // 해가 뜨는 쪽, 인간의 해안
-	north: { x: 60, z: - 900 }
+	north: { x: 60, z: - 900 },
+	fleet: { x: - 430, z: 130 }, // 침몰한 함대 (서쪽)
+	storm: { x: 470, z: 700 }, // 폭풍의 바다 (남동쪽)
+	deep: { x: 470, z: 1000 } // 8번이 숨으러 내려가는 쪽
 };
+const STORM_R = 270; // 폭풍 반지름
+const STORM_EYE = 26; // 가운데 고요한 자리
+const WAVE_SPEED = 17; // 큰 파도가 퍼져 나가는 빠르기 (m/s)
+const WAVE_EVERY = 3.4;
+const STORM_FOG = new THREE.Color( 0x1c2433 ).convertSRGBToLinear();
 const FIELD_R = 210; // 얼음 벌판 반지름
 const POOL_R = 24;
 const CHANNEL_HALF = 10; // 얼음 사이 물길 폭의 절반
@@ -102,7 +110,10 @@ export class DawnSea {
 		this.group.name = 'map3';
 		scene.add( this.group );
 		this.floes = []; // { x, z, r, ... } 그대로 충돌 원으로도 쓴다
-		this.colliders = this.floes;
+		this.colliders = []; // 얼음 조각 + 가라앉은 배 + 폭풍의 바위 (모두 { x, z, r })
+		this.voices = {}; // 만나는 고래들 (12번 · 9번 · 8번)
+		this.onLightning = null; // 폭풍의 번개
+		this.onWave = null; // 큰 파도에 맞았을 때 ( 바깥쪽 방향 )
 		this.alliance = [];
 		this.time = 0;
 		this.frost = 0;
@@ -111,6 +122,9 @@ export class DawnSea {
 		this.leapers = []; // 함께 뛰어오르는 고래 (샤먼처럼 연합군 목록 밖의 고래도)
 		this.buildIce();
 		this.buildSnow();
+		this.colliders.push( ...this.floes );
+		this.buildFleet();
+		this.buildStorm();
 
 	}
 
@@ -252,7 +266,7 @@ export class DawnSea {
 	// 얼음 조각에 막힌다 (World.collide와 같은 방식)
 	collide( pos, radius ) {
 
-		for ( const c of this.floes ) {
+		for ( const c of this.colliders ) {
 
 			const dx = pos.x - c.x, dz = pos.z - c.z;
 			const d = Math.hypot( dx, dz ), min = c.r + radius;
@@ -371,18 +385,345 @@ export class DawnSea {
 
 	}
 
-	// ---- 12번: 얼음 웅덩이를 맴도는 범고래 ----
-	makeTwelve() {
+	// ---- 침몰한 함대: 별이 떨어지던 밤에 가라앉은 인간의 배들 ----
+	buildFleet() {
 
-		const w = new Whale( this.models.orca, { name: 'twelve', length: 9, ride: 0.42, freq: 3.2, amp: 0.06, recolor: [ 0x1c2a3a, 0xdce9f6 ], emissive: 0.4 } );
-		w.place( P.x + 9, P.z, 0 );
-		this.group.add( w.root );
-		this.twelve = { whale: w, state: 'pool', angle: 0, spout: 3 };
-		return w;
+		const F = DAWN_PLACES.fleet;
+		const rust = new THREE.MeshStandardMaterial( { color: 0x5a3a2e, roughness: 0.9, metalness: 0.35, emissive: 0x140806, emissiveIntensity: 0.6, flatShading: true } );
+		const steel = new THREE.MeshStandardMaterial( { color: 0x4a5058, roughness: 0.7, metalness: 0.5, emissive: 0x0a0e14, emissiveIntensity: 0.6, flatShading: true } );
+		// [ x, z, 길이, 방향, 기울기(옆), 기울기(앞뒤), 잠긴 깊이, 종류 ]
+		const SHIPS = [
+			[ - 30, - 20, 70, 0.4, 0.42, 0.12, 4.5, 'tank' ], // 수조를 실어 나르던 배
+			[ 60, 40, 58, - 0.9, - 0.3, - 0.22, 3.5, 'lab' ], // 연구선
+			[ - 40, 95, 86, 1.9, 0.18, 0.3, 5, 'war' ], // 군함
+			[ 95, - 70, 44, 2.6, - 0.5, 0.1, 4, 'tank' ],
+			[ - 110, 30, 50, - 2.2, 0.35, - 0.28, 5.5, 'war' ]
+		];
+		this.wrecks = SHIPS.map( ( [ dx, dz, len, yaw, roll, pitch, sink, kind ], i ) => {
+
+			const g = new THREE.Group();
+			// 선체: 상자를 뱃머리 쪽으로 좁히고 아래를 오므린다
+			const hull = new THREE.BoxGeometry( len, 8, 11, 8, 2, 2 );
+			const p = hull.attributes.position;
+			for ( let j = 0; j < p.count; j ++ ) {
+
+				const x = p.getX( j ), y = p.getY( j ), z = p.getZ( j );
+				const bow = THREE.MathUtils.smoothstep( x / ( len / 2 ), 0.35, 1 );
+				p.setZ( j, z * ( 1 - bow * 0.95 ) * ( y < 0 ? 0.62 : 1 ) );
+				p.setY( j, y + bow * 1.5 * ( y > 0 ? 1 : 0 ) );
+
+			}
+
+			hull.computeVertexNormals();
+			g.add( new THREE.Mesh( hull, rust ) );
+			const box = ( w, h, d, x, y, z, m = steel ) => {
+
+				const b = new THREE.Mesh( new THREE.BoxGeometry( w, h, d ), m );
+				b.position.set( x, y, z );
+				g.add( b );
+				return b;
+
+			};
+
+			const cyl = ( r, h, x, y, z, rz = 0, m = steel ) => {
+
+				const c = new THREE.Mesh( new THREE.CylinderGeometry( r, r, h, 8 ), m );
+				c.position.set( x, y, z );
+				c.rotation.z = rz;
+				g.add( c );
+				return c;
+
+			};
+
+			box( len * 0.22, 5, 7, - len * 0.1, 6.5, 0 );
+			box( len * 0.12, 3.5, 5, - len * 0.12, 10.5, 0 );
+			cyl( 0.35, 16, - len * 0.08, 16, 0 ); // 돛대
+			box( 0.3, 0.3, 7, - len * 0.08, 20, 0 );
+			cyl( 1.6, 6, - len * 0.25, 8, 0, 0, rust ); // 굴뚝
+			if ( kind === 'war' ) {
+
+				for ( const tx of [ len * 0.22, - len * 0.36 ] ) {
+
+					cyl( 2.4, 1.8, tx, 5, 0 );
+					cyl( 0.32, 9, tx + ( tx > 0 ? 4.5 : - 4.5 ), 5.6, 0, Math.PI / 2 );
+
+				}
+
+			} else if ( kind === 'tank' ) {
+
+				// 갑판 위의 커다란 수조 (유리는 깨졌다)
+				const glass = new THREE.MeshStandardMaterial( { color: 0x7fb8d8, roughness: 0.1, metalness: 0.2, transparent: true, opacity: 0.35, emissive: 0x0a2030, emissiveIntensity: 0.8 } );
+				box( len * 0.3, 4.5, 8, len * 0.18, 6.2, 0, glass );
+
+			} else {
+
+				box( len * 0.18, 3, 6, len * 0.2, 5.5, 0 );
+				cyl( 0.2, 7, len * 0.2, 10, 0 ); // 안테나
+
+			}
+
+			// 창: 기억이 깨어나면 따뜻하게 켜진다
+			const winMat = new THREE.MeshBasicMaterial( { color: 0x1a1410 } );
+			for ( let k = 0; k < 5; k ++ ) box( 0.9, 0.9, 0.2, - len * 0.18 + k * 1.8, 7, 3.55, winMat );
+			const x = F.x + dx, z = F.z + dz;
+			g.position.set( x, - sink, z );
+			g.rotation.set( pitch, yaw, roll, 'YXZ' );
+			this.group.add( g );
+			// 충돌: 선체 길이를 따라 원 여러 개
+			const ax = Math.cos( yaw ), az = - Math.sin( yaw );
+			for ( let k = - len / 2 + 6; k <= len / 2 - 6; k += 8 ) this.colliders.push( { x: x + ax * k, z: z + az * k, r: 6.5 } );
+			return { group: g, x, z, len, kind, winMat, memory: i < 3 ? i : - 1, woke: false };
+
+		} );
+
+		// 군함 돛대의 붉은 경고등
+		const war = this.wrecks[ 2 ];
+		this.warnLight = new THREE.Sprite( new THREE.SpriteMaterial( { color: 0xff3a3a, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false } ) );
+		this.warnLight.scale.setScalar( 3 );
+		this.warnLight.position.set( - war.len * 0.08, 24, 0 );
+		war.group.add( this.warnLight );
 
 	}
 
-	update( dt, t, { hazel, cam } ) {
+	// 기억이 깨어난 배: 창에 불이 켜진다
+	wake( wreck ) {
+
+		wreck.woke = true;
+
+	}
+
+	// ---- 폭풍의 바다: 비, 번개, 가운데서 퍼져 나가는 큰 파도 ----
+	buildStorm() {
+
+		const S = DAWN_PLACES.storm;
+		this.storm = { k: 0, power: 1, waves: [], timer: 1.5, flash: 4 };
+		const n = 700;
+		const pos = new Float32Array( n * 6 );
+		for ( let i = 0; i < n; i ++ ) {
+
+			const x = ( Math.random() - 0.5 ) * 120, y = Math.random() * 45, z = ( Math.random() - 0.5 ) * 120;
+			pos.set( [ x, y, z, x - 0.5, y - 2.6, z ], i * 6 );
+
+		}
+
+		const geo = new THREE.BufferGeometry();
+		geo.setAttribute( 'position', new THREE.BufferAttribute( pos, 3 ) );
+		this.rainMat = new THREE.LineBasicMaterial( { color: 0xb8c8e0, transparent: true, opacity: 0, depthWrite: false } );
+		this.rain = new THREE.LineSegments( geo, this.rainMat );
+		this.rain.frustumCulled = false;
+		this.group.add( this.rain );
+		// 폭풍 가운데의 바위 (8번이 웅크린 곳)
+		const rockMat = new THREE.MeshStandardMaterial( { color: 0x2c3038, roughness: 0.95, flatShading: true } );
+		for ( let i = 0; i < 4; i ++ ) {
+
+			const a = i / 4 * Math.PI * 2 + 0.4;
+			const r = 4 + i % 2 * 2;
+			const m = new THREE.Mesh( new THREE.DodecahedronGeometry( r, 0 ), rockMat );
+			const x = S.x + Math.cos( a ) * 17, z = S.z + Math.sin( a ) * 17;
+			m.position.set( x, - r * 0.4, z );
+			m.scale.y = 1.4;
+			m.rotation.set( a, a * 2, 0 );
+			this.group.add( m );
+			this.colliders.push( { x, z, r: r * 0.9 } );
+
+		}
+
+	}
+
+	stormAt( x, z ) {
+
+		const S = DAWN_PLACES.storm;
+		return 1 - THREE.MathUtils.smoothstep( Math.hypot( x - S.x, z - S.z ), STORM_R * 0.7, STORM_R + 110 );
+
+	}
+
+	// 폭풍이 잦아든다 (8번이 함께 가기로 했을 때)
+	calmStorm() {
+
+		this.storm.power = 0.12;
+
+	}
+
+	updateStorm( dt, hazel, cam, active ) {
+
+		const S = DAWN_PLACES.storm, st = this.storm;
+		const target = this.stormAt( hazel.pos.x, hazel.pos.z ) * st.power;
+		st.k += ( target - st.k ) * Math.min( 1, dt * 0.8 );
+		// 비
+		this.rainMat.opacity = Math.min( 0.55, st.k * 0.7 );
+		this.rain.visible = st.k > 0.02;
+		if ( this.rain.visible ) {
+
+			const a = this.rain.geometry.attributes.position;
+			for ( let i = 0; i < a.count; i += 2 ) {
+
+				let y = a.getY( i ) - dt * 38;
+				let x = a.getX( i ) - dt * 7;
+				if ( y < - 2 ) {
+
+					y += 47;
+					x += 7 * 47 / 38;
+
+				}
+
+				a.setXYZ( i, x, y, a.getZ( i ) );
+				a.setXYZ( i + 1, x - 0.5, y - 2.6, a.getZ( i + 1 ) );
+
+			}
+
+			a.needsUpdate = true;
+			this.rain.position.set( Math.round( cam.x / 60 ) * 60, 0, Math.round( cam.z / 60 ) * 60 );
+
+		}
+
+		// 번개
+		if ( st.k > 0.55 ) {
+
+			st.flash -= dt;
+			if ( st.flash <= 0 ) {
+
+				st.flash = 4 + Math.random() * 6;
+				this.onLightning?.( st.k );
+
+			}
+
+		}
+
+		// 큰 파도: 가운데서 둥글게 퍼져 나간다. 헤이즐 자리를 지날 때 공중에 있지 않으면 밀려난다
+		const d = Math.hypot( hazel.pos.x - S.x, hazel.pos.z - S.z );
+		if ( st.power > 0.5 && d < STORM_R + 40 ) {
+
+			st.timer -= dt;
+			if ( st.timer <= 0 ) {
+
+				st.timer = WAVE_EVERY;
+				const mesh = makeSurfaceDecal( { color: 0xe8f6ff, inner: 0.96, outer: 1, opacity: 0.9, lift: 0.6 } );
+				mesh.position.set( S.x, 0, S.z );
+				mesh.scale.setScalar( STORM_EYE );
+				this.group.add( mesh );
+				st.waves.push( { r: STORM_EYE, mesh, hit: false } );
+
+			}
+
+		}
+
+		for ( const w of st.waves ) {
+
+			const before = w.r;
+			w.r += WAVE_SPEED * dt;
+			w.mesh.scale.setScalar( w.r );
+			w.mesh.material.uniforms.uOpacity.value = 0.9 * ( 1 - THREE.MathUtils.smoothstep( w.r, STORM_R - 40, STORM_R + 30 ) ) * Math.min( 1, st.power * 1.5 );
+			if ( ! w.hit && before < d && w.r >= d ) {
+
+				w.hit = true;
+				if ( active && ! hazel.airborne && d > STORM_EYE ) this.onWave?.( { x: ( hazel.pos.x - S.x ) / d, z: ( hazel.pos.z - S.z ) / d } );
+
+			}
+
+		}
+
+		for ( const w of st.waves.filter( ( w ) => w.r > STORM_R + 30 ) ) {
+
+			this.group.remove( w.mesh );
+			w.mesh.material.dispose();
+
+		}
+
+		st.waves = st.waves.filter( ( w ) => w.r <= STORM_R + 30 );
+
+	}
+
+	// ---- 만나는 고래: 12번(얼어붙은 항로) · 9번(침몰한 함대) · 8번(폭풍의 바다) ----
+	// state: idle(제자리를 맴돈다) · face(헤이즐을 본다) · follow(따라온다) · leave(제 길로 떠난다)
+	makeVoice( key, { home, length = 9, recolor, radius = 9, speed = 4.5, spout = false } ) {
+
+		const w = new Whale( this.models.orca, { name: key, length, ride: 0.42, freq: 3.2, amp: 0.06, recolor, emissive: 0.4 } );
+		w.place( home.x + radius, home.z, 0 );
+		this.group.add( w.root );
+		const v = { key, whale: w, home, radius, speed, state: 'idle', angle: 0, spout: spout ? 3 : - 1 };
+		this.voices[ key ] = v;
+		return v;
+
+	}
+
+	// 12번(얼음 웅덩이) · 9번(가라앉은 배 사이를 거칠게) · 8번(폭풍 가운데 바위 곁에 웅크린 어린 고래)
+	makeVoices() {
+
+		this.makeVoice( 'twelve', { home: P, recolor: [ 0x1c2a3a, 0xdce9f6 ], spout: true } );
+		this.makeVoice( 'nine', { home: DAWN_PLACES.fleet, radius: 42, speed: 11, recolor: [ 0x2a1616, 0xd8b4a8 ] } );
+		const S = DAWN_PLACES.storm;
+		this.makeVoice( 'eight', { home: { x: S.x + 6, z: S.z }, radius: 4, speed: 1.6, length: 6.5, recolor: [ 0x183040, 0xe4f2fa ] } );
+
+	}
+
+	get twelve() {
+
+		return this.voices.twelve;
+
+	}
+
+	updateVoice( v, dt, hazel ) {
+
+		const w = v.whale;
+		if ( v.state === 'idle' ) {
+
+			// 제자리를 맴돈다 (12번은 가끔 숨을 내뿜고, 9번은 배 사이를 거칠게, 8번은 바위 곁에 웅크려 떤다)
+			v.angle += dt * v.speed / v.radius;
+			steerTo( w, v.home.x + Math.cos( v.angle ) * v.radius, v.home.z + Math.sin( v.angle ) * v.radius, v.speed, dt, 2.2 );
+			if ( v.spout >= 0 ) {
+
+				v.spout -= dt;
+				if ( v.spout <= 0 ) {
+
+					v.spout = 5 + Math.random() * 3;
+					this.onSpout?.( w.pos );
+
+				}
+
+			}
+
+			if ( v.key === 'eight' ) w.depth = 0.7 + Math.sin( this.time * 3 ) * 0.4;
+
+		} else if ( v.state === 'come' ) {
+
+			// 헤이즐 앞으로 다가온다
+			if ( steerTo( w, hazel.pos.x + hazel.forward.x * 16, hazel.pos.z + hazel.forward.z * 16, 11, dt, 2.5 ) < 4 ) v.state = 'face';
+			this.collide( w.pos, 3 );
+
+		} else if ( v.state === 'face' ) {
+
+			w.speed *= 0.9;
+			const ty = Math.atan2( hazel.pos.x - w.pos.x, hazel.pos.z - w.pos.z );
+			w.yaw += Math.atan2( Math.sin( ty - w.yaw ), Math.cos( ty - w.yaw ) ) * Math.min( 1, dt * 1.5 );
+
+		} else if ( v.state === 'follow' ) {
+
+			// 듣는 노래: 헤이즐 옆에서, 이끄는 노래: 헤이즐 뒤 한 줄로
+			w.depth += ( 0 - w.depth ) * Math.min( 1, dt );
+			followSlot( w, hazel, v.slot, dt, 50 );
+			this.collide( w.pos, 3 );
+
+		} else if ( v.state === 'leave' ) {
+
+			// 혼자의 길: dive면 잠수해서, 아니면 수면으로 멀리
+			if ( v.dive ) {
+
+				w.depth += ( 9 - w.depth ) * Math.min( 1, dt * 0.5 );
+				w.setOpacity( Math.max( 0, 1 - w.depth / 9 ) );
+				if ( w.depth > 8.5 ) w.root.visible = false;
+
+			}
+
+			steerTo( w, v.to.x, v.to.z, 12, dt, 1.2 );
+			if ( Math.hypot( w.pos.x - hazel.pos.x, w.pos.z - hazel.pos.z ) > 380 ) w.root.visible = false;
+
+		}
+
+		w.update( dt );
+
+	}
+
+	update( dt, t, { hazel, cam, active = true } ) {
 
 		this.time = t;
 		this.updateIce( dt, false, cam );
@@ -437,49 +778,15 @@ export class DawnSea {
 
 		}
 
-		// 12번
-		const tw = this.twelve;
-		if ( tw && tw.whale.root.visible ) {
+		// 함대: 깨어난 배의 창이 따뜻하게 일렁이고, 군함엔 붉은 경고등
+		for ( const wr of this.wrecks ) if ( wr.woke ) wr.winMat.color.setRGB( 1, 0.72 + Math.sin( t * 3 + wr.x ) * 0.06, 0.4 ).multiplyScalar( 0.85 + Math.sin( t * 2.1 + wr.z ) * 0.15 );
+		this.warnLight.material.opacity = Math.max( 0, Math.sin( t * 2.4 ) ) * 0.9;
 
-			const w = tw.whale;
-			if ( tw.state === 'pool' ) {
+		// 폭풍
+		this.updateStorm( dt, hazel, cam, active );
 
-				// 웅덩이를 맴돌며 가끔 숨을 내뿜는다 (얼음 위로 하얀 물보라)
-				tw.angle += dt * 0.42;
-				steerTo( w, P.x + Math.cos( tw.angle ) * 9, P.z + Math.sin( tw.angle ) * 9, 4.5, dt, 2.2 );
-				tw.spout -= dt;
-				if ( tw.spout <= 0 ) {
-
-					tw.spout = 5 + Math.random() * 3;
-					this.onSpout?.( w.pos );
-
-				}
-
-			} else if ( tw.state === 'face' ) {
-
-				w.speed *= 0.9;
-				const ty = Math.atan2( hazel.pos.x - w.pos.x, hazel.pos.z - w.pos.z );
-				w.yaw += Math.atan2( Math.sin( ty - w.yaw ), Math.cos( ty - w.yaw ) ) * Math.min( 1, dt * 1.5 );
-
-			} else if ( tw.state === 'follow' ) {
-
-				// 듣는 노래: 헤이즐 옆에서, 이끄는 노래: 헤이즐 바로 뒤에서
-				followSlot( w, hazel, tw.slot, dt, 50 );
-				this.collide( w.pos, 3 );
-
-			} else if ( tw.state === 'leave' ) {
-
-				// 혼자의 길: 얼음 밑으로 잠수해 북쪽으로
-				w.depth += ( 9 - w.depth ) * Math.min( 1, dt * 0.5 );
-				steerTo( w, DAWN_PLACES.north.x, DAWN_PLACES.north.z, 12, dt, 1.2 );
-				w.setOpacity( Math.max( 0, 1 - w.depth / 9 ) );
-				if ( w.depth > 8.5 ) w.root.visible = false;
-
-			}
-
-			w.update( dt );
-
-		}
+		// 만나는 고래들
+		for ( const v of Object.values( this.voices ) ) if ( v.whale.root.visible ) this.updateVoice( v, dt, hazel );
 
 	}
 
@@ -498,10 +805,11 @@ export function applyDawnSea( k, { fog, ocean, hemi, moon } ) {
 }
 
 // 얼음 벌판에선 안개가 희고 짙어진다
-export function frostFog( fog, base, frost, ocean ) {
+// 폭풍 속에선 어둡고 짙어진다
+export function frostFog( fog, base, frost, ocean, storm = 0 ) {
 
-	fog.color.copy( base ).lerp( ICE_FOG, frost * 0.25 );
-	fog.density = 0.00105 * ( 1 + frost * 1.6 );
+	fog.color.copy( base ).lerp( ICE_FOG, frost * 0.25 ).lerp( STORM_FOG, storm * 0.7 );
+	fog.density = 0.00105 * ( 1 + frost * 1.6 + storm * 2.2 );
 	ocean.uniforms.uFogDensity.value = fog.density; // 바다 셰이더는 값을 따로 들고 있다
 
 }

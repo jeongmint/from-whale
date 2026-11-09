@@ -16,7 +16,9 @@ export const SPEAKERS = {
 	kelp: { portrait: null, bar: 'linear-gradient(90deg,#0c6b5a,#6dffe0)' },
 	ai: { portrait: null, bar: 'linear-gradient(90deg,#5a1020,#ff3355)' }, // MAP 2: 박사의 AI
 	j: { portrait: null, bar: 'linear-gradient(90deg,#3a3020,#e8c37a)' }, // MAP 2: 잠수복의 J
-	twelve: { portrait: 'orca', bar: 'linear-gradient(90deg,#2a3a4e,#dce9f6)' } // MAP 3: 얼어붙은 항로의 12번
+	twelve: { portrait: 'orca', bar: 'linear-gradient(90deg,#2a3a4e,#dce9f6)' }, // MAP 3: 얼어붙은 항로의 12번
+	nine: { portrait: 'orca', bar: 'linear-gradient(90deg,#4a1e1e,#e0b0a0)' }, // MAP 3: 침몰한 함대의 9번
+	eight: { portrait: 'orca', bar: 'linear-gradient(90deg,#1e3a48,#bfe8ff)' } // MAP 3: 폭풍의 바다의 8번
 };
 
 // MAP 3 · 12번의 노래 (듣는 노래). [ 박, 음(MIDI) ]. 구절마다 길어지고, 처음엔 떨리던 소리가 또렷해진다
@@ -24,6 +26,18 @@ export const TWELVE_PHRASES = [
 	[ [ 0, 76 ], [ 1, 79 ], [ 2, 76 ] ],
 	[ [ 0, 76 ], [ 1, 79 ], [ 1.5, 81 ], [ 3, 79 ] ],
 	[ [ 0, 81 ], [ 1, 79 ], [ 1.5, 81 ], [ 2, 84 ], [ 3, 81 ] ]
+];
+// 9번: 낮고 거친 엇박 (화가 나 있다)
+export const NINE_PHRASES = [
+	[ [ 0, 69 ], [ 0.5, 69 ], [ 1.5, 72 ] ],
+	[ [ 0, 69 ], [ 0.5, 72 ], [ 1, 74 ], [ 2, 72 ] ],
+	[ [ 0, 74 ], [ 0.5, 72 ], [ 1, 69 ], [ 1.5, 72 ], [ 2.5, 76 ] ]
+];
+// 8번: 작고 높고 빠른 소리 (겁에 질려 있다)
+export const EIGHT_PHRASES = [
+	[ [ 0, 84 ], [ 0.5, 86 ] ],
+	[ [ 0, 84 ], [ 0.5, 86 ], [ 1, 88 ] ],
+	[ [ 0, 88 ], [ 0.5, 86 ], [ 1, 84 ], [ 2, 86 ] ]
 ];
 
 // 지도 (x, z). 북쪽 = -z
@@ -663,39 +677,153 @@ export async function map3( G ) {
 	G.camFocus( tw.whale, { side: 1, dist: 32, height: 10 } );
 	await G.say( pick( T().meet ) );
 
-	// 어떻게 노래할까
-	const who = U().twelve;
-	const way = await chooseSong( G, who );
-	await G.say( pick( T().before[ way ] ) );
-	if ( way === 'listen' ) await listenSong( G, tw.whale, TWELVE_PHRASES, who );
-	else if ( way === 'lead' ) await leadSong( G, tw.whale, who );
-	else await soloSong( G );
-	await G.say( pick( T().after[ way ] ) );
-
-	if ( way === 'alone' ) {
-
-		// 혼자의 길: 12번은 얼음 밑으로 잠수해 북쪽으로 간다 (함께 오지 않는다)
-		tw.state = 'leave';
-		G.dawnTo( 0.3 );
-
-	} else {
-
-		// 함께: 노래가 얼음을 가르고, 12번이 따라온다. 듣는 노래면 옆에서 제 목소리로, 이끄는 노래면 바로 뒤에서
-		G.openIce();
-		tw.state = 'follow';
-		tw.slot = way === 'listen' ? { x: 16, z: 2 } : { x: 0, z: - 15 };
-		G.dawnTo( 0.38 );
-
-	}
-
-	G.voices.push( { who: 'twelve', way } );
+	// 어떻게 노래할까. 함께 가면 얼음이 갈라지고, 혼자의 길이면 12번은 얼음 밑으로 잠수해 북쪽으로
+	let way = await meetSong( tw, T(), TWELVE_PHRASES, U().twelve, { to: DAWN_PLACES.north, dive: true } );
+	if ( way !== 'alone' ) G.openIce();
 	await G.wait( 2.5 );
 	await G.say( pick( T().dawn[ way ] ) );
 	G.camRelease();
-	await card( G, U().voiceCard[ way ] );
+	await voiceCard( U().voiceCard[ way ] );
 	G.cutscene( false );
+
+	// 2단계 · 흩어진 목소리: 침몰한 함대와 폭풍의 바다 (어느 순서로든)
+	await G.say( pick( T().next ) );
+	const REGIONS = { fleet: { at: DAWN_PLACES.fleet, r: 230, run: fleet }, storm: { at: DAWN_PLACES.storm, r: 330, run: storm } };
+	const left = new Set( Object.keys( REGIONS ) );
+	while ( left.size ) {
+
+		// 가장 가까운, 아직 안 간 바다를 가리킨다
+		const near = [ ...left ].sort( ( a, b ) => dist( REGIONS[ a ].at ) - dist( REGIONS[ b ].at ) )[ 0 ];
+		G.objective( U().label, U().objVoices, REGIONS[ near ].at );
+		let key = null;
+		await G.until( () => free() && ( key = [ ...left ].find( ( k ) => dist( REGIONS[ k ].at ) < REGIONS[ k ].r ) ) );
+		left.delete( key );
+		await REGIONS[ key ].run();
+
+	}
+
+	await G.say( pick( T().gathered ) );
 	G.objective( U().label, U().objNext );
 	G.ui.toast( U().preview );
+
+	function dist( p ) {
+
+		return Math.hypot( h.pos.x - p.x, h.pos.z - p.z );
+
+	}
+
+	// 고래를 만나 노래를 고르고 부른 뒤, 그 고래의 길을 정한다. L: 그 고래의 대사 묶음 (before · after)
+	async function meetSong( v, L, phrases, who, leave ) {
+
+		const way = await chooseSong( G, who );
+		await G.say( pick( L.before[ way ] ) );
+		if ( way === 'listen' ) await listenSong( G, v.whale, phrases, who );
+		else if ( way === 'lead' ) await leadSong( G, v.whale, who );
+		else await soloSong( G );
+		await G.say( pick( L.after[ way ] ) );
+		if ( way === 'alone' ) Object.assign( v, { state: 'leave' }, leave );
+		else {
+
+			// 듣는 노래: 헤이즐 옆에 제 자리, 이끄는 노래: 헤이즐 뒤에 한 줄로
+			const n = G.voices.filter( ( x ) => x.way === way ).length;
+			v.slot = way === 'listen' ? [ { x: 16, z: 2 }, { x: - 18, z: 0 }, { x: 24, z: - 12 } ][ n ] : { x: 0, z: - 15 - n * 11 };
+			v.state = 'follow';
+
+		}
+
+		G.voices.push( { who: v.key, way } );
+		// 목소리가 모일수록 새벽이 온다 (함께 가면 더, 혼자의 길이어도 조금)
+		G.dawnTo( 0.22 + G.voices.reduce( ( k, x ) => k + ( x.way === 'alone' ? 0.08 : 0.16 ), 0 ) );
+		return way;
+
+	}
+
+	// VOICE 카드: 번호는 모은 순서대로
+	function voiceCard( c ) {
+
+		return card( G, [ `VOICE ${G.voices.length}`, c[ 1 ], c[ 2 ] ] );
+
+	}
+
+	// 고래가 헤이즐 앞으로 다가와 마주 본다
+	async function approach( v ) {
+
+		v.state = 'come';
+		const end = G.time + 8;
+		await G.until( () => v.state === 'face' || G.time > end );
+		v.state = 'face';
+
+	}
+
+	// 침몰한 함대: 가라앉은 배 곁에서 노래하면 9번의 기억이 깨어난다 → 9번
+	async function fleet() {
+
+		const F = T().fleet;
+		const nine = sea.voices.nine;
+		await G.say( pick( F.enter ) );
+		G.ui.toast( U().fleetHint );
+		const ships = sea.wrecks.filter( ( w ) => w.memory >= 0 );
+		const aimShip = () => {
+
+			const rest = ships.filter( ( w ) => ! w.woke ).sort( ( a, b ) => dist( a ) - dist( b ) );
+			G.objective( U().label, U().objWrecks.replace( '{n}', ships.length - rest.length ), rest[ 0 ] ?? null );
+
+		};
+
+		aimShip();
+		while ( ships.some( ( w ) => ! w.woke ) ) {
+
+			await G.untilEvent( 'sing' );
+			const w = ships.find( ( x ) => ! x.woke && dist( x ) < 48 );
+			if ( ! w ) continue;
+			sea.wake( w );
+			G.wakeWreck( w );
+			G.cutscene( true );
+			G.camFocus( { x: w.x, y: 0, z: w.z }, { side: 1, dist: 70, height: 16 } );
+			await G.wait( 1 );
+			await G.say( pick( F.memories[ w.memory ] ) );
+			G.camRelease();
+			G.cutscene( false );
+			aimShip();
+
+		}
+
+		// 기억을 다 깨우면 9번이 다가온다
+		G.cutscene( true );
+		await approach( nine );
+		G.camFocus( nine.whale, { side: 1, dist: 30, height: 9 } );
+		await G.say( pick( F.meet ) );
+		way = await meetSong( nine, F, NINE_PHRASES, U().nine, { to: DAWN_PLACES.coast } );
+		await G.wait( 1.5 );
+		await G.say( pick( F.dawn[ way ] ) );
+		G.camRelease();
+		await voiceCard( U().fleetCard[ way ] );
+		G.cutscene( false );
+
+	}
+
+	// 폭풍의 바다: 큰 파도를 점프로 넘으며 한가운데로 → 8번
+	async function storm() {
+
+		const S = T().storm;
+		const eight = sea.voices.eight;
+		await G.say( pick( S.enter ) );
+		G.ui.toast( U().stormHint );
+		G.objective( U().label, U().objEye, DAWN_PLACES.storm );
+		await G.until( () => free() && dist( DAWN_PLACES.storm ) < 42 );
+		G.cutscene( true );
+		eight.state = 'face';
+		G.camFocus( eight.whale, { side: 1, dist: 26, height: 7 } );
+		await G.say( pick( S.meet ) );
+		way = await meetSong( eight, S, EIGHT_PHRASES, U().eight, { to: DAWN_PLACES.deep, dive: true } );
+		if ( way !== 'alone' ) sea.calmStorm(); // 8번이 함께 가면 폭풍이 잦아든다
+		await G.wait( 1.5 );
+		await G.say( pick( S.dawn[ way ] ) );
+		G.camRelease();
+		await voiceCard( U().stormCard[ way ] );
+		G.cutscene( false );
+
+	}
 
 }
 
