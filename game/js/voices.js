@@ -664,3 +664,24 @@ export function answerSong( G, { responders, rounds = 2, onBeat = null } ) {
 	} );
 
 }
+
+// 모비 딕: 아주 낮고 굵은 소리
+export function mobyNote( G, midi ) {
+
+	const a = G.audio, ctx = a.ctx;
+	if ( ! ctx ) return;
+	const f = mtof( midi ), t = ctx.currentTime + 0.01;
+	a.voice( t, [ [ 0, f * 0.95 ], [ 0.15, f ], [ 0.9, f * 0.97 ] ], { vel: 0.22, type: 'triangle', vibrato: 2.5, reverb: 1.3 } );
+
+}
+
+// 스텔라: 또 하나의 52Hz (맑은 소리 + 한 옥타브 아래)
+export function stellaNote( G, midi ) {
+
+	const a = G.audio, ctx = a.ctx;
+	if ( ! ctx ) return;
+	const f = mtof( midi ), t = ctx.currentTime + 0.01;
+	a.voice( t, [ [ 0, f * 0.98 ], [ 0.06, f ], [ 0.5, f ] ], { vel: 0.09, vibrato: 5.5, reverb: 1.2 } );
+	a.voice( t + 0.02, [ [ 0, f / 2 ], [ 0.55, f / 2 ] ], { vel: 0.06, vibrato: 4, reverb: 1.4 } );
+
+}

@@ -827,6 +827,42 @@ export class DawnSea {
 
 	}
 
+	// 교향곡: 목소리가 모일수록 연합군이 하나둘 북에서 풀려난다 (frac 0 ~ 1)
+	freeArmy( frac ) {
+
+		const n = Math.round( this.army.length * frac );
+		this.army.forEach( ( o, i ) => {
+
+			if ( ! o.free && ( ( i * 7 ) % this.army.length ) < n ) {
+
+				o.free = true;
+				this.onFreed?.( o.whale.pos );
+
+			}
+
+		} );
+
+	}
+
+	// 북에 맞춰 누르면 아직 묶인 고래들이 한꺼번에 움찔 나아간다
+	armyFlinch() {
+
+		for ( const o of this.army ) if ( ! o.free ) o.lunge = 1;
+
+	}
+
+	// 새벽: 모두 저마다의 바다로 흩어진다
+	scatterArmy() {
+
+		for ( const o of this.army ) {
+
+			const a = Math.random() * Math.PI * 2;
+			o.leaveTo = { x: o.home.x - Math.abs( Math.cos( a ) ) * 600, z: o.home.z + Math.sin( a ) * 600 }; // 해안(동쪽) 말고 바다 쪽으로
+
+		}
+
+	}
+
 	updateMarch( dt, hazel, active, sangAt, time ) {
 
 		const mc = this.march, sh = this.shaman;
@@ -862,6 +898,27 @@ export class DawnSea {
 		for ( const o of this.army ) {
 
 			const w = o.whale;
+			if ( o.leaveTo ) {
+
+				// 흩어진다: 저마다의 바다로
+				steerTo( w, o.leaveTo.x, o.leaveTo.z, 8, dt, 1.2 );
+				if ( Math.hypot( w.pos.x - hazel.pos.x, w.pos.z - hazel.pos.z ) > 420 ) w.root.visible = false;
+				w.update( dt );
+				continue;
+
+			}
+
+			if ( o.free ) {
+
+				// 북에서 풀려난 고래: 더는 박자에 맞춰 나아가지 않고, 제멋대로 고개를 돌린다
+				o.lunge = 0;
+				w.yaw += Math.sin( time * 0.3 + o.home.z ) * dt * 0.4;
+				w.speed *= 0.95;
+				w.update( dt );
+				continue;
+
+			}
+
 			o.lunge = Math.max( 0, o.lunge - dt * 1.6 );
 			const surge = Math.sin( Math.min( 1, 1 - o.lunge ) * Math.PI ) * 3.5;
 			w.pos.x += ( o.home.x + surge - w.pos.x ) * Math.min( 1, dt * 6 );

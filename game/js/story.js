@@ -1,7 +1,8 @@
 // 이야기 진행. 대사·편지·안내 문장은 lang/ko.js, lang/en.js, lang/ja.js 에 있다.
 import { lang } from './i18n.js';
 import { DAWN_PLACES } from './map3.js';
-import { chooseSong, listenSong, leadSong, soloSong, answerSong, playOldSong, hornNote, orcaNote, bellNote } from './voices.js';
+import { chooseSong, listenSong, leadSong, soloSong, answerSong, playOldSong, hornNote, orcaNote, bellNote, hazelNote, mobyNote, stellaNote } from './voices.js';
+import { symphony } from './symphony.js';
 
 // 화자 모양 (이름은 언어 파일의 speakers)
 export const SPEAKERS = {
@@ -715,8 +716,10 @@ export async function map3( G ) {
 
 	// 4단계 · 해안 도시와 진군
 	await coast();
-	G.objective( U().label, U().objNext );
-	G.ui.toast( U().preview );
+
+	// 5단계 · 고래의 교향곡 → 6단계 · 새벽
+	await finale();
+	await dawn();
 
 	function dist( p ) {
 
@@ -937,6 +940,113 @@ export async function map3( G ) {
 		G.camRelease();
 		await card( G, U().coastCard );
 		G.cutscene( false );
+
+	}
+
+	// 고래의 교향곡: 모비 딕(과 스텔라)이 오고, 모은 목소리가 하나씩 대답하며 줄이 늘어난다
+	async function finale() {
+
+		const F = T().finale;
+		const shaman = G.actors.shaman;
+		on.stella = G.metStella;
+		G.cutscene( true );
+		const moby = G.finaleArrive( on.stella );
+		G.camFocus( moby, { side: 1, dist: 90, height: 18 } );
+		await G.wait( 2 );
+		await G.say( pick( F.arrive ) );
+		G.camFocus( shaman, { side: 1, dist: 70, height: 16 } );
+		await G.say( pick( F.start ) );
+
+		// 목소리: 루크 → 핀 → 함께 온 고래들 → 모비 딕 → 스텔라. 선율은 모두 엇박 (샤먼의 북은 정박)
+		const V = [];
+		if ( on.luke ) V.push( { name: 'LUKE', actor: G.actors.luke, phrase: [ 0.5, 1.5, 2.5 ], pitches: [ 57, 60, 64 ], play: ( m ) => hornNote( G, m ), color: 0xffb070, rest: 0.3, restColor: 0xffd36b } );
+		if ( on.finn ) V.push( { name: 'FINN', actor: G.actors.finn, phrase: [ 0.5, 2.5, 3.5 ], pitches: [ 81, 84, 86 ], play: ( m ) => orcaNote( G, m ), color: 0x9d8cff } );
+		const ORCA = {
+			twelve: { phrase: [ 1.5, 2.5, 3.5 ], pitches: [ 76, 79, 76 ] },
+			nine: { phrase: [ 0.5, 1.5, 3.5 ], pitches: [ 69, 72, 69 ] },
+			eight: { phrase: [ 2.5, 3.5 ], pitches: [ 88, 86 ] }
+		};
+		for ( const k of [ 'twelve', 'nine', 'eight' ] ) {
+
+			const v = sea.voices[ k ];
+			if ( v.state === 'follow' ) V.push( { name: U()[ k ], actor: v.whale, ...ORCA[ k ], play: ( m ) => orcaNote( G, m ), color: 0x7fe9ff } );
+
+		}
+
+		V.push( { name: 'MOBY DICK', actor: moby, phrase: [ 0.5, 3.5 ], pitches: [ 45, 40 ], play: ( m ) => mobyNote( G, m ), color: 0xbcd6ff, rest: 0.15, restColor: 0xbcd6ff } );
+		if ( on.stella ) V.push( { name: 'STELLA', actor: G.actors.stella, phrase: [ 0.5, 1.5, 2.5, 3.5 ], pitches: [ 69, 72, 76, 81 ], play: ( m ) => stellaNote( G, m ), color: 0xffd36b, rest: 0.12, restColor: 0xffb020 } );
+
+		G.objective( U().label, U().objSym );
+		G.camFocus( { x: ( h.pos.x + shaman.pos.x ) / 2, y: 0, z: ( h.pos.z + shaman.pos.z ) / 2 }, { side: 1, dist: 85, height: 22 } );
+		G.symphony = await symphony( G, V, {
+			drum: ( vel ) => G.audio.play( 'drum', { vel } ),
+			drumTap: () => G.symphonyDrumTap(),
+			join: ( i, frac ) => G.symphonyJoin( frac ),
+			hazel: ( m ) => hazelNote( G, m )
+		} );
+		G.symphonyJoin( 1 );
+		on.drummed = G.symphony.drumTaps >= 4;
+		await G.say( pick( F.after ) );
+
+	}
+
+	// 새벽: 샤먼의 물음 → 다시 노래 → 샤먼의 첫 소리 → 해돋이 → 저마다의 바다로 → 엔딩
+	async function dawn() {
+
+		const D = T().dawnEnd;
+		const shaman = G.actors.shaman;
+		G.camFocus( shaman, { side: - 1, dist: 34, height: 6 } );
+		await G.say( pick( D.question ) );
+		G.audio.play( 'sing' );
+		for ( let i = 0; i < 3; i ++ ) G.world.ring( h.pos.x, h.pos.z, { color: 0x7fe9ff, to: 50, life: 1.6, delay: i * 0.3 } );
+		await G.wait( 2 );
+		G.shamanOwnVoice();
+		await G.say( pick( D.voice ) );
+
+		// 해가 뜬다
+		G.sunrise();
+		G.ui.setObjective( U().label, U().objDawn );
+		G.camFocus( { x: h.pos.x + 120, y: 0, z: h.pos.z }, { side: 1, dist: 60, height: 10 } );
+		await G.wait( 3 );
+		await G.say( pick( D.sunrise ) );
+
+		// 저마다의 바다로: 듣는 노래로 온 고래는 제 길을 말하고, 이끄는 노래로 온 고래는 명령을 기다리다 처음으로 제 쪽을 고른다
+		const fare = [];
+		let leaders = 0, lone = 0;
+		for ( const x of G.voices ) {
+
+			if ( x.way === 'alone' ) lone ++;
+			else {
+
+				if ( x.way === 'lead' ) leaders ++;
+				fare.push( ...( D.fare[ x.who ][ x.way ] ?? [] ) );
+
+			}
+
+		}
+
+		on.leaders = leaders > 0;
+		on.lone = lone > 0;
+		G.camFocus( h, { side: 1, dist: 40, height: 9 } );
+		if ( fare.length ) await G.say( pick( fare ) );
+		await G.say( pick( D.after ) );
+		G.scatterAll();
+		const DIR = { twelve: DAWN_PLACES.north, nine: { x: 1100, z: 600 }, eight: DAWN_PLACES.deep };
+		for ( const k of [ 'twelve', 'nine', 'eight' ] ) {
+
+			const v = sea.voices[ k ];
+			if ( v.state === 'follow' ) Object.assign( v, { state: 'leave', to: DIR[ k ], dive: false } );
+
+		}
+
+		await G.wait( 2.5 );
+		G.camFocus( { x: h.pos.x + 200, y: 0, z: h.pos.z }, { side: 1, dist: 70, height: 14 } );
+		await G.say( pick( D.poem ) );
+		G.camRelease();
+		G.cutscene( false );
+		// 엔딩: 세 바다의 목소리가 모두 함께 왔다면 '모두의 노래', 아니면 '52Hz의 새벽'
+		const all = [ 'twelve', 'nine', 'eight' ].every( ( k ) => G.voices.some( ( x ) => x.who === k && x.way !== 'alone' ) );
+		await G.showEnding( all ? 'chorus' : 'lone' );
 
 	}
 

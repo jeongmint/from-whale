@@ -11,6 +11,7 @@ export default {
 			tagline: 'Another world, the year 2066. A sea where only a few humans remain.<br>There was a whale who sang at 52Hz, a song no one could hear.',
 			start: '▶ Begin the journey',
 			duet: '♪ Duet with Stella',
+			dawn: '▲ MAP 3 · Toward the dawn',
 			continue: 'Continue',
 			continueAt: 'Continue · {ch}',
 			quote: '“ Adventure begins<br>with the very thought of doing something ”'
@@ -37,14 +38,12 @@ export default {
 			jelly: 'The jellyfish\'s light wraps the wound — heart restored',
 			guardStun: 'A perfect 52Hz — nearby guards freeze for a moment'
 		},
-		// MAP 3 · A Song That Calls the Dawn (phase 1 preview)
+		// MAP 3 · A Song That Calls the Dawn
 		map3: {
 			label: 'MAP 3 · A Song That Calls the Dawn',
 			card: [ 'MAP 3', 'A Song That Calls the Dawn', 'Song of Liberation' ],
 			objFrozen: 'Follow the broken song · The Frozen Lane',
-			objNext: 'The dawn sea · the Whale Symphony is still being made',
 			iceHint: 'Take the narrow channel between the ice — you can\'t swim through it',
-			preview: 'That\'s all of the MAP 3 preview for now — the Whale Symphony is on its way',
 			twelve: 'No.12',
 			choiceTitle: 'How will you sing?',
 			choiceHint: 'Choose a song for {who} · 1 2 3 or tap',
@@ -105,7 +104,19 @@ export default {
 			drumHint: 'Sing [E] the moment a red drum ring reaches you — keep your own voice and it won\'t push you back',
 			drumHit: 'Pushed back by the drum — [E] the moment the ring reaches you',
 			drumBlock: '52Hz cut through the drumbeat',
-			coastCard: [ 'MAP 3', 'The Coastal City', 'Before the March' ]
+			coastCard: [ 'MAP 3', 'The Coastal City', 'Before the March' ],
+			objSym: 'The Whale Symphony · answer your friends\' songs',
+			objDawn: 'Dawn',
+			symTitle: 'WHALE SYMPHONY',
+			symDrum: 'Shaman\'s drum',
+			symListen: 'Listen… {who}\'s song (answer in the same places next bar)',
+			symAgain: 'Listen once more… {who}',
+			symAnswer: 'Now! Answer in the same places [E] — follow {who}, not the drum',
+			symHelp: '{who} — matched you first',
+			symJoin: '{who} — sings along',
+			symFinal: 'Everyone together — sing in 52Hz [E]',
+			symDrumWarn: 'Following the drum makes the Shaman\'s chorus louder — listen for your friends\' off-beats',
+			symDone: 'Different voices became one song'
 		},
 		// MAP 2 낚시
 		fish: {
@@ -183,9 +194,11 @@ export default {
 		ending: {
 			search: 'Find the rest of the letters · {n}/{total}',
 			again: 'Play again',
-			deepHint: 'The story continues above the waves, toward the dawn — MAP 3 preview',
-			dive: '▼ Into the deep (MAP 2 preview)',
-			dawn: '▲ Toward the dawn (MAP 3 preview)',
+			deepHint: 'The story continues above the waves, toward the dawn',
+			dawnQuote: '“ What were we born for?<br>So we began to sing ”',
+			dawnHint: 'MAP 3 · A Song That Calls the Dawn — thank you for listening to the end',
+			dive: '▼ Into the deep · MAP 2',
+			dawn: '▲ Toward the dawn · MAP 3',
 			allEndings: '★ All 6 endings found — the sea now glitters gold',
 			duet: '♪ Sing the duet again',
 			quote: '“ The sea holds a freedom<br>that everyone deserves ”',
@@ -202,6 +215,8 @@ export default {
 			late: { name: 'The Late Whale', hint: 'If you gather every letter in a bottle before meeting Moby Dick' },
 			heart: { name: 'A Whale\'s Stopped Heart', hint: 'If you fall twice in one chapter…' },
 			deep: { name: 'A Song Heard', hint: 'If you sing the stop code at the very bottom of the sea' },
+			chorus: { name: 'Everyone\'s Song', hint: 'If the voices of the Frozen Lane, the Sunken Fleet and the Storm Sea all come along' },
+			lone: { name: 'A 52Hz Dawn', hint: 'If you sing until dawn in MAP 3' },
 			stella: 'Another 52Hz'
 		},
 		toast: {
@@ -952,6 +967,62 @@ export default {
 					[ 'narrator', 'Far away, the lighthouse blinked, as if counting the beat.', 'lukeGone' ],
 					[ 'shaman', 'If you mean to sing, then sing, 52Hz. If you can rise above this drum.' ],
 					[ 'narrator', '{N} took a deep breath.' ]
+				]
+			},
+			finale: {
+				arrive: [
+					[ 'narrator', 'Just then, the sea behind them heaved.' ],
+					[ 'moby', '…Not too late, 52 hertz.' ],
+					[ 'moby', 'Shaman. I too once tried to cover the whole sea with my song alone.\nThe one who answered me then was that small whale.' ],
+					[ 'stella', 'I\'m here too, 52 hertz! This time it\'s not just the two of us — it\'s everyone, right?', 'stella' ]
+				],
+				start: [
+					[ 'luke', 'I\'ll start. Then one by one, each in its own voice.', 'luke' ],
+					[ 'narrator', 'Far away, the lighthouse marked the first beat.', 'lukeGone' ],
+					[ 'narrator', 'Not the drum — they had to listen to their friends. And answer in the same places.' ]
+				],
+				after: [
+					[ 'narrator', 'The drum fell silent.' ],
+					[ 'narrator', 'One by one, the Alliance lifted their heads, each looking a different way.' ],
+					[ 'narrator', '{N} got pulled along by the drum a few times. Still, the song stayed 52Hz to the end.', 'drummed' ]
+				]
+			},
+			dawnEnd: {
+				question: [
+					[ 'shaman', '……Without orders,\nwhat are we supposed to live for?' ],
+					[ 'narrator', '{N} didn\'t answer. Instead, {N} sang again.' ]
+				],
+				voice: [
+					[ 'narrator', 'For the first time, the Shaman made a sound.\nClumsy, very small, and its own.' ]
+				],
+				sunrise: [
+					[ 'narrator', 'The sun rose in the east. The lighthouse slowly went dark.' ]
+				],
+				fare: {
+					twelve: {
+						listen: [ [ 'twelve', 'I\'m going north. The sea won\'t be frozen anymore.' ] ],
+						lead: [ [ 'twelve', '…Where do I go now? Tell me.' ] ]
+					},
+					nine: {
+						listen: [ [ 'nine', 'I\'m staying by the coast. I\'ll keep an eye on the humans.\nNot because I\'m ordered to protect them — because I want to see.' ] ],
+						lead: [ [ 'nine', 'What\'s the next order? …None?' ] ]
+					},
+					eight: {
+						listen: [ [ 'eight', 'I want to ride more waves! All the way out there!' ] ],
+						lead: [ [ 'eight', 'Keep counting the beat… okay?' ] ]
+					}
+				},
+				after: [
+					[ 'narrator', '{N} didn\'t set a beat for them. {N} just sang in 52Hz again.', 'leaders' ],
+					[ 'narrator', 'After a long hesitation, the whales chose their own way for the first time.', 'leaders' ],
+					[ 'narrator', 'Somewhere far out at sea, the voices that chose to go alone were meeting the dawn too.', 'lone' ],
+					[ 'finn', 'Now I\'ll… try living in my own voice.', 'finn' ],
+					[ 'luke', '{N}, it was heard. Our song.', 'luke' ]
+				],
+				poem: [
+					[ 'narrator', 'What were we born for?\nNo one ever told us.' ],
+					[ 'narrator', 'So we began to sing.\nIn different voices, toward different seas.' ],
+					[ 'narrator', 'And for the first time,\nthe song was no one\'s order.' ]
 				]
 			}
 		},
