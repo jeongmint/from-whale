@@ -10,7 +10,7 @@ import { loadModels, Whale, followSlot, idleCircle, steerTo, updateSwimTime, mak
 import { UI } from './ui.js';
 import { AudioEngine } from './audio.js';
 import { cleanName, loadName, saveName } from './name.js';
-import { CHAPTERS, PLACES, BOTTLES, LETTER_TOTAL, ORCA_PACKS, KELP_GROVES, scramble, epilogue, lukeLateFall, duetAgain, map2 } from './story.js';
+import { CHAPTERS, PLACES, BOTTLES, LETTER_TOTAL, ORCA_PACKS, KELP_GROVES, scramble, epilogue, lukeLateFall, duetAgain, map2, map3 } from './story.js';
 import { lang, t, setLang, applyStatic } from './i18n.js';
 import { openScores } from './scores.js';
 import { Dive, DIVE_TOP, DIVE_BOTTOM, ZONES, zoneAt } from './dive.js';
@@ -18,6 +18,7 @@ import { buildTrench, trenchCenter, trenchRadius, glowMap } from './map2.js';
 import { loadSealife, Sealife } from './sealife.js';
 import { Guards } from './guards.js';
 import { startFishing, dexCount, DEX_KEYS } from './fishing.js';
+import { DawnSea, DAWN_PLACES, applyDawnSea, frostFog } from './map3.js';
 
 const BASE = window.FW_ASSET_BASE ?? '../';
 const query = new URLSearchParams( location.search );
@@ -27,6 +28,8 @@ const STELLA_TEST = query.has( 'stella' );
 const GOLD_TEST = query.has( 'gold' );
 // 테스트 옵션 ?dive: MAP 2 미리보기 (포털 → 바닷속)부터 시작. 저장은 건드리지 않는다
 const DIVE_TEST = query.has( 'dive' );
+// 테스트 옵션 ?dawn: MAP 3 미리보기 (새벽 바다)부터 시작. 저장은 건드리지 않는다
+const DAWN_TEST = query.has( 'dawn' );
 const LOW = ( query.get( 'q' ) ?? ( matchMedia( '(pointer: coarse)' ).matches ? 'low' : 'high' ) ) === 'low';
 const DT_MAX = Number( query.get( 'dtmax' ) ) || 1 / 20;
 
@@ -273,7 +276,7 @@ function applyGoldenSea() {
 
 function saveEnding( key ) {
 
-	if ( STELLA_TEST || duetMode || DIVE_TEST ) return;
+	if ( STELLA_TEST || duetMode || DIVE_TEST || DAWN_TEST ) return;
 	const seen = loadEndings();
 	if ( seen.includes( key ) ) return;
 	seen.push( key );
@@ -308,7 +311,7 @@ function loadSave() {
 
 function persist() {
 
-	if ( STELLA_TEST || duetMode || DIVE_TEST ) return;
+	if ( STELLA_TEST || duetMode || DIVE_TEST || DAWN_TEST ) return;
 	try {
 
 		localStorage.setItem( SAVE_KEY, JSON.stringify( G.save ) );
@@ -834,6 +837,53 @@ Object.assign( G, {
 
 	},
 
+	// MAP 3: 새벽 정도 (0 밤 ~ 1 해돋이). 천천히 따라간다. instant면 바로
+	dawnTo( k, instant = false ) {
+
+		G.dawnTarget = k;
+		if ( instant ) G.dawn = k;
+
+	},
+
+	// MAP 3 프롤로그: 붉은 눈이 꺼진 연합군이 수면에 떠 있고, 가운데에 샤먼
+	silentAlliance() {
+
+		const c = DAWN_PLACES.gather;
+		const h = G.actors.hazel;
+		G.map3.gatherAlliance( c );
+		const s = G.actors.shaman;
+		s.place( c.x, c.z, Math.atan2( h.pos.x - c.x, h.pos.z - c.z ) );
+		s.depth = s.targetDepth = 0.3;
+		s.hold = true;
+		s.root.visible = true;
+		s.setOpacity( 1 );
+		s.setGlow( 0, 0x000000 );
+		return s;
+
+	},
+
+	// 샤먼의 새 명령: 연합군이 세 갈래로 흩어지고, 샤먼은 해가 뜨는 쪽(인간의 해안)으로
+	allianceMarch() {
+
+		G.map3.scatter();
+		G.actors.shaman.hold = false;
+		G.shamanMarch = true;
+
+	},
+
+	// 노래가 얼음을 가른다 (12번이 함께 가기로 했을 때)
+	openIce() {
+
+		const p = DAWN_PLACES.pool;
+		const n = G.map3.crack( p, 70 );
+		G.audio.play( 'boom' );
+		setTimeout( () => G.audio.play( 'join' ), 400 );
+		for ( let i = 0; i < 3; i ++ ) G.world.ring( p.x, p.z, { color: 0xdcf0ff, to: 70, life: 1.8, delay: i * 0.35 } );
+		G.world.splash( p.x, 0.5, p.z, { count: 120, power: 11, color: 0xe8f4ff } );
+		return n;
+
+	},
+
 	// 기록을 읽으면 그 자리가 쓰러졌을 때 깨어나는 곳이 되고, 하트가 다 찬다
 	logRead( log ) {
 
@@ -922,6 +972,7 @@ Object.assign( G, {
 		$( 'btn-duet-end' ).classList.toggle( 'hidden', !! forced || ! loadEndings().includes( 'stella' ) );
 		// 스텔라를 만난 적 있으면 MAP 2 미리보기 (포털 → 바닷속)
 		$( 'btn-dive' ).classList.toggle( 'hidden', !! forced || ! loadEndings().includes( 'stella' ) );
+		$( 'btn-dawn' ).classList.add( 'hidden' );
 		$( 'ending-quote' ).innerHTML = t( 'ending.quote' );
 		$( 'ending-stats' ).innerHTML = [
 			`PLAY TIME ${minutes}:${String( seconds ).padStart( 2, '0' )}`,
@@ -950,6 +1001,7 @@ async function showMap2Ending() {
 	$( 'ending-head' ).textContent = `MAP 2 ENDING · ${t( 'endings.deep.name' )}`;
 	renderEndings( $( 'ending-list' ), 'deep' );
 	for ( const id of [ 'btn-duet-end', 'btn-dive', 'btn-search' ] ) $( id ).classList.add( 'hidden' );
+	$( 'btn-dawn' ).classList.remove( 'hidden' ); // MAP 3 미리보기: 수면 위 새벽으로
 	$( 'ending-quote' ).innerHTML = t( 'ending.quote' );
 	$( 'ending-stats' ).innerHTML = [
 		`PLAY TIME ${minutes}:${String( seconds ).padStart( 2, '0' )}`,
@@ -988,7 +1040,7 @@ function makeOrcaAgent( whale, pack, state = 'patrol' ) {
 
 function updateOrcas( dt ) {
 
-	if ( G.diving ) return; // MAP 2엔 연합군이 없다 (맵 1의 연합군은 숨겨 둔다)
+	if ( G.diving || G.map3 ) return; // MAP 2 · 3엔 맵 1의 연합군이 없다 (숨겨 둔다)
 
 	const h = G.actors.hazel;
 	const frozen = G.cutsceneOn || G.ui.dialogOpen || G.diving; // 바닷속(MAP 2 미리보기)에선 수면의 연합군이 쫓지 않는다
@@ -2468,6 +2520,7 @@ function onAction( code ) {
 	if ( G.fishing && code === 'Escape' ) return G.fishing.quit();
 	if ( code === 'Escape' ) return setPaused( true );
 	if ( code === 'KeyM' ) return G.ui.setMuted( audio.toggleMute() );
+	if ( G.puzzle?.key && ! [ 'KeyE', 'Space', 'Enter' ].includes( code ) && G.puzzle.key( code ) ) return; // MAP 3 노래 고르기 (1 · 2 · 3, 방향키)
 	if ( G.puzzle && [ 'KeyE', 'Space', 'Enter' ].includes( code ) ) return G.puzzle.tap();
 	if ( G.duetPlay && ( code === 'KeyE' || code === 'Enter' ) ) return G.duetPlay.hit( 'S' );
 	if ( G.duetPlay && code === 'Space' ) return G.duetPlay.hit( 'J' );
@@ -2673,6 +2726,7 @@ function sing() {
 	}
 	else for ( let i = 0; i < 3; i ++ ) G.world.ring( h.pos.x, h.pos.z, { color: 0x7fe9ff, to: 58, life: 1.6, delay: i * 0.28 } );
 	G.emit( 'sing' );
+	if ( G.map3 ) return; // MAP 3: 노래는 고래를 만났을 때 고른다
 
 	let revealed = 0;
 	for ( const b of G.bottles ) {
@@ -2919,7 +2973,7 @@ async function boot() {
 	setupTouch();
 	$( 'loading' ).classList.add( 'hidden' );
 	$( 'title-buttons' ).classList.remove( 'hidden' );
-	const debugChapter = query.has( 'chapter' ) ? Number( query.get( 'chapter' ) ) : STELLA_TEST || duetMode || DIVE_TEST ? 5 : null;
+	const debugChapter = query.has( 'chapter' ) ? Number( query.get( 'chapter' ) ) : STELLA_TEST || duetMode || DIVE_TEST || DAWN_TEST ? 5 : null;
 	const continueBtn = $( 'btn-continue' );
 	const showContinue = () => {
 
@@ -3010,7 +3064,7 @@ async function boot() {
 	$( 'btn-start' ).onclick = () => {
 
 		setName( $( 'nickname' ).value );
-		if ( duetMode || DIVE_TEST ) return start( 5 ); // 듀엣만 · MAP 2 미리보기: 지난 판의 루크 · 핀 그대로
+		if ( duetMode || DIVE_TEST || DAWN_TEST ) return start( 5 ); // 듀엣만 · MAP 2 · 3 미리보기: 지난 판의 루크 · 핀 그대로
 		if ( debugChapter === null ) G.save = { chapter: 0, bottles: [], read: [], kelps: [] };
 		G.route = newRoute( ROUTE_TEST ?? ( debugChapter >= 4 ? 'light' : null ) );
 		if ( STELLA_TEST ) G.save = { ...G.save, bottles: [ 0, ...BOTTLES.map( ( b ) => b.id ) ], read: [ 0, ...BOTTLES.map( ( b ) => b.id ) ] };
@@ -3037,6 +3091,15 @@ async function boot() {
 		G.ui.show( 'hud' );
 		await G.ui.fade( 0, 1.2 );
 		openDivePortal();
+
+	};
+	$( 'btn-dawn' ).onclick = async () => {
+
+		G.ui.show( 'ending', false );
+		G.ended = false;
+		G.camRelease();
+		G.ui.show( 'hud' );
+		enterDawn();
 
 	};
 	$( 'btn-duet-more' ).onclick = () => {
@@ -3250,6 +3313,7 @@ async function start( chapter ) {
 
 	if ( duetMode ) return runDuetAgain();
 	if ( DIVE_TEST ) return openDivePortal();
+	if ( DAWN_TEST ) return enterDawn();
 
 	if ( chapter >= EPILOGUE ) {
 
@@ -3380,6 +3444,108 @@ async function enterDive() {
 	G.cutscene( false );
 	G.ui.toast( t( 'dive.hint' ) );
 	map2( G );
+
+}
+
+// MAP 2에서 물 위로: 바닷속 것들을 치우고 수면으로
+function leaveDive() {
+
+	G.diving = false;
+	G.dive.exit();
+	document.body.classList.remove( 'diving' );
+	G.diveY = 0;
+	G.diveVy = 0;
+	G.diveFloor = null;
+	if ( G.map2 ) G.map2.group.visible = false;
+	for ( const g of G.guards?.list ?? [] ) g.whale.root.visible = false;
+	if ( G.diver ) G.diver.root.visible = false;
+	const A = G.actors;
+	A.hazel.depth = 0;
+	for ( const key of [ 'luke', 'finn', 'shaman' ] ) A[ key ].depth = A[ key ].targetDepth = 0;
+
+}
+
+// MAP 3 미리보기: 새벽이 오기 전의 수면. MAP 2 엔딩 뒤 버튼이나 ?dawn 으로
+async function enterDawn() {
+
+	const h = G.actors.hazel;
+	G.cutscene( true );
+	await G.ui.fade( 1, 0.8 );
+	if ( G.diving ) leaveDive();
+	G.setStarfall( false );
+	G.compass = null;
+	G.ui.setCompass( null );
+	G.objectiveTarget = null;
+	G.ui.setObjective( t( 'map3.label' ), '—' ); // 앞 맵의 목표는 지운다 (프롤로그 뒤에 새 목표)
+	if ( ! G.map3 ) {
+
+		G.map3 = new DawnSea( { scene, models: G.models } );
+		G.map3.onSpout = ( p ) => G.world.splash( p.x, 0.8, p.z, { count: 36, power: 9, color: 0xeaf6ff } );
+		G.map3.makeTwelve();
+
+	}
+
+	// MAP 3는 다른 맵: 맵 1 · 2의 것들은 치우고, 얼음 조각이 바위 대신 길을 막는다
+	G.world.colliders = G.map3.colliders;
+	const A = G.actors;
+	const keep = new Set( [ h.root, A.luke.root, A.finn.root, A.shaman.root, G.sky.group, G.ocean.mesh, G.world.seabed, G.map3.group, hemiLight, moonLight, ambientLight, hazelLamp, stunStars ] );
+	for ( const o of scene.children ) if ( ! keep.has( o ) ) o.visible = false;
+	A.shaman.root.visible = false;
+	const s = DAWN_PLACES.start;
+	h.place( s.x, s.z, Math.PI ); // 북쪽을 본다
+	h.depth = 0;
+	G.camYaw = h.yaw;
+	placeCompanions();
+	G.dawn = G.dawnTarget = 0.04;
+	G.dawnApplied = G.dawnCaptured = - 1;
+	G.hearts = MAX_HEARTS;
+	G.ui.setHearts( G.hearts, MAX_HEARTS );
+	G.setMusic( { tension: 0, drums: 0, bass: 0, melody: 0.7, piano: 1, sax: 0 } );
+	camera.position.set( h.pos.x, 8, h.pos.z + 22 );
+	updateDawn( 0 );
+	await G.ui.fade( 0, 1.4 );
+	map3( G );
+
+}
+
+// 새벽이 천천히 번진다: 하늘 · 바다 · 안개 · 빛. 얼음 벌판에선 눈이 내리고 안개가 짙다
+function updateDawn( dt ) {
+
+	G.dawn += THREE.MathUtils.clamp( G.dawnTarget - G.dawn, - dt * 0.03, dt * 0.03 );
+	if ( Math.abs( G.dawn - G.dawnApplied ) > 0.003 ) {
+
+		G.sky.setDawn( G.dawn );
+		G.dawnFog = applyDawnSea( G.dawn, { fog, ocean: G.ocean, hemi: hemiLight, moon: moonLight } );
+		G.dawnApplied = G.dawn;
+		// 바다에 비치는 하늘(반사)도 가끔 다시 찍는다
+		if ( Math.abs( G.dawn - G.dawnCaptured ) > 0.025 ) {
+
+			G.sky.capture( renderer );
+			G.dawnCaptured = G.dawn;
+
+		}
+
+	}
+
+	const h = G.actors.hazel;
+	G.map3.update( dt, G.time, { hazel: h, cam: camera.position } );
+	frostFog( fog, G.dawnFog, G.map3.frost, G.ocean );
+	hemiLight.intensity *= 1 + G.dawn * 0.6;
+	moonLight.intensity *= 1 + G.dawn * 0.25;
+	ambientLight.intensity *= 1 + G.dawn * 0.5;
+	// 샤먼은 해가 뜨는 쪽으로 진군한다
+	const s = G.actors.shaman;
+	if ( G.shamanMarch && s.root.visible ) {
+
+		steerTo( s, DAWN_PLACES.coast.x, DAWN_PLACES.coast.z, 10, dt, 1.2 );
+		if ( Math.hypot( s.pos.x - h.pos.x, s.pos.z - h.pos.z ) > 420 ) {
+
+			s.root.visible = false;
+			G.shamanMarch = false;
+
+		}
+
+	}
 
 }
 
@@ -3679,6 +3845,8 @@ function updateCompanions( dt ) {
 
 function updateBottlesAndKelp( dt ) {
 
+	if ( G.map3 ) return G.ui.prompt( null ); // MAP 3엔 맵 1의 유리병 · 미역 · 빛 조각이 없다
+
 	if ( G.diving ) return G.ui.prompt( ! G.fishing && ! G.cutsceneOn && ! G.ui.dialogOpen && nearFishSpot() ? t( 'fish.prompt' ) : null ); // MAP 2엔 맵 1의 유리병 · 미역 · 빛 조각이 없다. 낚시 자리 안내만
 
 	for ( const b of G.bottles ) {
@@ -3842,6 +4010,21 @@ function updateHud() {
 	if ( G.mapTimer % 2 ) return;
 	const h = G.actors.hazel;
 	const points = [];
+	// MAP 3: 소나엔 얼음 조각, 동료, 12번, 흩어지는 연합군
+	if ( G.map3 ) {
+
+		const m = G.map3;
+		for ( const o of m.alliance ) if ( o.whale.root.visible ) points.push( { x: o.whale.pos.x, z: o.whale.pos.z, color: 'rgba(255,140,160,0.55)', size: 2.5 } );
+		const s = G.actors.shaman;
+		if ( s.root.visible ) points.push( { x: s.pos.x, z: s.pos.z, color: '#ff6b8b', size: 4 } );
+		if ( m.twelve?.whale.root.visible ) points.push( { x: m.twelve.whale.pos.x, z: m.twelve.whale.pos.z, color: '#dce9f6', size: 3 } );
+		for ( const key of [ 'luke', 'finn' ] ) if ( G.party[ key ] === 'on' ) points.push( { x: G.actors[ key ].pos.x, z: G.actors[ key ].pos.z, color: '#eaf6ff', size: 3 } );
+		if ( G.objectiveTarget ) points.push( { x: G.objectiveTarget.x, z: G.objectiveTarget.z, color: '#ffd36b', size: 4, shape: 'diamond', clamp: true } );
+		G.ui.drawMinimap( { px: h.pos.x, pz: h.pos.z, yaw: G.camYaw, heading: h.yaw - G.camYaw, range: 220, time: G.time, rocks: m.colliders, points, objective: t, signal: 1 } );
+		return;
+
+	}
+
 	// MAP 2: 소나엔 연구 일지와 동료만 (맵 1의 바위 · 미역 · 등대는 없다)
 	if ( G.diving && G.map2 ) {
 
@@ -3966,6 +4149,7 @@ function update( dt ) {
 
 		if ( G.sea && G.diving ) G.sea.update( dt, G.time, camera.position, G.actors.hazel.root.position, flash, active );
 		if ( G.guards && G.diving ) G.guards.update( dt, G.actors.hazel.root.position, active );
+		if ( G.map3 ) updateDawn( dt );
 
 	}
 
