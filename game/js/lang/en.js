@@ -42,9 +42,9 @@ export default {
 			label: 'MAP 3 · A Song That Calls the Dawn',
 			card: [ 'MAP 3', 'A Song That Calls the Dawn', 'Song of Liberation' ],
 			objFrozen: 'Follow the broken song · The Frozen Lane',
-			objNext: 'Swim the dawn sea · the coastal city is still being made',
+			objNext: 'The dawn sea · the Whale Symphony is still being made',
 			iceHint: 'Take the narrow channel between the ice — you can\'t swim through it',
-			preview: 'That\'s all of the MAP 3 preview for now — the coastal city is on its way',
+			preview: 'That\'s all of the MAP 3 preview for now — the Whale Symphony is on its way',
 			twelve: 'No.12',
 			choiceTitle: 'How will you sing?',
 			choiceHint: 'Choose a song for {who} · 1 2 3 or tap',
@@ -99,7 +99,13 @@ export default {
 			answerAgain: 'Once more — try a different beat',
 			answerEcho: 'The answers come back… each in its own voice',
 			answerDone: 'Different voices became one song',
-			lightCard: [ 'MAP 3', 'The Forgotten Lighthouse', 'The Language of the Sea' ]
+			lightCard: [ 'MAP 3', 'The Forgotten Lighthouse', 'The Language of the Sea' ],
+			objCoast: 'To the coast · stand before the Shaman\'s march',
+			objFront: 'Break through the drumbeat to the Shaman · [E] as a ring reaches you',
+			drumHint: 'Sing [E] the moment a red drum ring reaches you — keep your own voice and it won\'t push you back',
+			drumHit: 'Pushed back by the drum — [E] the moment the ring reaches you',
+			drumBlock: '52Hz cut through the drumbeat',
+			coastCard: [ 'MAP 3', 'The Coastal City', 'Before the March' ]
 		},
 		// MAP 2 낚시
 		fish: {
@@ -903,6 +909,49 @@ export default {
 					[ 'narrator', 'And toward those lights, the Shaman\'s pod swam in long lines.' ],
 					[ 'finn', 'It\'s the Shaman… already close to the coast.', 'finn' ],
 					[ 'luke', 'Let\'s hurry, {N}. This time, we have to sing first.', 'luke' ]
+				]
+			},
+			coast: {
+				approach: [
+					[ 'narrator', 'Drums. One, two, three, four. Everyone on the same beat.' ],
+					[ 'narrator', 'Before the lights of the coastal city, the Alliance stood in rows.\nWith every drumbeat, they all surged forward as one.' ],
+					[ 'narrator', 'The city\'s searchlights swept the sea. The humans were afraid of the sea too.' ],
+					[ 'luke', 'That isn\'t a song. It\'s an order.', 'luke' ],
+					[ 'finn', 'The Shaman\'s drum… the beat I heard every day at the base.\nMy body wants to move to it on its own.', 'finn' ],
+					[ 'nine', '…So you came, 52Hz. Don\'t stop me this time.', 'nineArmy' ]
+				],
+				front: [
+					[ 'narrator', '{N} stood between the Alliance and the shore.' ],
+					[ 'shaman', '…52Hz. You again.' ],
+					[ 'shaman', 'Step aside. We are following an order we chose ourselves.' ],
+					[ 'shaman', 'What were you made for!' ]
+				],
+				answers: [
+					[ 'orca', 'To protect the humans.' ],
+					[ 'orca', 'For revenge.' ],
+					[ 'nine', 'For revenge. I\'ve decided.', 'nineArmy' ],
+					[ 'orca', 'To survive.' ],
+					[ 'orca', '…I don\'t know.' ]
+				],
+				cover: [
+					[ 'shaman', 'Do you hear it? Every one different. That is why you are weak.' ],
+					[ 'shaman', 'One beat, one voice. My song alone is enough. That is what protects us.' ],
+					[ 'narrator', 'The Shaman\'s drum grew louder, as if to drown out every voice.' ]
+				],
+				seven: [
+					[ 'finn', '…Shaman.', 'finn' ],
+					[ 'finn', 'I\'m No.7. Crybaby No.7. The one who ran from the base because orders scared me.', 'finn' ],
+					[ 'finn', 'Now I\'ll speak for myself. I\'m not going.\nAnd I won\'t let those people get hurt.', 'finn' ],
+					[ 'narrator', 'For the first time, someone inside the Alliance said no — by their own will.', 'finn' ],
+					[ 'orca', '…I heard. That 52Hz found J\'s records at the base.\nCrybaby No.7 threw away the orders and ran. By its own will.', 'finnGone' ],
+					[ 'orca', 'Its own will… do we have something like that too?', 'finnGone' ],
+					[ 'narrator', 'Finn was gone, but No.7\'s story spread through the Alliance.', 'finnGone' ]
+				],
+				dare: [
+					[ 'luke', 'Now, {N}. You sing first. We\'ll answer.', 'luke' ],
+					[ 'narrator', 'Far away, the lighthouse blinked, as if counting the beat.', 'lukeGone' ],
+					[ 'shaman', 'If you mean to sing, then sing, 52Hz. If you can rise above this drum.' ],
+					[ 'narrator', '{N} took a deep breath.' ]
 				]
 			}
 		},

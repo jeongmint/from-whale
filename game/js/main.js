@@ -18,7 +18,7 @@ import { buildTrench, trenchCenter, trenchRadius, glowMap } from './map2.js';
 import { loadSealife, Sealife } from './sealife.js';
 import { Guards } from './guards.js';
 import { startFishing, dexCount, DEX_KEYS } from './fishing.js';
-import { DawnSea, DAWN_PLACES, applyDawnSea, frostFog } from './map3.js';
+import { DawnSea, DAWN_PLACES, SHORE_X, applyDawnSea, frostFog } from './map3.js';
 
 const BASE = window.FW_ASSET_BASE ?? '../';
 const query = new URLSearchParams( location.search );
@@ -882,6 +882,36 @@ Object.assign( G, {
 		G.map3.scatter();
 		G.actors.shaman.hold = false;
 		G.shamanMarch = true;
+
+	},
+
+	// 샤먼의 진군: 해안 도시 앞에 줄지어 선 연합군, 맨 앞에 붉게 빛나는 샤먼
+	startMarch() {
+
+		const s = G.actors.shaman;
+		const A = DAWN_PLACES.army;
+		s.place( A.x + 30, A.z, Math.PI / 2 );
+		s.depth = s.targetDepth = 0;
+		s.hold = false;
+		s.root.visible = true;
+		s.setOpacity( 1 );
+		s.setGlow( 0.3, 0xff2050 );
+		G.shamanMarch = false;
+		G.map3.buildArmy( s );
+
+	},
+
+	// 북소리 고리를 멈춘다 (대면 장면 · 미리보기 끝)
+	quietMarch() {
+
+		if ( G.map3.march ) G.map3.march.on = false;
+
+	},
+
+	// 샤먼이 헤이즐을 마주 본다
+	shamanFace() {
+
+		G.actors.shaman.hold = true;
 
 	},
 
@@ -2784,6 +2814,7 @@ function sing() {
 	}
 	else for ( let i = 0; i < 3; i ++ ) G.world.ring( h.pos.x, h.pos.z, { color: 0x7fe9ff, to: 58, life: 1.6, delay: i * 0.28 } );
 	G.emit( 'sing' );
+	G.lastSingAt = G.time; // MAP 3: 샤먼의 북소리를 52Hz로 버틴다
 	if ( G.map3 ) return; // MAP 3: 노래는 고래를 만났을 때 고른다
 
 	let revealed = 0;
@@ -3562,6 +3593,38 @@ async function enterDawn() {
 
 		};
 
+		// 샤먼의 진군: 북소리 (가까울수록 크게), 고리에 밀리거나 52Hz로 버틴다
+		G.map3.onDrum = ( k, accent ) => G.audio.play( 'drum', { vel: k * ( accent ? 0.5 : 0.3 ) } );
+		G.map3.onDrumHit = ( dir ) => {
+
+			const h = G.actors.hazel;
+			G.knock.set( dir.x * 30, 0, dir.z * 30 );
+			G.stun = Math.max( G.stun, 0.4 );
+			G.world.ring( h.pos.x, h.pos.z, { color: 0xff3355, from: 2, to: 14, life: 0.7, width: 0.3 } );
+			G.audio.play( 'miss' );
+			if ( ! G.drumHinted ) {
+
+				G.drumHinted = true;
+				G.ui.toast( t( 'map3.drumHit' ) );
+
+			}
+
+		};
+
+		G.map3.onDrumBlock = () => {
+
+			const h = G.actors.hazel;
+			G.world.ring( h.pos.x, h.pos.z, { color: 0xffd36b, from: 3, to: 26, life: 0.9, width: 0.25 } );
+			G.audio.play( 'pickup' );
+			if ( ! G.drumBlocked ) {
+
+				G.drumBlocked = true;
+				G.ui.toast( t( 'map3.drumBlock' ) );
+
+			}
+
+		};
+
 		G.map3.onWave = ( dir ) => {
 
 			const h = G.actors.hazel;
@@ -3628,7 +3691,9 @@ function updateDawn( dt ) {
 
 	const h = G.actors.hazel;
 	const active = ! G.cutsceneOn && ! G.ui.dialogOpen && ! G.ui.overlay && ! G.puzzle && ! G.ended;
-	G.map3.update( dt, G.time, { hazel: h, cam: camera.position, active } );
+	G.map3.update( dt, G.time, { hazel: h, cam: camera.position, active, sangAt: G.lastSingAt ?? - 99 } );
+	// 해안선 너머(인간의 땅)로는 못 간다
+	for ( const w of [ h, G.actors.luke, G.actors.finn ] ) if ( w.pos.x > SHORE_X - 8 ) w.pos.x = SHORE_X - 8;
 	frostFog( fog, G.dawnFog, G.map3.frost, G.ocean, storm );
 	G.targetWaves = 0.65 + storm * 0.95; // 폭풍 속에선 파도가 높다
 	hemiLight.intensity *= ( 1 + G.dawn * 0.6 ) * ( 1 - storm * 0.45 );
@@ -4115,6 +4180,7 @@ function updateHud() {
 	if ( G.map3 ) {
 
 		const m = G.map3;
+		for ( const o of m.army ?? [] ) points.push( { x: o.whale.pos.x, z: o.whale.pos.z, color: 'rgba(255,90,110,0.7)', size: 2.5 } );
 		for ( const o of m.alliance ) if ( o.whale.root.visible ) points.push( { x: o.whale.pos.x, z: o.whale.pos.z, color: 'rgba(255,140,160,0.55)', size: 2.5 } );
 		const s = G.actors.shaman;
 		if ( s.root.visible ) points.push( { x: s.pos.x, z: s.pos.z, color: '#ff6b8b', size: 4 } );

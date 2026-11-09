@@ -712,6 +712,9 @@ export async function map3( G ) {
 
 	// 3단계 · 잊힌 등대
 	await lighthouse();
+
+	// 4단계 · 해안 도시와 진군
+	await coast();
 	G.objective( U().label, U().objNext );
 	G.ui.toast( U().preview );
 
@@ -884,6 +887,55 @@ export async function map3( G ) {
 		await G.say( pick( Lh.end ) );
 		G.camRelease();
 		await card( G, U().lightCard );
+		G.cutscene( false );
+
+	}
+
+	// 해안 도시와 진군: 샤먼의 북소리를 52Hz로 버티며 맨 앞으로 → 샤먼과 마주하기 (교향곡 직전까지)
+	async function coast() {
+
+		const C = T().coast;
+		const A = DAWN_PLACES.army;
+		const shaman = G.actors.shaman;
+		on.nineArmy = G.voices.some( ( v ) => v.who === 'nine' && v.way === 'alone' ); // 혼자 보낸 9번은 복수의 줄에 서 있다
+		G.startMarch();
+		G.objective( U().label, U().objCoast, A );
+		await G.until( () => free() && dist( A ) < 430 );
+		G.cutscene( true );
+		G.camFocus( shaman, { side: 1, dist: 130, height: 32 } );
+		await G.wait( 1.5 );
+		await G.say( pick( C.approach ) );
+		G.camRelease();
+		G.cutscene( false );
+		G.ui.toast( U().drumHint );
+		G.objective( U().label, U().objFront, shaman.pos );
+
+		// 북소리를 뚫고 샤먼 앞으로
+		await G.until( () => free() && dist( shaman.pos ) < 46 );
+		G.quietMarch();
+		G.cutscene( true );
+		G.shamanFace();
+		G.camFocus( shaman, { side: - 1, dist: 42, height: 8 } );
+		await G.say( pick( C.front ) );
+		G.camFocus( { x: A.x - 16, y: 0, z: A.z }, { side: 1, dist: 95, height: 20 } );
+		await G.say( pick( C.answers ) );
+		G.camFocus( shaman, { side: - 1, dist: 36, height: 7 } );
+		await G.say( pick( C.cover ) );
+		// 핀이 있으면 7번이 샤먼 앞에 선다
+		const finn = G.actors.finn;
+		if ( on.finn ) {
+
+			finn.scripted = { x: shaman.pos.x - Math.sign( shaman.pos.x - h.pos.x || 1 ) * 18, z: shaman.pos.z + 6, speed: 9 };
+			G.camFocus( finn, { side: 1, dist: 28, height: 6 } );
+
+		}
+
+		await G.say( pick( C.seven ) );
+		finn.scripted = null;
+		G.camFocus( shaman, { side: 1, dist: 48, height: 10 } );
+		await G.say( pick( C.dare ) );
+		G.camRelease();
+		await card( G, U().coastCard );
 		G.cutscene( false );
 
 	}

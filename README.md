@@ -10,7 +10,7 @@ A sea adventure of **Hazel**, a whale who sings at 52Hz. Another world, the year
 
 - MAP 1 · **The Night the Stars Fell** — the night sea: lighthouse, kelp, the Alliance, Moby Dick, Stella
 - MAP 2 · **A Sea Born Without Waves** — down a trench to the base where the Alliance was made
-- MAP 3 · **A Song That Calls the Dawn** — from night to dawn, the scattered voices of the Alliance (phase 3 preview)
+- MAP 3 · **A Song That Calls the Dawn** — from night to dawn, the scattered voices of the Alliance (phase 4 preview)
 
 | Lighthouse and ringed planet | Moby Dick boss fight |
 | --- | --- |
@@ -38,7 +38,7 @@ A sea adventure of **Hazel**, a whale who sings at 52Hz. Another world, the year
 - **Stella (hidden ending)** — all 6 letters in bottles (Moby's prologue letter included) → 12-bar blues duet (PERFECT ±25 ms · EXCELLENT ±60 ms · GOOD ±150 ms, 450 max, S from 85% · A from 60%, a shooting star per jump note) → name the song and leave it with your nickname and score on the shared **Duet TOP 10**. After meeting Stella, "Sing the duet again" on the title or ending screen replays just the duet (save data untouched). Remaining letters can be found in the epilogue after the ending
 - **Space and sea** — Gerstner waves, glittering ripples, ringed planet, shooting stars, bloom
 - **MAP 2 · A Sea Born Without Waves** — a second map that opens after meeting Stella. Descend a trench and uncover the Alliance's secret (see MAP 2 below)
-- **MAP 3 · A Song That Calls the Dawn (phase 3 preview)** — back to the surface after the MAP 2 ending. How you sing is the choice (see MAP 3 below)
+- **MAP 3 · A Song That Calls the Dawn (phase 4 preview)** — back to the surface after the MAP 2 ending. How you sing is the choice (see MAP 3 below)
 - **Retro blue UI** — window-style HUD, sonar minimap (tap its title bar to fold it, remembered on the device), chapter cards, PC controls guide, current objective inside the HAZEL window (top center left clear). Portrait phones: one bottom row of joystick · sonar · 2×2 buttons (right thumb, screen center clear). One-line dialog at the bottom, two-column title, and the call-and-response window at the bottom left in tilt mode on landscape phones
 - **Light models** — 500–650 vertices per whale, 512px textures. Phone support
 
@@ -86,7 +86,7 @@ The name: the deep sea where no waves reach, and the Alliance (and Finn), born i
 | Trench | 250–318 m | Grad student J's last record (270 m), with a stone fishhook | Coelacanths · guards, morays |
 | Base | 318 m– | The Doctor's memo (312 m) | Crabs, urchins, starfish, shrimp · the Shaman |
 
-### MAP 3 · A Song That Calls the Dawn (phase 3 preview)
+### MAP 3 · A Song That Calls the Dawn (phase 4 preview)
 
 Subtitle: Song of Liberation (working title). After the red eyes go dark, an Alliance that is free but has nowhere to go.
 
@@ -114,7 +114,12 @@ Subtitle: Song of Liberation (working title). After the red eyes go dark, an All
 - The Forgotten Lighthouse (after the three seas): Luke's lighthouse, dark, at the end of the Frozen Lane
   - Three song stones (humpback · blue whale · sperm whale): sing beside one to wake the old whale song Luke carved with his horn. With Luke, he plays and reads it; without him, Hazel brings each stone's melody back with a Listening Song and sees only the carving
   - With all three awake, the lighthouse lights up → the first ensemble, the Answering Song: Hazel sings for 4 beats, then Luke (horn) → Finn → the whales who came along answer the same beat in turn, each in its own voice (twice). Without Luke the light blinks each beat; with no voice at all, the lighthouse answers with a bell
-  - End: beyond the beam, the Shaman's pod marching on the coast → card "The Forgotten Lighthouse · The Language of the Sea" → free swim in the dawn sea (the coastal city is in progress)
+  - End: beyond the beam, the Shaman's pod marching on the coast → card "The Forgotten Lighthouse · The Language of the Sea"
+- The coastal city and the march (far east, toward the sunrise)
+  - The human coastal city: lit buildings, a sea wall, ships in the harbor, searchlights sweeping the sea. No swimming past the shoreline
+  - The Shaman's march: the Alliance in three rows with the Shaman glowing red at the front. On every drumbeat they all surge forward; every sixteen beats they leap together. The drum grows louder as you approach
+  - Drum rings: every four beats a red ring spreads from the Shaman. Sing the moment it reaches you to hold your ground (a golden ring), or get pushed back
+  - The standoff: the Shaman's question "What were you made for!" → the Alliance's scattered answers (No.9, if sent off alone, stands in the line of revenge) → with Finn, No.7 says no by his own will for the first time; without him, No.7's story spreads through J's records → card "The Coastal City · Before the March" → free swim in the dawn sea (the Whale Symphony is in progress)
 
 ### Characters
 
@@ -174,7 +179,7 @@ Color options (`Whale` in `game/js/actors.js`): `solidColor` for a single color,
 | `game/js/guards.js` | MAP 2 Alliance guards: patrol, chase, hearing the song, wall taboo, bone altar ritual |
 | `game/js/sealife.js` | MAP 2 sea life: where each kind lives, schools, drifting jellyfish, bottom crawlers, moray eel ambushes |
 | `game/js/map2.js` | MAP 2: trench terrain, landmarks per layer (sub · lab · terminal · whale bones · base), research log positions |
-| `game/js/map3.js` | MAP 3: dawn sea colors, ice field · channel, snow, the Sunken Fleet, the storm (rain · lightning · big waves), the silent Alliance, the whales you meet |
+| `game/js/map3.js` | MAP 3: dawn sea colors, ice field · channel, snow, the Sunken Fleet, the storm (rain · lightning · big waves), song stones, the coastal city, the Shaman's march · drum, the silent Alliance, the whales you meet |
 | `game/js/voices.js` | MAP 3 songs: song choice (Listening · Leading · Solo), the lighthouse's Answering Song, the old whale songs |
 | `game/js/scores.js` | Duet scoreboard window (saves on this device only when the server can't be reached) |
 | `game/js/main.js` | Rendering, bloom, input, Alliance AI, boss fight, routes · ending gallery, epilogue |

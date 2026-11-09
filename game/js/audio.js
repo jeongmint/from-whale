@@ -888,6 +888,24 @@ export class AudioEngine {
 				this.voice( t, [ [ 0, 420 ], [ 0.35, 1250 ] ], { vel: 0.08, vibrato: 0.1, reverb: 0.6, type: 'triangle' } );
 				[ 76, 81, 88, 93 ].forEach( ( m, i ) => this.ep( t + i * 0.05, m, 0.14, 0.5, this.sfx, 0.6 ) );
 				break;
+			case 'drum': {
+
+				// MAP 3 샤먼의 북: 낮고 둔탁한 둥
+				const ctx = this.ctx;
+				const vel = opt.vel ?? 0.3;
+				const o = ctx.createOscillator();
+				o.frequency.setValueAtTime( 78, t );
+				o.frequency.exponentialRampToValueAtTime( 42, t + 0.22 );
+				const g = ctx.createGain();
+				g.gain.setValueAtTime( vel, t );
+				g.gain.exponentialRampToValueAtTime( 0.0001, t + 0.45 );
+				o.connect( g ).connect( this.sfx );
+				o.start( t ); o.stop( t + 0.5 );
+				this.noiseHit( t, { type: 'lowpass', freq: 500, q: 0.7, vel: vel * 0.4, dur: 0.15, bus: this.sfx } );
+				break;
+
+			}
+
 			case 'pop': {
 
 				// MAP 3 연합군의 도약: 작고 은은한 '뿅'. 뛰어오를 땐 올라가고(up), 떨어질 땐 내려간다

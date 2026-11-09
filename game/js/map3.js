@@ -15,8 +15,16 @@ export const DAWN_PLACES = {
 	fleet: { x: - 430, z: 130 }, // 침몰한 함대 (서쪽)
 	storm: { x: 470, z: 700 }, // 폭풍의 바다 (남동쪽)
 	deep: { x: 470, z: 1000 }, // 8번이 숨으러 내려가는 쪽
-	lighthouse: { x: - 70, z: - 330 } // 잊힌 등대: 맵 1의 루크 등대, 얼어붙은 항로 끝
+	lighthouse: { x: - 70, z: - 330 }, // 잊힌 등대: 맵 1의 루크 등대, 얼어붙은 항로 끝
+	army: { x: 900, z: 240 } // 샤먼의 진군: 해안 도시 앞 (맨 앞줄)
 };
+const SHORE_X = 1240; // 해안선: 이 동쪽은 인간의 땅
+export { SHORE_X };
+const BEAT = 60 / 92; // 음악과 같은 박자 (샤먼의 북)
+const DRUM_SPEED = 24; // 북소리 고리가 퍼지는 빠르기
+const DRUM_R = 170;
+const SING_WINDOW = 0.55; // 고리가 닿기 직전 이만큼 안에 노래했으면 버틴다 (초)
+const _up = new THREE.Vector3( 0, 1, 0 );
 const STORM_R = 270; // 폭풍 반지름
 const STORM_EYE = 26; // 가운데 고요한 자리
 const WAVE_SPEED = 17; // 큰 파도가 퍼져 나가는 빠르기 (m/s)
@@ -127,6 +135,12 @@ export class DawnSea {
 		this.buildFleet();
 		this.buildStorm();
 		this.buildStones();
+		this.buildCity();
+		this.army = null;
+		this.march = null;
+		this.onDrum = null; // 북소리 ( 크기, 네 박째인지 )
+		this.onDrumHit = null; // 북소리 고리에 밀림 ( 방향 )
+		this.onDrumBlock = null; // 52Hz로 버팀 ( 방향 )
 
 	}
 
@@ -694,6 +708,204 @@ export class DawnSea {
 
 	}
 
+	// ---- 해안 도시: 해가 뜨는 쪽(동쪽)의 인간 도시. 불 켜진 건물, 방파제, 항구의 배, 바다를 훑는 탐조등 ----
+	buildCity() {
+
+		const g = new THREE.Group();
+		this.city = g;
+		this.group.add( g );
+		// 땅: 해안선 동쪽 전부
+		const land = new THREE.Mesh( new THREE.BoxGeometry( 600, 6, 2200 ), new THREE.MeshStandardMaterial( { color: 0x1a2030, roughness: 1, flatShading: true } ) );
+		land.position.set( SHORE_X + 300, - 1, 240 );
+		g.add( land );
+		const wall = new THREE.Mesh( new THREE.BoxGeometry( 6, 8, 2200 ), new THREE.MeshStandardMaterial( { color: 0x3a4250, roughness: 0.9 } ) );
+		wall.position.set( SHORE_X + 2, 0, 240 );
+		g.add( wall );
+
+		// 건물: 창마다 따뜻한 불빛이 있는 상자들 (하나의 InstancedMesh)
+		const c = document.createElement( 'canvas' );
+		c.width = 64; c.height = 128;
+		const x = c.getContext( '2d' );
+		x.fillStyle = '#0c1018'; x.fillRect( 0, 0, 64, 128 );
+		for ( let row = 0; row < 16; row ++ ) for ( let col = 0; col < 8; col ++ ) {
+
+			const r = Math.random();
+			x.fillStyle = r < 0.42 ? '#ffcf7a' : r < 0.5 ? '#9fd4ff' : '#161c28';
+			x.fillRect( col * 8 + 2, row * 8 + 2, 4, 4 );
+
+		}
+
+		const tex = new THREE.CanvasTexture( c );
+		tex.encoding = THREE.sRGBEncoding;
+		tex.magFilter = THREE.NearestFilter;
+		const mat = new THREE.MeshStandardMaterial( { map: tex, emissiveMap: tex, emissive: 0xffffff, emissiveIntensity: 0.9, roughness: 0.8 } );
+		const N = 170;
+		const blocks = new THREE.InstancedMesh( new THREE.BoxGeometry( 1, 1, 1 ), mat, N );
+		const m = new THREE.Matrix4(), q = new THREE.Quaternion(), s = new THREE.Vector3(), p = new THREE.Vector3();
+		for ( let i = 0; i < N; i ++ ) {
+
+			const z = - 420 + Math.random() * 1320;
+			const depth = Math.random();
+			const h = ( 10 + Math.pow( Math.random(), 2 ) * 55 ) * ( 0.6 + depth * 0.7 );
+			s.set( 10 + Math.random() * 14, h, 10 + Math.random() * 16 );
+			p.set( SHORE_X + 26 + depth * 230, h / 2 + 1, z );
+			q.setFromAxisAngle( _up, ( Math.random() - 0.5 ) * 0.2 );
+			blocks.setMatrixAt( i, m.compose( p, q, s ) );
+
+		}
+
+		g.add( blocks );
+
+		// 항구의 배 둘 (불이 켜져 있다)
+		const hull = new THREE.MeshStandardMaterial( { color: 0x6a7380, roughness: 0.6, metalness: 0.4 } );
+		const lit = new THREE.MeshBasicMaterial( { color: 0xffd08a } );
+		for ( const [ z, len ] of [ [ 120, 60 ], [ 380, 46 ] ] ) {
+
+			const ship = new THREE.Group();
+			const b = new THREE.Mesh( new THREE.BoxGeometry( 11, 6, len ), hull );
+			ship.add( b );
+			const top = new THREE.Mesh( new THREE.BoxGeometry( 7, 5, len * 0.3 ), hull );
+			top.position.set( 0, 5, - len * 0.1 );
+			ship.add( top );
+			for ( let k = 0; k < 5; k ++ ) {
+
+				const w = new THREE.Mesh( new THREE.BoxGeometry( 0.2, 0.9, 0.9 ), lit );
+				w.position.set( 3.6, 5.5, - len * 0.2 + k * 1.8 );
+				ship.add( w );
+
+			}
+
+			ship.position.set( SHORE_X - 22, 0.5, z );
+			g.add( ship );
+			this.colliders.push( { x: SHORE_X - 22, z, r: 8 }, { x: SHORE_X - 22, z: z + len * 0.3, r: 8 }, { x: SHORE_X - 22, z: z - len * 0.3, r: 8 } );
+
+		}
+
+		// 바다를 훑는 탐조등 셋 (인간들도 바다를 두려워한다)
+		const beamMat = new THREE.MeshBasicMaterial( { color: 0xfff0c8, transparent: true, opacity: 0.12, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide } );
+		const beamGeo = new THREE.ConeGeometry( 16, 340, 20, 1, true );
+		beamGeo.translate( 0, - 170, 0 );
+		beamGeo.rotateZ( Math.PI / 2 - 0.08 );
+		this.searchlights = [ - 120, 240, 600 ].map( ( z, i ) => {
+
+			const pivot = new THREE.Group();
+			pivot.position.set( SHORE_X + 8, 22, z );
+			const tower = new THREE.Mesh( new THREE.CylinderGeometry( 1.2, 2, 22, 8 ), hull );
+			tower.position.y = - 11;
+			pivot.add( tower );
+			const beam = new THREE.Mesh( beamGeo, beamMat );
+			beam.rotation.y = Math.PI; // 서쪽(바다)으로
+			const arm = new THREE.Group();
+			arm.add( beam );
+			pivot.add( arm );
+			g.add( pivot );
+			return { arm, phase: i * 2.1 };
+
+		} );
+
+	}
+
+	// ---- 샤먼의 진군: 해안을 향해 줄지어 선 연합군. 북소리마다 한꺼번에 나아가고, 샤먼에게서 붉은 북소리 고리가 퍼진다 ----
+	buildArmy( shaman ) {
+
+		if ( this.army ) return;
+		const A = DAWN_PLACES.army;
+		this.army = [];
+		this.shaman = shaman;
+		for ( let row = 0; row < 3; row ++ ) for ( let i = 0; i < 9; i ++ ) {
+
+			const w = new Whale( this.models.orca, { name: 'orca', length: 10, ride: 0.42, freq: 3, amp: 0.05 } );
+			const home = { x: A.x - row * 16, z: A.z + ( i - 4 ) * 15 + ( row % 2 ) * 7 };
+			w.place( home.x, home.z, Math.PI / 2 ); // 해안(동쪽)을 본다
+			this.group.add( w.root );
+			this.army.push( { whale: w, home, lunge: 0, row } );
+			this.colliders.push( { x: home.x, z: home.z, r: 4.5 } );
+
+		}
+
+		this.march = { on: true, beat: 0, timer: 0.5, rings: [], k: 0 };
+
+	}
+
+	updateMarch( dt, hazel, active, sangAt, time ) {
+
+		const mc = this.march, sh = this.shaman;
+		if ( ! mc ) return;
+		const d0 = Math.hypot( hazel.pos.x - DAWN_PLACES.army.x, hazel.pos.z - DAWN_PLACES.army.z );
+		mc.k = 1 - THREE.MathUtils.smoothstep( d0, 160, 520 ); // 가까울수록 북소리가 크다
+		// 북: 박자마다 둥. 네 박마다 모두가 한꺼번에 나아가고 붉은 고리, 열여섯 박마다 다 함께 뛰어오른다
+		mc.timer -= dt;
+		if ( mc.timer <= 0 ) {
+
+			mc.timer += BEAT;
+			mc.beat ++;
+			if ( mc.k > 0.02 ) this.onDrum?.( mc.k, mc.beat % 4 === 0 );
+			if ( mc.beat % 4 === 0 ) {
+
+				for ( const o of this.army ) o.lunge = 1;
+				if ( mc.on && mc.k > 0.05 ) {
+
+					const mesh = makeSurfaceDecal( { color: 0xff3355, inner: 0.95, outer: 1, opacity: 0.9, lift: 0.5 } );
+					mesh.position.set( sh.pos.x, 0, sh.pos.z );
+					mesh.scale.setScalar( 8 );
+					this.group.add( mesh );
+					mc.rings.push( { r: 8, x: sh.pos.x, z: sh.pos.z, mesh, hit: false } );
+
+				}
+
+			}
+
+			if ( mc.beat % 16 === 0 && mc.k > 0.05 ) for ( const o of this.army ) o.whale.breach( 15 );
+
+		}
+
+		for ( const o of this.army ) {
+
+			const w = o.whale;
+			o.lunge = Math.max( 0, o.lunge - dt * 1.6 );
+			const surge = Math.sin( Math.min( 1, 1 - o.lunge ) * Math.PI ) * 3.5;
+			w.pos.x += ( o.home.x + surge - w.pos.x ) * Math.min( 1, dt * 6 );
+			w.pos.z += ( o.home.z - w.pos.z ) * Math.min( 1, dt * 6 );
+			w.yaw = Math.PI / 2;
+			w.speed = o.lunge * 6;
+			w.update( dt );
+
+		}
+
+		// 북소리 고리: 헤이즐 자리를 지날 때 막 노래했으면 버티고, 아니면 밀려난다
+		for ( const r of mc.rings ) {
+
+			const d = Math.hypot( hazel.pos.x - r.x, hazel.pos.z - r.z );
+			const before = r.r;
+			r.r += DRUM_SPEED * dt;
+			r.mesh.scale.setScalar( r.r );
+			r.mesh.material.uniforms.uOpacity.value = 0.9 * ( 1 - THREE.MathUtils.smoothstep( r.r, DRUM_R - 40, DRUM_R ) );
+			if ( ! r.hit && before < d && r.r >= d ) {
+
+				r.hit = true;
+				const dir = { x: ( hazel.pos.x - r.x ) / Math.max( d, 0.01 ), z: ( hazel.pos.z - r.z ) / Math.max( d, 0.01 ) };
+				if ( active && d > 6 ) {
+
+					if ( time - sangAt < SING_WINDOW ) this.onDrumBlock?.( dir );
+					else this.onDrumHit?.( dir );
+
+				}
+
+			}
+
+		}
+
+		for ( const r of mc.rings.filter( ( r ) => r.r > DRUM_R ) ) {
+
+			this.group.remove( r.mesh );
+			r.mesh.material.dispose();
+
+		}
+
+		mc.rings = mc.rings.filter( ( r ) => r.r <= DRUM_R );
+
+	}
+
 	// ---- 만나는 고래: 12번(얼어붙은 항로) · 9번(침몰한 함대) · 8번(폭풍의 바다) ----
 	// state: idle(제자리를 맴돈다) · face(헤이즐을 본다) · follow(따라온다) · leave(제 길로 떠난다)
 	makeVoice( key, { home, length = 9, recolor, radius = 9, speed = 4.5, spout = false } ) {
@@ -784,7 +996,7 @@ export class DawnSea {
 
 	}
 
-	update( dt, t, { hazel, cam, active = true } ) {
+	update( dt, t, { hazel, cam, active = true, sangAt = - 99 } ) {
 
 		this.time = t;
 		this.updateIce( dt, false, cam );
@@ -854,6 +1066,10 @@ export class DawnSea {
 
 		// 폭풍
 		this.updateStorm( dt, hazel, cam, active );
+
+		// 해안 도시의 탐조등, 샤먼의 진군
+		for ( const sl of this.searchlights ) sl.arm.rotation.y = Math.sin( t * 0.25 + sl.phase ) * 0.7;
+		this.updateMarch( dt, hazel, active, sangAt, t );
 
 		// 만나는 고래들
 		for ( const v of Object.values( this.voices ) ) if ( v.whale.root.visible ) this.updateVoice( v, dt, hazel );
