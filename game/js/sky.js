@@ -7,8 +7,8 @@ const SKY_LAYER = 1;
 export const SUN_DIR = new THREE.Vector3( 0.96, 0.03, - 0.28 ).normalize();
 const DAWN_SKY = [
 	[ 0, 0x030a1e, 0x16408f, 0x3a7dff ],
-	[ 0.5, 0x0a1840, 0x40468e, 0xc8687a ],
-	[ 1, 0x2c5aa0, 0xeea07c, 0xffc58a ]
+	[ 0.5, 0x0a1840, 0x4e4676, 0xc86e46 ],
+	[ 1, 0x2c5aa0, 0xeea268, 0xffc672 ]
 ];
 const _a = new THREE.Color(), _b = new THREE.Color();
 
@@ -132,9 +132,9 @@ export class Sky {
 					if ( uDawn > 0.0 ) {
 						float sun = max( dot( d, uSunDir ), 0.0 );
 						float low = exp( - max( h, 0.0 ) * 4.0 );
-						vec3 warm = mix( vec3( 0.75, 0.22, 0.2 ), vec3( 1.0, 0.55, 0.28 ), uDawn );
+						vec3 warm = mix( vec3( 0.78, 0.22, 0.1 ), vec3( 1.0, 0.55, 0.16 ), uDawn ); // 따뜻한 주황
 						col += warm * pow( sun, 3.0 ) * low * uDawn * 1.3;
-						col += vec3( 0.35, 0.2, 0.3 ) * pow( sun, 1.2 ) * exp( - max( h, 0.0 ) * 2.0 ) * uDawn * 0.35;
+						col += vec3( 0.38, 0.2, 0.18 ) * pow( sun, 1.2 ) * exp( - max( h, 0.0 ) * 2.0 ) * uDawn * 0.35;
 						col += vec3( 1.0, 0.8, 0.55 ) * pow( sun, 400.0 ) * smoothstep( 0.75, 1.0, uDawn ) * 6.0;
 					}
 					gl_FragColor = vec4( col, 1.0 );
