@@ -115,7 +115,7 @@ export default {
 			objFleet: 'To the Sunken Fleet · west',
 			objStorm: 'To the Storm Sea · south',
 			objOrb: 'Take the light above where you sang',
-			orbHint: 'Take the light to ride it fast to the next sea'
+			orbHint: 'Take the light to bounce to the next sea, right over the ice'
 		},
 		// MAP 2 낚시
 		fish: {

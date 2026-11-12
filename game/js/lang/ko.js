@@ -115,7 +115,7 @@ export default {
 			objFleet: '침몰한 함대로 · 서쪽',
 			objStorm: '폭풍의 바다로 · 남쪽',
 			objOrb: '노래를 마친 자리 위의 빛 조각 먹기',
-			orbHint: '빛 조각을 먹으면 다음 바다까지 빛을 타고 빠르게'
+			orbHint: '빛 조각을 먹으면 다음 바다까지 통통, 얼음도 훌쩍 넘어서'
 		},
 		// MAP 2 낚시
 		fish: {
