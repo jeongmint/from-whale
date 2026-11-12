@@ -97,7 +97,7 @@ Subtitle: Song of Liberation (working title). After the red eyes go dark, an All
 - Prologue · the silent Alliance: the Alliance surfaces and won't move, even at the Shaman's command → three ways (whales who follow the Shaman · whales who want revenge · whales who refuse the war) → the Shaman's new order: the whole Alliance leaps together twice toward the coast, then marches toward the rising sun and the human coast
 - The Frozen Lane: an ice field to the north. Ice floes block the way (shown on the sonar), a winding narrow channel, snow, thick fog
 - Three scattered voices: each whale has its own task (No.12 → No.9 → No.8, in turn). Once they come along, they follow in their own place beside Hazel
-- Riding the light: a light shard above the place where you finished singing → take it to bounce to the next sea (hops right over the ice, heads there hands-free, a little steering allowed). Ice pool → fleet → storm → lighthouse → coast
+- Light-shard path: a light shard above the place where you finished singing → take it for a path of shards to the next sea. Four bounces per shard (right over the ice), steering by hand, chain the next shard to keep going, miss it and swim. Ice pool → fleet → storm → lighthouse → coast
 - The angry sea: the moment you take the light above the fleet, the sea stirs and dark clouds roll to the south; the rain starts from there
 
 | Sea | Play | Whale |

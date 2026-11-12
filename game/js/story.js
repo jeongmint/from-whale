@@ -752,9 +752,11 @@ export async function map3( G ) {
 
 	}
 
-	// 노래를 마친 자리 위에 빛 조각 → 먹으면 다음 바다까지 빛을 타고 (멀리 헤엄치지 않게)
+	// 노래를 마친 자리 위에 빛 조각 → 먹으면 다음 바다까지 빛 조각 길이 이어진다.
+	// 조각 하나에 통통 네 번. 다음 조각 쪽으로 직접 틀어 이어 먹으면 멀리 헤엄치지 않아도 된다
 	async function rideOrb( at, to, stop, onTake ) {
 
+		G.clearRideOrbs();
 		const orb = G.spawnRideOrb( at, at.len ? 9 : 4 );
 		G.objective( U().label, U().objOrb, orb );
 		if ( ! G.flags.rideTip ) {
@@ -773,7 +775,17 @@ export async function map3( G ) {
 
 		}
 
-		G.startRide( to, stop );
+		// 지금 자리에서 목적지 앞까지, 조금씩 굽이치는 빛 조각 길
+		const fx = h.pos.x, fz = h.pos.z, len = Math.hypot( to.x - fx, to.z - fz );
+		const ux = ( to.x - fx ) / len, uz = ( to.z - fz ) / len, side = Math.random() < 0.5 ? - 1 : 1;
+		for ( let d = 95, i = 0; d < len - stop; d += 115, i ++ ) {
+
+			const w = Math.sin( i * 1.3 ) * 20 * side;
+			G.spawnRideOrb( { x: fx + ux * d - uz * w, z: fz + uz * d + ux * w }, 3, { auto: true, scale: 1.2 } );
+
+		}
+
+		G.startRide( 4 );
 
 	}
 
@@ -1020,6 +1032,7 @@ export async function map3( G ) {
 		G.startMarch();
 		G.objective( U().label, U().objCoast, A );
 		await G.until( () => free() && dist( A ) < 430 );
+		G.clearRideOrbs();
 		G.cutscene( true );
 		G.camFocus( shaman, { side: 1, dist: 130, height: 32 } );
 		await G.wait( 1.5 );

@@ -961,21 +961,31 @@ Object.assign( G, {
 	},
 
 	// MAP 3 용기의 노래: 롱탭을 놓고 진짜로 뛰어오른다
-	// MAP 3: 노래를 마친 자리 위에 뜨는 빛 조각. 먹으면 다음 바다까지 빛을 타고 빠르게 (G.ride)
-	spawnRideOrb( at, lift = 4 ) {
+	// MAP 3: 빛 조각. 먹으면 몇 번 통통 튄다 (G.ride). auto면 먹는 순간 바로 튀기 시작 (다음 바다로 가는 빛 조각 길)
+	spawnRideOrb( at, lift = 4, { auto = false, scale = 1.5 } = {} ) {
 
 		const s = G.world.makeLightShard( { x: at.x, z: at.z } );
 		s.lift = lift;
 		s.taken = false;
-		s.group.scale.setScalar( 1.5 );
+		s.auto = auto;
+		s.group.scale.setScalar( scale );
 		G.rideOrbs.push( s );
 		return s;
 
 	},
 
-	startRide( to, stop = 200 ) {
+	clearRideOrbs() {
 
-		G.ride = { to, stop, end: G.time + 45 };
+		for ( const s of G.rideOrbs ) G.world.scene.remove( s.group );
+		G.rideOrbs = [];
+
+	},
+
+	// 물에 hops번 닿을 때까지 통통 튄다 (얼음을 딛는 건 세지 않는다). 타는 중에 또 먹으면 다시 채워진다
+	startRide( hops = 4 ) {
+
+		if ( G.ride ) G.ride.hops = Math.max( G.ride.hops, hops );
+		else G.ride = { hops };
 		G.dash = 0;
 		G.stamina = 1;
 		audio.play( 'pickup' );
@@ -4153,16 +4163,17 @@ function updatePlayer( dt ) {
 	}
 	// MAP 3 빛 타기: 손을 놓고 있어도 다음 바다 쪽으로 통통 튀며 간다 (방향키로 조금씩 틀 수 있다)
 	// 물에 닿으면 바로 다시 뛰어오르고, 얼음 위에 떨어지면 얼음을 딛고 튀어 오른다. 얼음에 막히지 않는다
+	// 방향은 직접 잡는다. 정해진 횟수만큼 튀고 나면 그냥 헤엄 (다음 빛 조각을 먹으면 이어서)
 	let riding = false;
 	if ( G.ride ) {
 
-		const r = G.ride, dx = r.to.x - h.pos.x, dz = r.to.z - h.pos.z;
+		const r = G.ride;
 		const ice = G.world.colliders.some( ( c ) => Math.hypot( h.pos.x - c.x, h.pos.z - c.z ) < c.r + 3.2 );
 		// 얼음 위에선 물까지 내려가기 전에 얼음 높이에서 튀어 오른다
 		if ( ice && h.airborne && h.vy < 0 && h.jumpY < 1.6 ) h.airborne = false;
 		if ( ! h.airborne ) {
 
-			if ( ! ice && ( Math.hypot( dx, dz ) < r.stop || G.time > r.end ) ) {
+			if ( ! ice && r.hops <= 0 ) {
 
 				G.ride = null;
 				G.world.splash( h.pos.x, h.root.position.y, h.pos.z, { count: 30, power: 5 } );
@@ -4170,6 +4181,7 @@ function updatePlayer( dt ) {
 
 			} else if ( G.started && ! G.cutsceneOn ) {
 
+				if ( ! ice ) r.hops --;
 				h.breach( ice ? 12 : 10.5 );
 				if ( ice ) {
 
@@ -4190,7 +4202,6 @@ function updatePlayer( dt ) {
 		if ( G.ride && control ) {
 
 			riding = true;
-			if ( Math.abs( turn ) < 0.05 ) turn = Math.max( - 1.2, Math.min( 1.2, wrapAngle( Math.atan2( dx, dz ) - h.yaw ) * 1.6 ) );
 			throttle = 1;
 
 		}
@@ -4432,6 +4443,7 @@ function updateBottlesAndKelp( dt ) {
 			s.active = false;
 			s.respawn = Infinity;
 			G.world.scene.remove( s.group );
+			if ( s.auto ) G.startRide( s.hops ?? 4 );
 
 		}
 
