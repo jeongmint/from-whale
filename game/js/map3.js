@@ -585,6 +585,20 @@ export class DawnSea {
 
 	}
 
+	// 용기의 노래: delay초 뒤 헤이즐 자리에 닿는 큰 파도를 하나 보낸다 (판정은 노래 쪽에서 하므로 밀지는 않는다)
+	sendWave( hazel, delay ) {
+
+		const S = DAWN_PLACES.storm, st = this.storm;
+		const d = Math.hypot( hazel.pos.x - S.x, hazel.pos.z - S.z );
+		const r = Math.max( STORM_EYE, d - WAVE_SPEED * delay );
+		const mesh = makeSurfaceDecal( { color: 0xe8f6ff, inner: 0.96, outer: 1, opacity: 0.9, lift: 0.6 } );
+		mesh.position.set( S.x, 0, S.z );
+		mesh.scale.setScalar( r );
+		this.group.add( mesh );
+		st.waves.push( { r, mesh, hit: true } );
+
+	}
+
 	// 폭풍이 잦아든다 (8번이 함께 가기로 했을 때)
 	calmStorm() {
 
@@ -639,7 +653,7 @@ export class DawnSea {
 
 		// 큰 파도: 가운데서 둥글게 퍼져 나간다. 헤이즐 자리를 지날 때 공중에 있지 않으면 밀려난다
 		const d = Math.hypot( hazel.pos.x - S.x, hazel.pos.z - S.z );
-		if ( st.power > 0.5 && d < STORM_R + 40 ) {
+		if ( st.power > 0.5 && ! st.manual && d < STORM_R + 40 ) {
 
 			st.timer -= dt;
 			if ( st.timer <= 0 ) {
@@ -900,10 +914,20 @@ export class DawnSea {
 	closingSwim() {
 
 		this.closing = true;
+		// 이제 누구의 명령도 아니다: 셋 중 둘은 제 자리를 골라 함께 헤엄치고, 나머지는 저마다의 바다로
 		( this.army ?? [] ).forEach( ( o, i ) => {
 
+			if ( i % 3 === 2 ) {
+
+				const a = Math.random() * Math.PI * 2;
+				o.slot = null;
+				o.leaveTo = { x: o.whale.pos.x - Math.abs( Math.cos( a ) ) * 600, z: o.whale.pos.z + Math.sin( a ) * 600 };
+				return;
+
+			}
+
 			o.leaveTo = null;
-			o.slot = { x: ( ( i % 9 ) - 4 ) * 11 + ( Math.floor( i / 9 ) % 2 ) * 5, z: - 46 - Math.floor( i / 9 ) * 14 };
+			o.slot = { x: ( Math.random() - 0.5 ) * 130, z: - 40 - Math.random() * 70 };
 
 		} );
 

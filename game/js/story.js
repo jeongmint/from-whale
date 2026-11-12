@@ -2,7 +2,8 @@
 import { lang } from './i18n.js';
 import { DAWN_PLACES } from './map3.js';
 import { SUN_DIR } from './sky.js';
-import { playOldSong, hornNote, orcaNote, hazelNote, mobyNote, stellaNote } from './voices.js';
+import { playOldSong, hornNote, orcaNote, orcaTone, hazelNote, mobyNote, stellaNote, bellNote } from './voices.js';
+import { respond } from './hold.js';
 import { symphony } from './symphony.js';
 
 // 화자 모양 (이름은 언어 파일의 speakers)
@@ -22,6 +23,13 @@ export const SPEAKERS = {
 	nine: { portrait: 'orca', bar: 'linear-gradient(90deg,#4a1e1e,#e0b0a0)' }, // MAP 3: 침몰한 함대의 9번
 	eight: { portrait: 'orca', bar: 'linear-gradient(90deg,#1e3a48,#bfe8ff)' } // MAP 3: 폭풍의 바다의 8번
 };
+
+// MAP 3 · 9번의 기억 파편 (배마다): [ 박(초), 길이(초) ] — 길이 0은 짧은 소리 (숏탭), 나머지는 긴 소리 (롱탭)
+export const MEMORY_NOTES = [
+	[ { at: 0, len: 0 }, { at: 0.6, len: 0 }, { at: 1.2, len: 1.0 } ],
+	[ { at: 0, len: 1.0 }, { at: 1.5, len: 0 }, { at: 2.1, len: 0.9 } ],
+	[ { at: 0, len: 0 }, { at: 0.6, len: 1.0 }, { at: 2.0, len: 0 }, { at: 2.6, len: 0 } ]
+];
 
 // 지도 (x, z). 북쪽 = -z
 export const PLACES = {
@@ -671,14 +679,27 @@ export async function map3( G ) {
 	};
 
 	aimCrack();
+	let broken = 0;
 	while ( cracks.some( ( c ) => ! c.done ) ) {
 
+		// 노래하면 얼음 아래에서 12번의 메아리가 돌아온다 → 메아리가 들리는 동안 롱탭, 끝나면 놓기 (갈수록 길게)
 		await G.untilEvent( 'sing' );
 		const c = cracks.find( ( x ) => ! x.done && dist( x ) < 18 );
 		if ( ! c ) continue;
+		G.cutscene( true );
+		G.camFocus( { x: c.x, y: 0, z: c.z }, { side: 1, dist: 22, height: 7 } );
+		if ( ! broken ) G.ui.toast( U().echoHint );
+		await respond( G, {
+			kind: 'echo', title: U().echoTitle, who: U().twelve,
+			notes: [ { at: 1.1, len: [ 1.0, 1.5, 2.1 ][ broken ] } ],
+			call: { actor: { setGlow: ( v ) => c.glow.material.opacity = 0.4 + v }, color: 0x7fe9ff, play: ( n ) => orcaTone( G, 76, n.len, 0.07 ) }
+		} );
 		G.breakCrack( c );
+		broken ++;
 		tw.whale.setGlow( 0.5, 0x7fe9ff );
 		setTimeout( () => tw.whale.setGlow( 0 ), 400 );
+		G.camRelease();
+		G.cutscene( false );
 		aimCrack();
 
 	}
@@ -687,6 +708,12 @@ export async function map3( G ) {
 	G.openIce();
 	G.camFocus( tw.whale, { side: 1, dist: 30, height: 9 } );
 	await G.wait( 1.5 );
+	// 12번이 처음으로 자신의 노래를 부른다
+	tw.whale.setGlow( 0.6, 0x7fe9ff );
+	[ 76, 79, 81, 79, 84, 81 ].forEach( ( m, i ) => setTimeout( () => i === 4 ? orcaTone( G, m, 0.9 ) : orcaNote( G, m ), i * 330 ) );
+	for ( let i = 0; i < 3; i ++ ) G.world.ring( tw.whale.pos.x, tw.whale.pos.z, { color: 0x7fe9ff, to: 40, life: 1.6, delay: i * 0.5 } );
+	await G.wait( 2.4 );
+	tw.whale.setGlow( 0 );
 	await G.say( pick( T().free ) );
 	join( tw );
 	G.camRelease();
@@ -769,10 +796,17 @@ export async function map3( G ) {
 			await G.untilEvent( 'sing' );
 			const w = ships.find( ( x ) => ! x.woke && dist( x ) < 48 );
 			if ( ! w ) continue;
-			sea.wake( w );
-			G.wakeWreck( w );
+			// 배에 남은 기억의 파편: 짧은 소리는 숏탭, 길게 이어지는 소리는 롱탭으로 이어 붙인다
 			G.cutscene( true );
 			G.camFocus( { x: w.x, y: 0, z: w.z }, { side: 1, dist: 70, height: 16 } );
+			if ( ! ships.some( ( x ) => x.woke ) ) G.ui.toast( U().memoryHint );
+			await respond( G, {
+				kind: 'answer', title: U().memoryTitle, who: U().nine,
+				notes: MEMORY_NOTES[ w.memory ],
+				call: { actor: { setGlow: ( v ) => w.winMat.color.setScalar( 0.1 + v * 0.8 ) }, color: 0xffc070, play: ( n ) => n.len > 0 ? orcaTone( G, n.echo ? 64 : 69, n.len ) : orcaNote( G, n.echo ? 72 : 69 ) }
+			} );
+			sea.wake( w );
+			G.wakeWreck( w );
 			await G.wait( 1 );
 			await G.say( pick( F.memories[ w.memory ] ) );
 			G.camRelease();
@@ -807,22 +841,26 @@ export async function map3( G ) {
 		G.camFocus( eight.whale, { side: 1, dist: 26, height: 7 } );
 		await G.say( pick( S.meet ) );
 		join( eight );
+		// 용기의 노래: 롱탭으로 8번에게 용기를 주고, 8번이 먼저 뛰어오르면 놓고 점프 — 큰 파도를 함께 세 번
+		sea.storm.manual = true;
+		G.camFocus( eight.whale, { side: 1, dist: 34, height: 8 } );
+		G.ui.toast( U().courageHint );
+		for ( let i = 0; i < 3; i ++ ) {
+
+			G.objective( U().label, U().objRide.replace( '{n}', i ), null );
+			await respond( G, {
+				kind: 'courage', title: U().courageTitle, who: U().eight, need: 1.3,
+				call: { actor: eight.whale, color: 0xbfe8ff },
+				cueSoon: ( wait ) => sea.sendWave( h, wait + 0.4 ), // 8번이 뛰는 순간 조금 뒤에 파도가 닿는다
+				cue: () => eight.whale.breach( 14 ),
+				jump: () => G.doJump()
+			} );
+			await G.wait( 1.2 );
+
+		}
+
+		G.objective( U().label, U().objRide.replace( '{n}', 3 ), null );
 		G.camRelease();
-		G.cutscene( false );
-		G.waveClears = 0;
-		let shown = - 1;
-		await G.until( () => {
-
-			if ( G.waveClears !== shown ) {
-
-				shown = G.waveClears;
-				G.objective( U().label, U().objRide.replace( '{n}', Math.min( 3, shown ) ), null );
-
-			}
-
-			return G.waveClears >= 3 && free();
-
-		} );
 		sea.calmStorm();
 		G.cutscene( true );
 		G.camFocus( eight.whale, { side: 1, dist: 30, height: 9 } );
@@ -890,11 +928,38 @@ export async function map3( G ) {
 		G.camRelease();
 		G.cutscene( false );
 
-		// 헤이즐이 한 번 노래하면, 루크 · 핀 · 함께 온 고래들이 차례로 제 소리로 대답한다
-		G.objective( U().label, U().objAnswer, null );
-		await G.untilEvent( 'sing' );
+		// 등대 합주: 세 고래의 노래를 한 번씩 (최종 교향곡 연습). 루크가 있으면 뿔로 선율을 잇고, 없으면 등대 불빛과 종소리가 박자를 알린다
+		G.objective( U().label, U().objEnsemble, null );
 		G.cutscene( true );
 		G.camFocus( at, { side: 1, dist: 60, height: 12 } );
+		G.ui.toast( U().ensembleHint );
+		const link = async ( m ) => {
+
+			if ( on.luke ) {
+
+				G.actors.luke.setGlow( 1.2, 0xffb070 );
+				hornNote( G, m );
+				setTimeout( () => hornNote( G, m + 4 ), 380 );
+
+			} else {
+
+				G.lighthouseBeat();
+				bellNote( G, m + 12 );
+
+			}
+
+			await G.wait( 1.2 );
+			if ( on.luke ) G.actors.luke.setGlow( 0.3, 0xffd36b );
+
+		};
+
+		const V = sea.voices;
+		await link( 57 );
+		await respond( G, { kind: 'echo', title: U().ensembleTitle, who: U().twelve, notes: [ { at: 1.0, len: 1.4 } ], call: { actor: V.twelve.whale, color: 0x7fe9ff, play: ( n ) => orcaTone( G, 76, n.len ) } } );
+		await link( 60 );
+		await respond( G, { kind: 'answer', title: U().ensembleTitle, who: U().nine, notes: MEMORY_NOTES[ 0 ], call: { actor: V.nine.whale, color: 0xffc070, play: ( n ) => n.len > 0 ? orcaTone( G, 69, n.len ) : orcaNote( G, n.echo ? 72 : 69 ) } } );
+		await link( 64 );
+		await respond( G, { kind: 'courage', title: U().ensembleTitle, who: U().eight, need: 1.1, call: { actor: V.eight.whale, color: 0xbfe8ff }, cue: () => V.eight.whale.breach( 14 ), jump: () => G.doJump() } );
 		await G.answerAll( responders() );
 		await G.wait( 1.5 );
 		await G.say( pick( Lh.together ) );
@@ -980,16 +1045,12 @@ export async function map3( G ) {
 
 		// 목소리: 루크 → 핀 → 12번 · 9번 · 8번 → 모비 딕 → 스텔라. 선율은 모두 엇박 (샤먼의 북은 정박)
 		const V = [];
-		if ( on.luke ) V.push( { name: 'LUKE', actor: G.actors.luke, phrase: [ 0.5, 1.5, 2.5 ], pitches: [ 57, 60, 64 ], play: ( m ) => hornNote( G, m ), color: 0xffb070, rest: 0.3, restColor: 0xffd36b } );
-		if ( on.finn ) V.push( { name: 'FINN', actor: G.actors.finn, phrase: [ 0.5, 2.5, 3.5 ], pitches: [ 81, 84, 86 ], play: ( m ) => orcaNote( G, m ), color: 0x9d8cff } );
-		const ORCA = {
-			twelve: { phrase: [ 1.5, 2.5, 3.5 ], pitches: [ 76, 79, 76 ] },
-			nine: { phrase: [ 0.5, 1.5, 3.5 ], pitches: [ 69, 72, 69 ] },
-			eight: { phrase: [ 2.5, 3.5 ], pitches: [ 88, 86 ] }
-		};
-		for ( const k of G.voices ) V.push( { name: U()[ k ], actor: sea.voices[ k ].whale, ...ORCA[ k ], play: ( m ) => orcaNote( G, m ), color: 0x7fe9ff } );
-		V.push( { name: 'MOBY DICK', actor: moby, phrase: [ 0.5, 3.5 ], pitches: [ 45, 40 ], play: ( m ) => mobyNote( G, m ), color: 0xbcd6ff, rest: 0.15, restColor: 0xbcd6ff } );
-		if ( on.stella ) V.push( { name: 'STELLA', actor: G.actors.stella, phrase: [ 0.5, 1.5, 2.5, 3.5 ], pitches: [ 69, 72, 76, 81 ], play: ( m ) => stellaNote( G, m ), color: 0xffd36b, rest: 0.12, restColor: 0xffb020 } );
+		const orca = ( k, pitches ) => ( { key: k, name: U()[ k ], actor: sea.voices[ k ].whale, pitches, play: ( m ) => orcaNote( G, m ), tone: ( m, d ) => orcaTone( G, m, d ), color: 0x7fe9ff } );
+		V.push( orca( 'twelve', [ 76, 79, 81 ] ), orca( 'nine', [ 69, 72, 74 ] ), orca( 'eight', [ 88, 86, 84 ] ) );
+		if ( on.luke ) V.push( { key: 'luke', name: 'LUKE', actor: G.actors.luke, pitches: [ 57, 60, 64 ], play: ( m ) => hornNote( G, m ), color: 0xffb070, rest: 0.3, restColor: 0xffd36b } );
+		if ( on.finn ) V.push( { key: 'finn', name: 'FINN', actor: G.actors.finn, pitches: [ 81, 84, 86 ], play: ( m ) => orcaNote( G, m ), tone: ( m, d ) => orcaTone( G, m, d ), color: 0x9d8cff } );
+		V.push( { key: 'moby', name: 'MOBY DICK', actor: moby, pitches: [ 45, 40, 43 ], play: ( m ) => mobyNote( G, m ), color: 0xbcd6ff, rest: 0.15, restColor: 0xbcd6ff } );
+		if ( on.stella ) V.push( { key: 'stella', name: 'STELLA', actor: G.actors.stella, pitches: [ 69, 72, 76, 81 ], play: ( m ) => stellaNote( G, m ), color: 0xffd36b, rest: 0.12, restColor: 0xffb020 } );
 		G.finaleVoices = V.map( ( v ) => v.name );
 
 		G.objective( U().label, U().objSym );
@@ -1012,7 +1073,19 @@ export async function map3( G ) {
 		const D = T().dawnEnd;
 		const shaman = G.actors.shaman;
 		G.camFocus( shaman, { side: - 1, dist: 34, height: 6 } );
-		await G.say( pick( D.question ) );
+		await G.say( pick( D.question ) ); // "우리는 무엇을 위해 만들어졌지?"
+		if ( on.finn ) {
+
+			G.camFocus( G.actors.finn, { side: 1, dist: 22, height: 5 } );
+			G.actors.finn.setGlow( 0.8, 0x9d8cff );
+			orcaNote( G, 81 );
+			await G.say( pick( D.finn ) ); // "그건 우리가 정할 거야."
+			G.actors.finn.setGlow( 0.2, 0x9d8cff );
+
+		}
+
+		// 헤이즐이 다시 노래하고, 샤먼이 처음으로 제 소리를 낸다 (아직 화해하지는 않는다)
+		G.camFocus( shaman, { side: - 1, dist: 40, height: 7 } );
 		G.audio.play( 'sing' );
 		for ( let i = 0; i < 3; i ++ ) G.world.ring( h.pos.x, h.pos.z, { color: 0x7fe9ff, to: 50, life: 1.6, delay: i * 0.3 } );
 		await G.wait( 2 );
@@ -1020,15 +1093,27 @@ export async function map3( G ) {
 		await G.say( pick( D.voice ) );
 		await G.say( pick( D.after ) );
 
-		// 클로징: 해가 뜨고, 모두 함께 해가 뜨는 도시를 향해 헤엄친다. 카메라는 무리 둘레를 천천히 돈다 (글은 마지막 한 줄만)
+		// 클로징: 해가 뜨고, 고래들은 저마다의 의지로 헤엄친다. 카메라는 헤이즐과 동료들을 따라가다 천천히 새벽 바다 위로 떠오른다
 		G.cinema( true );
 		G.sunrise();
 		G.setMusic( { tension: 0, drums: 0, bass: 0.4, melody: 1, piano: 1, sax: 0.7 } );
 		h.yaw = G.camYaw = Math.atan2( SUN_DIR.x, SUN_DIR.z );
 		G.closingSwim( h.yaw );
-		await G.wait( 25 ); // 높이 올라가는 장면 가운데쯤
+		if ( on.luke ) {
+
+			// 루크는 등대에서 마지막 선율을 분다 (멀리서)
+			setTimeout( () => {
+
+				[ 57, 60, 64, 62, 60, 64, 69 ].forEach( ( m, i ) => setTimeout( () => hornNote( G, m ), i * 520 ) );
+				G.lighthouseBeat?.();
+
+			}, 4500 );
+
+		}
+
+		await G.wait( 8 );
 		await G.poem( D.poem );
-		await G.wait( 2 );
+		await G.wait( 4 );
 		// 엔딩: 교향곡에서 샤먼의 합창에 밀리지 않았다면 '모두의 노래', 거의 묻혔다면 '52Hz의 새벽'
 		await G.showEnding( G.symphony.overpowered ? 'lone' : 'chorus' );
 		G.endClosing();

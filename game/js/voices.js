@@ -80,3 +80,75 @@ export function stellaNote( G, midi ) {
 	a.voice( t + 0.02, [ [ 0, f / 2 ], [ 0.55, f / 2 ] ], { vel: 0.06, vibrato: 4, reverb: 1.4 } );
 
 }
+
+// 길이가 있는 범고래 소리 (메아리 · 기억의 긴 음): dur초 동안 이어진다
+export function orcaTone( G, midi, dur, vel = 0.08 ) {
+
+	const a = G.audio, ctx = a.ctx;
+	if ( ! ctx ) return;
+	const f = mtof( midi ), t = ctx.currentTime + 0.01;
+	const d = Math.max( 0.15, dur );
+	a.voice( t, [ [ 0, f * 0.95 ], [ 0.08, f ], [ d, f * 0.99 ] ], { vel, vibrato: 5.5, depth: 0.012, reverb: 1.1 } );
+
+}
+
+// 롱탭: 누르고 있는 동안 헤이즐의 52Hz가 길게 이어지고, 놓으면 잦아든다. 반환: stop()
+export function holdTone( G, midi = 57 ) {
+
+	const a = G.audio, ctx = a.ctx;
+	if ( ! ctx ) return () => {};
+	const t = ctx.currentTime + 0.01;
+	const f = mtof( midi );
+	const g = ctx.createGain();
+	g.gain.setValueAtTime( 0.0001, t );
+	g.gain.exponentialRampToValueAtTime( 0.12, t + 0.18 );
+	g.connect( a.sfx );
+	const send = ctx.createGain();
+	send.gain.value = 0.8;
+	g.connect( send ).connect( a.reverb );
+	const oscs = [ [ f, 'sine', 1 ], [ f / 2, 'sine', 0.6 ], [ 52, 'sine', 1.6 ] ].map( ( [ fr, type, lv ] ) => {
+
+		const o = ctx.createOscillator();
+		o.type = type;
+		o.frequency.value = fr;
+		const lg = ctx.createGain();
+		lg.gain.value = lv;
+		const lfo = ctx.createOscillator();
+		lfo.frequency.value = 5;
+		const lfoG = ctx.createGain();
+		lfoG.gain.value = fr * 0.01;
+		lfo.connect( lfoG ).connect( o.frequency );
+		o.connect( lg ).connect( g );
+		o.start( t );
+		lfo.start( t );
+		return [ o, lfo ];
+
+	} );
+	let stopped = false;
+	return () => {
+
+		if ( stopped ) return;
+		stopped = true;
+		const n = ctx.currentTime;
+		g.gain.cancelScheduledValues( n );
+		g.gain.setValueAtTime( Math.max( 0.0001, g.gain.value ), n );
+		g.gain.exponentialRampToValueAtTime( 0.0001, n + 0.45 );
+		for ( const [ o, l ] of oscs ) {
+
+			o.stop( n + 0.5 );
+			l.stop( n + 0.5 );
+
+		}
+
+	};
+
+}
+
+// 등대의 종소리 (루크가 없을 때 박자를 알려 준다)
+export function bellNote( G, midi ) {
+
+	const a = G.audio, ctx = a.ctx;
+	if ( ! ctx ) return;
+	a.ep( ctx.currentTime + 0.01, midi, 0.16, 1.4, a.sfx, 0.9 );
+
+}

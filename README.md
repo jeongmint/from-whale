@@ -100,30 +100,33 @@ Subtitle: Song of Liberation (working title). After the red eyes go dark, an All
 
 | Sea | Play | Whale |
 | --- | --- | --- |
-| The Frozen Lane (north) | A channel through the ice → sing beside three weak spots in the ice around the pool (glowing blue cracks) to break them → the ice splits and a way opens | No.12: trapped in a pool in the ice, circling, spouting now and then |
-| The Sunken Fleet (west) | Sing beside three sunken ships → their windows light up with No.9's memories (the hands that changed the water · the day of the chip · the night the stars fell). Orange rings on the sonar | No.9: once set on revenge; after seeing every memory, chooses to come along |
-| The Storm Sea (southeast) | Dark clouds · rain · lightning · high seas. Big waves spread from the center; jump just before each reaches you (or get swept back) → jump three big waves together with No.8 (it jumps when it sees you jump) → the storm settles | No.8: the youngest, seeing waves for the first time, curled up by the rocks |
+| The Frozen Lane (north) | A channel through the ice → sing beside three weak spots in the ice around the pool (glowing blue cracks) → No.12's echo returns from under the ice. Long-press while the echo sounds, let go when it ends (longer echo with each crack) → the ice splits, and No.12 sings its own song for the first time | No.12: trapped in a pool in the ice, circling, spouting now and then |
+| The Sunken Fleet (west) | Sing beside three sunken ships → memory fragments: sing them back with short taps for short notes, long presses for long ones (a different rhythm per ship) → their windows light up with No.9's memories (the hands that changed the water · the day of the chip · the night the stars fell). Orange rings on the sonar | No.9: once set on revenge; after seeing every memory, chooses to come along |
+| The Storm Sea (southeast) | Dark clouds · rain · lightning · high seas. Big waves spread from the center; jump just before each reaches you (or get swept back) → the song of courage, three times: long-press to fill No.8 with courage; when No.8 leaps first, let go and jump → clear the big wave together → the storm settles | No.8: the youngest, seeing waves for the first time, curled up by the rocks |
 
 - Dawn: brighter with each voice gathered. Card "VOICE n"
 - The Forgotten Lighthouse (after the three seas): Luke's lighthouse, dark, at the end of the Frozen Lane
   - Three song stones (humpback · blue whale · sperm whale): sing beside one to wake the old whale song Luke carved with his horn. With Luke, he reads it; without him, only the carving
-  - With all three awake, the lighthouse lights up → sing once, and Luke → Finn → the whales who came along answer in turn, each in its own voice, then all together
+  - With all three awake, the lighthouse lights up → the lighthouse ensemble (symphony practice): No.12's echo (long press) → No.9's memory (short · long) → No.8's courage (long press, then jump). With Luke, his horn plays the first note and links the parts; without him, the lighthouse beam and a bell keep the beat. Everyone answers together at the end
   - End: beyond the beam, the Shaman's pod marching on the coast → card "The Forgotten Lighthouse · The Language of the Sea"
 - The coastal city and the march (far east, toward the sunrise)
   - The human coastal city: lit buildings, a sea wall, ships in the harbor, searchlights sweeping the sea. No swimming past the shoreline
   - The Shaman's march: the Alliance in three rows with the Shaman glowing red at the front. On every drumbeat they all surge forward; every sixteen beats they leap together. The drum grows louder as you approach
   - Drum rings: every four beats a red ring spreads from the Shaman. Sing the moment it reaches you to hold your ground (a golden ring), or get pushed back
   - The standoff: the Shaman's question "What were you made for!" → the Alliance's scattered answers → with Finn, No.7 says no by his own will for the first time; without him, No.7's story spreads through J's records → card "The Coastal City · Before the March"
-- The Whale Symphony (a button-mash tug-of-war)
+- The Whale Symphony (five phases)
   - Moby Dick comes from behind ("I too once tried to cover the whole sea with my song alone"), and Stella too if you've met her
-  - A bar in the middle: the Shaman's drum on the red side, Hazel and friends on the gold. Mash the sing button to push toward gold (holding it down doesn't count)
-  - The Shaman's drum never stops pushing, and hits harder on every beat. On each beat, the Alliance still bound to the drum flinches forward
-  - Each time the bar passes a marker, a friend joins (Luke → Finn → No.12 · No.9 · No.8 → Moby Dick → Stella): its name lights up, it pushes with you and sings its own note on the off-beats, and as many of the Alliance break free of the drum
-  - Push all the way and everyone sings at once in their own notes. Hazel stays 52Hz to the end
+  - A bar in the middle: the Shaman's drum on the red side, Hazel and friends on the gold. On each beat, the Alliance still bound to the drum flinches forward
+  - 1. The Shaman's drum: mash the sing button to push toward gold (the drum never stops pushing red). Past the marker, No.12's song is heard
+  - 2. No.12's echo: long press at the start, let go at the end → joins
+  - 3. No.9's resolve: short and long taps to No.9's melody. Pressing on the drumbeat pushes you red → joins
+  - 4. No.8's courage: the Shaman's last, strongest drum → long press for courage → when No.8 leaps, let go and jump → joins, the drum weakens
+  - 5. Everyone's song: the bar disappears and the drum stops. Silence. Hold the one sing button and the friends' voices join 52Hz one by one; let go and everyone answers
+  - A whale that joins lights up its name and sings its own note on the off-beats, and as many of the Alliance break free of the drum. A miss repeats only that phase (after several misses, the other whale matches you)
 - Dawn (cinematic)
-  - The Shaman asks "Without orders, what are we supposed to live for?" → Hazel sings instead of answering → the Shaman's first sound of its own
-  - Closing: letterbox bars, HUD hidden; the sun rises from below the eastern horizon and the lighthouse goes dark. Hazel, her friends, No.12 · No.9 · No.8, Moby Dick, Stella, the freed Alliance and the Shaman at the rear all swim together toward the city in the sunrise, while the camera slowly circles the pod (behind → side → front → rising high over the city and the whole pod)
-  - Only one closing line: "And for the first time, the song was no one's order"
+  - The Shaman asks "What were we made for?" → with Finn, "That's for us to decide." → Hazel sings again → the Shaman's first sound of its own (no reconciliation yet)
+  - Closing: letterbox bars, HUD hidden; the sun rises from below the eastern horizon and the lighthouse goes dark. Hazel, her friends, No.12 · No.9 · No.8, Moby Dick and Stella swim toward the sunrise. The freed Alliance follows its own will, some along, some to their own seas; the Shaman stays behind. With Luke, a last melody from the lighthouse. The camera circles the pod (behind → side → front), then slowly rises over the dawn sea
+  - A seven-line closing narration: "What were we born for? / No one ever answered. / … / And for the first time, / the song was no one's order."
   - MAP 3 ending screen: this map's two endings, the voices that sang, symphony tap count
 
 ### Characters
@@ -150,9 +153,9 @@ Color options (`Whale` in `game/js/actors.js`): `solidColor` for a single color,
 | Mouse drag | Screen drag | Camera (on phones it returns behind the whale after a moment) |
 | — | Tilt (LAB, landscape) | Lean forward to swim, back to reverse, sideways to turn |
 | `Shift` | `»` | Boost (stamina) |
-| `Space` | `⤴` (UP under the sea) | Jump (invincible in the air) · ambush dodge · duet jump notes · swim up under the sea |
+| `Space` | `⤴` (UP under the sea) | Jump (invincible in the air) · ambush dodge · duet jump notes · swim up under the sea · jump with No.8 after letting go of the song (MAP 3) |
 | `C` | `⤵` (under the sea only) | Swim down under the sea |
-| `E` | `♪` | Sing · talk · sonar · next line · call and response · duet song notes · fishing (MAP 2) · breaking ice · holding against the drum · mashing in the symphony (MAP 3) |
+| `E` | `♪` | Sing · talk · sonar · next line · call and response · duet song notes · fishing (MAP 2) · holding against the drum · mashing in the symphony (MAP 3). MAP 3 songs: short tap (under 0.25 s) · long press (0.4 s or more), with a ring of light around Hazel while held |
 | `L` / `M` / `Esc` | Top-right buttons | Letters / sound / pause |
 | Whale chip in the POD window | Whale chip in the POD window | Home page |
 
@@ -184,7 +187,8 @@ Color options (`Whale` in `game/js/actors.js`): `solidColor` for a single color,
 | `game/js/sealife.js` | MAP 2 sea life: where each kind lives, schools, drifting jellyfish, bottom crawlers, moray eel ambushes |
 | `game/js/map2.js` | MAP 2: trench terrain, landmarks per layer (sub · lab · terminal · whale bones · base), research log positions |
 | `game/js/map3.js` | MAP 3: dawn sea colors, ice field · channel, snow, the Sunken Fleet, the storm (rain · lightning · big waves), song stones, the coastal city, the Shaman's march · drum, the silent Alliance, the whales you meet |
-| `game/js/symphony.js` | MAP 3 Whale Symphony: a button-mash tug-of-war with the Shaman's drum, friends joining one by one |
+| `game/js/symphony.js` | MAP 3 Whale Symphony: five phases (mash · echo · resolve · courage · everyone's song), friends joining one by one |
+| `game/js/hold.js` | MAP 3 singing responses: short tap · long press · let go and jump (echo · resolve · courage), shared by the missions, the lighthouse ensemble and the symphony |
 | `game/js/voices.js` | MAP 3 whale voices (orca whistles, Luke's horn, Moby Dick, Stella, Hazel), the old whale songs |
 | `game/js/scores.js` | Duet scoreboard window (saves on this device only when the server can't be reached) |
 | `game/js/main.js` | Rendering, bloom, input, Alliance AI, boss fight, routes · ending gallery, epilogue |

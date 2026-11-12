@@ -63,23 +63,56 @@ export default {
 			drumHit: 'Pushed back by the drum — [E] the moment the ring reaches you',
 			drumBlock: '52Hz cut through the drumbeat',
 			coastCard: [ 'MAP 3', 'The Coastal City', 'Before the March' ],
-			objSym: 'The Whale Symphony · mash to push back the Shaman\'s drum',
+			objSym: 'The Whale Symphony · mash, then the three whales\' songs',
 			objDawn: 'Dawn',
 			symTitle: 'WHALE SYMPHONY',
-			symDrum: 'Shaman\'s drum',
-			symJoin: '{who} — pushes with you!',
 			symDone: 'Different voices became one song',
 			objCracks: 'Sing beside the weak spots in the ice [E] · {n}/3',
-			crackHint: 'Sing beside the ice where it glows cracked and blue [E] to break it',
-			objRide: 'Jump the big waves together with No.8 [Space] · {n}/3',
-			objAnswer: 'Sing [E] — everyone will answer',
+			objRide: 'Clear the big waves with No.8 · {n}/3',
 			cards: {
 				frozen: [ 'The Frozen Lane', 'No.12 comes along' ],
 				fleet: [ 'The Sunken Fleet', 'No.9 comes along' ],
 				storm: [ 'The Storm Sea', 'No.8 comes along' ]
 			},
 			symMash: 'Mash [E]! — push back the Shaman\'s drum',
-			symPushed: 'The Shaman\'s chorus is winning — faster [E]!'
+			symPushed: 'The Shaman\'s chorus is winning — faster [E]!',
+			symP2: '{who}\'s song — the echo',
+			symP3: '{who}\'s melody — off the drumbeat',
+			symP4: 'The Shaman\'s last drum — {who}\'s courage',
+			symOnDrum: 'On the drumbeat — pushed toward the Shaman',
+			symSilence: 'The drum stopped. Silence.',
+			symP5: 'Hold [E] — every voice joins 52Hz, one by one. Let go when all are in',
+			symP5Short: 'A little longer — not everyone is in yet',
+			holdTitle: '52HZ · SONG',
+			holdEchoWait: 'Listen… {who}\'s echo is coming back',
+			holdEchoNow: 'Hold [E] now — let go when the echo ends',
+			holdTooLong: 'Held too long',
+			holdTooShort: 'Let go too soon',
+			holdMissed: 'Missed the echo',
+			holdListen: 'Listen to {who}…',
+			holdReady: 'One, two…',
+			holdAnswer: 'Sing it back — short [E] · long [E]',
+			holdNeedLong: 'Long notes long',
+			holdNeedShort: 'Short notes short',
+			holdCourage: 'Hold [E] — give {who} courage',
+			holdBrave: '{who} is ready… watch for the leap',
+			holdJump: 'Now! Let go and [Space]',
+			holdLetGo: 'Let go of [E] first, then jump',
+			holdEarly: 'Jumped too early',
+			holdLate: 'A little late',
+			holdOk: 'Together!',
+			holdHelp: 'It\'s okay — we\'ll match you',
+			holdRetry: 'once more',
+			echoTitle: 'ECHO · No.12',
+			echoHint: 'No.12\'s echo returns from under the ice — hold [E] while it sounds',
+			memoryTitle: 'MEMORY · No.9',
+			memoryHint: 'Short notes short, long notes long [E] — piece No.9\'s memory back together',
+			courageTitle: 'COURAGE · No.8',
+			courageHint: 'Hold [E] to give No.8 courage — when No.8 leaps first, let go and [Space]',
+			objEnsemble: 'Lighthouse ensemble · echo, memory, courage',
+			ensembleTitle: 'LIGHTHOUSE ENSEMBLE',
+			ensembleHint: 'The three whales\' songs in turn — the same in the final symphony',
+			crackHint: 'Sing [E] by the blue cracks in the ice — No.12\'s echo will answer'
 		},
 		// MAP 2 낚시
 		fish: {
@@ -736,7 +769,7 @@ export default {
 					[ 'narrator', 'The sky went dark. For the first time, the sea stood up.' ],
 					[ 'narrator', 'A sea the whales born without waves had never seen.' ],
 					[ 'finn', 'Right in the middle… that\'s No.8. The youngest.\nIt cried whenever the tank water so much as sloshed.', 'finn' ],
-					[ 'luke', 'Jump just before each wave hits, {N}. Don\'t fight it — ride it.', 'luke' ],
+					[ 'luke', 'Don\'t fight it, {N}. Ride it. Waves look bigger the more you fear them.', 'luke' ],
 					[ 'narrator', 'In the heart of the storm, a small whale was curled up tight.', 'finnGone' ]
 				],
 				meet: [
@@ -746,7 +779,7 @@ export default {
 					[ 'finn', 'No.8, it\'s me. No.7. Crybaby No.7.\nI was scared at first too.', 'finn' ],
 					[ 'hazel', '( Swims to No.8\'s side and watches the coming waves together )' ],
 					[ 'eight', '…Will you jump them with me? When a wave comes — together?' ],
-					[ 'luke', 'Right before it hits, {N}. No.8 will jump when it sees you jump.', 'luke' ]
+					[ 'luke', 'Give No.8 courage, {N}. Sing long, and when No.8 leaps first, let go and jump with it.', 'luke' ]
 				],
 				calm: [
 					[ 'narrator', 'As they cleared the third wave together, the storm began to settle.' ],
@@ -786,8 +819,8 @@ export default {
 				lamp: [
 					[ 'narrator', 'As the third song woke, the lighthouse came alight.' ],
 					[ 'luke', 'They were born in the sea, but never learned the language of the sea.\n{N}, I\'ll carry your song to them.', 'luke' ],
-					[ 'luke', 'You sing first. I\'ll be the first to answer. The others will follow, each in its own voice.', 'luke' ],
-					[ 'narrator', 'The lighthouse light blinked slowly, as if counting the beat.\nIt was the light Luke left behind.', 'lukeGone' ]
+					[ 'luke', 'I\'ll play the first note. Then one by one — No.12\'s echo, No.9\'s memory, No.8\'s courage.', 'luke' ],
+					[ 'narrator', 'The lighthouse blinked slowly, and a bell rang, as if counting the beat.\nThe light Luke left behind.', 'lukeGone' ]
 				],
 				together: [
 					[ 'luke', 'Hear that? Every voice was different. And yet it was one song.', 'luke' ],
@@ -862,20 +895,23 @@ export default {
 			},
 			dawnEnd: {
 				question: [
-					[ 'shaman', '……Without orders,\nwhat are we supposed to live for?' ],
-					[ 'narrator', '{N} didn\'t answer. Instead, {N} sang again.' ]
+					[ 'shaman', '……What were we made for?' ]
 				],
 				voice: [
-					[ 'narrator', 'For the first time, the Shaman made a sound.\nClumsy, very small, and its own.' ]
+					[ 'narrator', '{N} sang again. For the first time, the Shaman made a sound.\nClumsy, very small, and its own.' ]
 				],
 				after: [
-					[ 'finn', 'Now I\'ll… try living in my own voice.', 'finn' ],
+					[ 'shaman', '……I do not know yet. But I will listen.' ],
 					[ 'luke', '{N}, it was heard. Our song.', 'luke' ]
 				],
-				poem: [ 'And for the first time,\nthe song was no one\'s order.' ]
+				poem: [ 'What were we born for?\nNo one ever answered.', 'So we began to sing.', 'In different voices,\ntoward different seas.', 'And for the first time,\nthe song was no one\'s order.' ],
+				finn: [
+					[ 'finn', 'That\'s for us to decide.' ]
+				]
 			},
 			free: [
 				[ 'narrator', 'As the last of the ice split, open sea appeared beyond the pool.' ],
+				[ 'narrator', 'For the first time, No.12 sang. Not an echo — its own song.' ],
 				[ 'twelve', '…The sea. A real sea, not frozen.' ],
 				[ 'twelve', 'I still don\'t know where to go.\nBut… I\'ll come with you.' ],
 				[ 'finn', 'Let\'s go together, No.12.', 'finn' ]

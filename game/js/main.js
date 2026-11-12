@@ -957,6 +957,14 @@ Object.assign( G, {
 
 	},
 
+	// MAP 3 용기의 노래: 롱탭을 놓고 진짜로 뛰어오른다
+	doJump() {
+
+		G.jumpCooldown = 0;
+		return jump();
+
+	},
+
 	// 장면 연출: 위아래 검은 띠, HUD를 숨긴다
 	cinema( on ) {
 
@@ -969,16 +977,17 @@ Object.assign( G, {
 	closingSwim( yaw ) {
 
 		G.camRelease();
-		G.autoSwim = { yaw, throttle: 0.4 }; // 천천히 (해안선에 닿기 전에 끝나게)
+		G.autoSwim = { yaw, throttle: 0.34 }; // 천천히 (해안선에 닿기 전에 끝나게)
 		G.closing = true;
 		G.map3.closingSwim();
-		for ( const key of [ 'moby', 'stella', 'shaman' ] ) G.actors[ key ].hold = false;
+		for ( const key of [ 'moby', 'stella' ] ) G.actors[ key ].hold = false; // 샤먼은 따라오지 않고 제자리에 남는다
 		G.camSweep = { t0: G.time, keys: [
 			{ t: 0, a: Math.PI, r: 24, y: 4, look: 10 },
 			{ t: 7, a: Math.PI * 0.55, r: 30, y: 5, look: 10 },
 			{ t: 13, a: 0.25, r: 38, y: 6, look: 4 },
 			{ t: 18, a: - 0.35, r: 46, y: 9, look: 4 },
-			{ t: 32, a: - Math.PI * 0.94, r: 85, y: 24, look: 150, ly: 4 } // 무리 바로 뒤 하늘에서, 무리 너머로 도시와 해를 함께
+			{ t: 24, a: - Math.PI * 0.94, r: 80, y: 22, look: 150, ly: 4 }, // 무리 바로 뒤 하늘에서, 무리 너머로 도시와 해를 함께
+			{ t: 40, a: - Math.PI * 0.97, r: 120, y: 58, look: 260, ly: 0 } // 천천히 떠올라 새벽 바다를 내려다본다
 		] };
 
 	},
@@ -1024,7 +1033,7 @@ Object.assign( G, {
 				el.classList.remove( 'show' );
 				void el.offsetWidth;
 				el.classList.add( 'show' );
-				setTimeout( next, 4200 );
+				G.wait( 4.2 ).then( next ); // 게임 시간으로 (카메라와 함께 흘러가게)
 
 			};
 
@@ -2804,11 +2813,47 @@ window.addEventListener( 'keydown', ( e ) => {
 	if ( [ 'Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight' ].includes( e.code ) ) e.preventDefault();
 	keys.add( e.code );
 	if ( e.repeat || ! G.started ) return;
+	if ( e.code === 'KeyE' && singDown() ) return; // 롱탭을 받는 노래(MAP 3)는 누름 · 뗌으로
 	onAction( e.code );
 
 } );
-window.addEventListener( 'keyup', ( e ) => keys.delete( e.code ) );
-window.addEventListener( 'blur', () => keys.clear() );
+window.addEventListener( 'keyup', ( e ) => {
+
+	keys.delete( e.code );
+	if ( e.code === 'KeyE' ) singUp();
+
+} );
+window.addEventListener( 'blur', () => {
+
+	keys.clear();
+	singUp();
+
+} );
+
+// 노래 버튼을 누르고 있는지 (롱탭). 지금 노래가 press · release를 받으면 그쪽으로 보내고 true
+function singDown() {
+
+	if ( G.singHeld ) return !! G.puzzle?.press;
+	G.singHeld = true;
+	G.singAt = G.time;
+	if ( G.puzzle?.press ) {
+
+		G.puzzle.press();
+		return true;
+
+	}
+
+	return false;
+
+}
+
+function singUp() {
+
+	if ( ! G.singHeld ) return;
+	G.singHeld = false;
+	G.puzzle?.release?.();
+
+}
 
 function onAction( code ) {
 
@@ -2830,7 +2875,7 @@ function onAction( code ) {
 	if ( G.fishing && code === 'Escape' ) return G.fishing.quit();
 	if ( code === 'Escape' ) return setPaused( true );
 	if ( code === 'KeyM' ) return G.ui.setMuted( audio.toggleMute() );
-	if ( G.puzzle?.key && ! [ 'KeyE', 'Space', 'Enter' ].includes( code ) && G.puzzle.key( code ) ) return; // MAP 3 노래 고르기 (1 · 2 · 3, 방향키)
+	if ( G.puzzle?.jump && code === 'Space' ) return G.puzzle.jump(); // MAP 3: 롱탭을 놓고 점프
 	if ( G.puzzle && [ 'KeyE', 'Space', 'Enter' ].includes( code ) ) return G.puzzle.tap();
 	if ( G.duetPlay && ( code === 'KeyE' || code === 'Enter' ) ) return G.duetPlay.hit( 'S' );
 	if ( G.duetPlay && code === 'Space' ) return G.duetPlay.hit( 'J' );
@@ -2940,6 +2985,7 @@ function setupTouch() {
 			e.preventDefault();
 			btn.classList.add( 'held' );
 			if ( act === 'boost' ) touch.boost = true;
+			else if ( act === 'sing' && singDown() ) return; // MAP 3 롱탭
 			else if ( G.diving && ! G.duetPlay && ! G.puzzle && ! G.ui.dialogOpen && ! G.ui.overlay && ( act === 'jump' || act === 'down' ) ) touch[ act === 'jump' ? 'up' : 'down' ] = true;
 			else if ( G.ui.dialogOpen || G.ui.overlay ) onAction( 'KeyE' );
 			else onAction( act === 'sing' ? 'KeyE' : 'Space' );
@@ -2948,6 +2994,7 @@ function setupTouch() {
 		const up = () => {
 
 			btn.classList.remove( 'held' );
+			if ( act === 'sing' ) singUp();
 			if ( act === 'boost' ) touch.boost = false;
 			if ( act === 'jump' ) touch.up = false;
 			if ( act === 'down' ) touch.down = false;
@@ -3940,12 +3987,30 @@ function updateDawn( dt ) {
 	hemiLight.intensity *= ( 1 + G.dawn * 0.6 ) * ( 1 - storm * 0.45 );
 	moonLight.intensity *= ( 1 + G.dawn * 0.25 ) * ( 1 - storm * 0.6 );
 	ambientLight.intensity *= ( 1 + G.dawn * 0.5 ) * ( 1 - storm * 0.3 );
-	// 클로징: 모비 딕 · 스텔라 · 샤먼도 무리를 따라 함께 헤엄친다
+	// 롱탭: 누르는 동안 헤이즐 둘레에 빛의 원이 커진다
+	if ( ! G.holdRing ) {
+
+		G.holdRing = makeSurfaceDecal( { color: 0xffd36b, inner: 0.9, outer: 1, opacity: 0.8, lift: 0.5 } );
+		scene.add( G.holdRing );
+
+	}
+
+	const held = G.singHeld ? G.time - ( G.singAt ?? G.time ) : 0;
+	G.holdRing.visible = held > 0.12;
+	if ( G.holdRing.visible ) {
+
+		const k = Math.min( 1, held / 1.6 );
+		G.holdRing.position.set( h.pos.x, 0, h.pos.z );
+		G.holdRing.scale.setScalar( 4 + k * 22 );
+		G.holdRing.material.uniforms.uOpacity.value = 0.5 + k * 0.5;
+
+	}
+
+	// 클로징: 모비 딕 · 스텔라도 무리를 따라 함께 헤엄친다 (샤먼은 남아서 바라본다)
 	if ( G.closing ) {
 
 		followSlot( G.actors.moby, h, { x: - 34, z: - 30 }, dt, 14 );
 		if ( G.actors.stella.root.visible ) followSlot( G.actors.stella, h, { x: 110, z: - 170 }, dt, 14 );
-		followSlot( G.actors.shaman, h, { x: 0, z: - 95 }, dt, 14 );
 
 	}
 
