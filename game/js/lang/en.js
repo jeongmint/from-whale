@@ -45,7 +45,6 @@ export default {
 			objFrozen: 'Follow the broken song · The Frozen Lane',
 			iceHint: 'Take the narrow channel between the ice — you can\'t swim through it',
 			twelve: 'No.12',
-			objVoices: 'Find the scattered voices · The Sunken Fleet · The Storm Sea · any order',
 			objWrecks: 'Sing beside the sunken ships [E] · {n}/3',
 			objEye: 'Into the heart of the storm · jump big waves with [Space]',
 			fleetHint: 'Sing beside a sunken ship [E] to wake the memories left aboard',
@@ -112,7 +111,11 @@ export default {
 			objEnsemble: 'Lighthouse ensemble · echo, memory, courage',
 			ensembleTitle: 'LIGHTHOUSE ENSEMBLE',
 			ensembleHint: 'The three whales\' songs in turn — the same in the final symphony',
-			crackHint: 'Sing [E] by the blue cracks in the ice — No.12\'s echo will answer'
+			crackHint: 'Sing [E] by the blue cracks in the ice — No.12\'s echo will answer',
+			objFleet: 'To the Sunken Fleet · west',
+			objStorm: 'To the Storm Sea · south',
+			objOrb: 'Take the light above where you sang',
+			orbHint: 'Take the light to ride it fast to the next sea'
 		},
 		// MAP 2 낚시
 		fish: {
@@ -762,6 +765,11 @@ export default {
 					[ 'nine', 'I\'ll remember both. So I\'m not going to the coast. Not yet.' ],
 					[ 'nine', 'I haven\'t forgiven everything.\nBut I\'ll stay beside you and decide with my own eyes.' ],
 					[ 'luke', 'That\'s enough.', 'luke' ]
+				],
+				anger: [
+					[ 'narrator', 'As the light touched {N}, the sea stirred.\nThe sunken ships creaked, and dark clouds began rolling toward the southern sky.' ],
+					[ 'luke', '…The sea\'s angry. To the south. Someone\'s inside that storm.', 'luke' ],
+					[ 'finn', 'Those clouds… that\'s where No.8 is.', 'finn' ]
 				]
 			},
 			storm: {

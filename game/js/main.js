@@ -227,6 +227,8 @@ const G = {
 	boss: null,
 	shards: [],
 	dash: 0,
+	rideOrbs: [],
+	ride: null,
 	compass: null,
 	save: loadSave(),
 	customName: loadName(),
@@ -958,6 +960,29 @@ Object.assign( G, {
 	},
 
 	// MAP 3 용기의 노래: 롱탭을 놓고 진짜로 뛰어오른다
+	// MAP 3: 노래를 마친 자리 위에 뜨는 빛 조각. 먹으면 다음 바다까지 빛을 타고 빠르게 (G.ride)
+	spawnRideOrb( at, lift = 4 ) {
+
+		const s = G.world.makeLightShard( { x: at.x, z: at.z } );
+		s.lift = lift;
+		s.taken = false;
+		s.group.scale.setScalar( 1.5 );
+		G.rideOrbs.push( s );
+		return s;
+
+	},
+
+	startRide( to, stop = 200 ) {
+
+		G.ride = { to, stop, end: G.time + 45 };
+		G.dash = 1;
+		G.stamina = 1;
+		audio.play( 'dash' );
+		const h = G.actors.hazel;
+		G.world.ring( h.pos.x, h.pos.z, { color: 0xffc27a, to: 34, life: 1, width: 0.2 } );
+
+	},
+
 	doJump() {
 
 		G.jumpCooldown = 0;
@@ -2249,6 +2274,7 @@ function duet( chart, title = null ) {
 		const lat = ctx ? ( ctx.outputLatency || ctx.baseLatency || 0 ) : 0;
 		const clock = () => ( ctx && audio.ctx === ctx ) ? ctx.currentTime - lat : performance.now() / 1000;
 		const beat = 60 / 92;
+		audio.setStyle( 'blues' ); // 듀엣은 블루스 위에서
 		const bar0 = ( ctx && audio.restartForm() ) || clock() + 0.6; // 첫 마디는 스텔라의 카운트
 		const t0 = bar0 + beat * 4;
 		const notes = chart.map( ( [ b, lane, midi ] ) => {
@@ -3750,6 +3776,7 @@ async function enterDive() {
 	G.audio.play( 'splash' );
 	await G.ui.fade( 1, 0.8 );
 	G.diving = true;
+	audio.setStyle( 'deep' ); // MAP 2는 해구의 음악
 	G.diveY = - 6;
 	G.diveCheckpoint = { x: h.pos.x, z: h.pos.z, y: - 6 };
 	G.diveVy = 0;
@@ -3818,6 +3845,7 @@ async function enterDive() {
 function leaveDive() {
 
 	G.diving = false;
+	audio.setStyle( 'blues' );
 	G.dive.exit();
 	document.body.classList.remove( 'diving' );
 	G.diveY = 0;
@@ -3839,6 +3867,7 @@ async function enterDawn() {
 	G.cutscene( true );
 	await G.ui.fade( 1, 0.8 );
 	if ( G.diving ) leaveDive();
+	audio.setStyle( 'dawn' ); // MAP 3은 새벽의 음악
 	G.setStarfall( false );
 	G.compass = null;
 	G.ui.setCompass( null );
@@ -4110,6 +4139,21 @@ function updatePlayer( dt ) {
 		throttle = G.autoSwim.throttle;
 
 	}
+	// MAP 3 빛 타기: 손을 놓고 있어도 다음 바다 쪽으로 빠르게 (방향키로 조금씩 틀 수 있다)
+	if ( G.ride ) {
+
+		const r = G.ride, dx = r.to.x - h.pos.x, dz = r.to.z - h.pos.z;
+		if ( Math.hypot( dx, dz ) < r.stop || G.time > r.end ) G.ride = null;
+		else if ( control ) {
+
+			G.dash = Math.max( G.dash, 0.4 );
+			if ( Math.abs( turn ) < 0.05 ) turn = Math.max( - 1.2, Math.min( 1.2, wrapAngle( Math.atan2( dx, dz ) - h.yaw ) * 1.6 ) );
+			throttle = 1;
+
+		}
+
+	}
+
 	const tilting = tiltActive();
 	if ( tilting !== G.tilting ) { G.tilting = tilting; document.body.classList.toggle( 'tilt', tilting ); }
 
@@ -4334,6 +4378,23 @@ function updateCompanions( dt ) {
 
 function updateBottlesAndKelp( dt ) {
 
+	// MAP 3: 노래를 마친 자리 위의 빛 조각 (먹으면 빛을 타고 다음 바다로)
+	for ( const s of G.rideOrbs ) {
+
+		s.update( dt, G.time );
+		if ( s.ready && ! s.taken && G.started && ! G.cutsceneOn && ! G.ui.dialogOpen && G.distTo( s ) < 12 ) {
+
+			s.taken = true;
+			s.active = false;
+			s.respawn = Infinity;
+			G.world.scene.remove( s.group );
+
+		}
+
+	}
+
+	G.rideOrbs = G.rideOrbs.filter( ( s ) => ! s.taken );
+
 	if ( G.map3 ) return G.ui.prompt( null ); // MAP 3엔 맵 1의 유리병 · 미역 · 빛 조각이 없다
 
 	if ( G.diving ) return G.ui.prompt( ! G.fishing && ! G.cutsceneOn && ! G.ui.dialogOpen && nearFishSpot() ? t( 'fish.prompt' ) : null ); // MAP 2엔 맵 1의 유리병 · 미역 · 빛 조각이 없다. 낚시 자리 안내만
@@ -4348,6 +4409,7 @@ function updateBottlesAndKelp( dt ) {
 
 	for ( const k of Object.values( G.kelps ) ) k.update( dt, G.time );
 	for ( const k of G.groves ) k.update( dt, G.time );
+
 
 	for ( const s of G.shards ) {
 

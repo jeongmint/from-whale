@@ -19,6 +19,39 @@ const COMP_PATTERNS = [
 	[ [ 0, 1.6 ], [ 8, 1.2 ] ]
 ];
 
+// 맵마다 다른 음악 (박자 92 BPM은 같다: 듀엣 · 샤먼의 북 · 교향곡이 이 박자에 맞춰져 있다)
+//  blues (MAP 1): 셔플 마이너 블루스
+//  deep  (MAP 2): 해구. D 마이너, 한 마디를 길게 채우는 화음, 드문 멜로디, 북은 낮게 한 번
+//  dawn  (MAP 3): 새벽. F → G → Em → Am, 밝은 펜타토닉, 똑바른 박
+const STYLES = {
+	blues: { chords: CHORDS, prog: PROGRESSION, melody: MELODY_SCALE, comp: COMP_PATTERNS, busy: [ 0.35, 0.55 ], vel: 0.2 },
+	deep: {
+		chords: {
+			Dm: { bass: 38, voicing: [ 57, 60, 64, 65 ], scale: [ 0, 0, 7, 0 ] },
+			Bb: { bass: 34, voicing: [ 57, 58, 62, 65 ], scale: [ 0, 0, 7, 0 ] },
+			Gm: { bass: 31, voicing: [ 55, 58, 62, 65 ], scale: [ 0, 0, 7, 0 ] },
+			A: { bass: 33, voicing: [ 55, 57, 61, 64 ], scale: [ 0, 0, 7, 0 ] }
+		},
+		prog: [ 'Dm', 'Dm', 'Bb', 'Bb', 'Gm', 'Gm', 'A', 'A' ],
+		melody: [ 62, 65, 67, 69, 72, 74, 77 ],
+		comp: [ [ [ 0, 3.6 ] ], [ [ 0, 2.2 ], [ 7, 1.4 ] ], [ [ 0, 3.6 ] ] ],
+		busy: [ 0.6, 0.72 ], vel: 0.15, sparse: true
+	},
+	dawn: {
+		chords: {
+			F: { bass: 41, voicing: [ 57, 60, 64, 67 ], scale: [ 0, 7, 12, 7 ] },
+			G: { bass: 43, voicing: [ 59, 62, 64, 67 ], scale: [ 0, 7, 12, 7 ] },
+			Em: { bass: 40, voicing: [ 55, 59, 62, 64 ], scale: [ 0, 7, 12, 7 ] },
+			Am: { bass: 45, voicing: [ 60, 64, 67, 71 ], scale: [ 0, 7, 12, 7 ] },
+			C: { bass: 36, voicing: [ 60, 64, 67, 69 ], scale: [ 0, 7, 12, 7 ] }
+		},
+		prog: [ 'F', 'G', 'Em', 'Am', 'F', 'G', 'C', 'C' ],
+		melody: [ 67, 69, 72, 74, 76, 79, 81, 84 ],
+		comp: [ [ [ 0, 1.4 ], [ 6, 1.4 ] ], [ [ 0, 0.6 ], [ 3, 0.6 ], [ 6, 1.2 ] ], [ [ 0, 2.4 ], [ 6, 1.6 ] ] ],
+		busy: [ 0.3, 0.45 ], vel: 0.18, straight: true
+	}
+};
+
 // 색소폰 블루스 구절: [ 스텝(2마디 = 24스텝), 음(MIDI), 길이(스텝) ]. A 마이너 펜타토닉 + 블루 노트(E♭)
 const SAX_LICKS = [
 	[ [ 0, 64, 5 ], [ 6, 67, 2 ], [ 8, 69, 4 ], [ 12, 72, 2 ], [ 14, 69, 1 ], [ 15, 67, 2 ], [ 18, 64, 6 ] ],
@@ -355,12 +388,13 @@ export class AudioEngine {
 
 	playStep( s, t ) {
 
-		const chord = CHORDS[ PROGRESSION[ this.bar % 12 ] ];
-		const next = CHORDS[ PROGRESSION[ ( this.bar + 1 ) % 12 ] ];
+		const st = this.style ?? STYLES.blues;
+		const chord = st.chords[ st.prog[ this.bar % st.prog.length ] ];
+		const next = st.chords[ st.prog[ ( this.bar + 1 ) % st.prog.length ] ];
 		const groove = this.mix.drums > 0.05 || this.mix.bass > 0.05;
 
 		// 피아노 컴핑
-		const pattern = groove ? COMP_PATTERNS[ ( this.bar % 4 === 3 ) ? 1 : 0 ] : COMP_PATTERNS[ 2 ];
+		const pattern = groove ? st.comp[ ( this.bar % 4 === 3 ) ? 1 : 0 ] : st.comp[ 2 ];
 		for ( const [ step, len ] of pattern ) {
 
 			if ( step === s ) chord.voicing.forEach( ( m, i ) => this.ep( t + i * 0.008, m, 0.16, len * BEAT, this.buses.piano ) );
@@ -387,13 +421,17 @@ export class AudioEngine {
 		if ( s === 0 ) this.melodyPlan = saxTurn ? null : this.planMelody();
 		if ( this.melodyPlan && this.melodyPlan.includes( s ) ) {
 
-			this.melodyIdx = Math.max( 0, Math.min( MELODY_SCALE.length - 1, this.melodyIdx + Math.floor( Math.random() * 5 ) - 2 ) );
-			this.ep( t, MELODY_SCALE[ this.melodyIdx ], 0.2, BEAT * 0.9, this.buses.melody, 0.45 );
+			this.melodyIdx = Math.max( 0, Math.min( st.melody.length - 1, this.melodyIdx + Math.floor( Math.random() * 5 ) - 2 ) );
+			this.ep( t, st.melody[ this.melodyIdx ], st.vel, BEAT * ( st.sparse ? 1.8 : 0.9 ), this.buses.melody, st.sparse ? 0.7 : 0.45 );
 
 		}
 
 		// 베이스 기타
-		if ( s % 3 === 0 ) {
+		if ( st.sparse ) {
+
+			if ( s === 0 ) this.bass( t, chord.bass, 0.5, BEAT * 3.4 ); // 해구: 마디마다 낮게 한 번
+
+		} else if ( s % 3 === 0 ) {
 
 			const beat = s / 3;
 			this.bass( t, chord.bass + chord.scale[ beat ], 0.55, BEAT * 0.85 );
@@ -406,9 +444,26 @@ export class AudioEngine {
 
 		// 드럼
 		const boss = this.mix.tension > 0.3;
-		if ( s === 0 || s === 6 || ( boss && s % 3 === 0 ) ) this.kick( t );
-		if ( s === 3 || s === 9 ) this.snare( t );
-		if ( s % 3 !== 1 ) this.hat( t, s % 3 === 0 ? 0.08 : 0.045 );
+		if ( st.sparse ) {
+
+			// 해구: 멀리서 울리는 북 하나 (두 마디마다), 심벌은 없다
+			if ( s === 0 && ( this.bar % 2 === 0 || boss ) ) this.kick( t );
+			if ( boss && s === 6 ) this.kick( t );
+
+		} else if ( st.straight ) {
+
+			// 새벽: 똑바른 박. 첫 박 · 셋째 박에 북, 넷째 박에 가볍게, 심벌은 박마다
+			if ( s === 0 || s === 6 || ( boss && s % 3 === 0 ) ) this.kick( t );
+			if ( s === 9 ) this.snare( t );
+			if ( s % 3 === 0 ) this.hat( t, 0.06 );
+
+		} else {
+
+			if ( s === 0 || s === 6 || ( boss && s % 3 === 0 ) ) this.kick( t );
+			if ( s === 3 || s === 9 ) this.snare( t );
+			if ( s % 3 !== 1 ) this.hat( t, s % 3 === 0 ? 0.08 : 0.045 );
+
+		}
 
 		// 가끔 들려오는 고래 울음
 		if ( s === 0 && this.bar % 8 === 4 && Math.random() < 0.6 ) this.whaleCall( t + Math.random() * BEAT, 'far' );
@@ -431,10 +486,22 @@ export class AudioEngine {
 
 	}
 
+	// 맵마다 다른 음악: 다음 마디부터 새 곡의 첫 마디로
+	setStyle( name ) {
+
+		const st = STYLES[ name ] ?? STYLES.blues;
+		if ( this.style === st || ( ! this.style && st === STYLES.blues ) ) return;
+		this.style = st;
+		this.melodyIdx = Math.min( this.melodyIdx, st.melody.length - 1 );
+		this.resetForm = true;
+
+	}
+
 	planSax() {
 
 		if ( Math.random() < 0.15 ) return null;
-		const pool = this.bar % 12 === 8 ? SAX_TURNAROUND : SAX_LICKS;
+		const blues = ! this.style || this.style === STYLES.blues;
+		const pool = blues && this.bar % 12 === 8 ? SAX_TURNAROUND : SAX_LICKS;
 		return pool[ Math.floor( Math.random() * pool.length ) ];
 
 	}
@@ -442,9 +509,11 @@ export class AudioEngine {
 	planMelody() {
 
 		const r = Math.random();
-		const busy = this.mix.drums > 0.05 ? 0.35 : 0.55;
+		const st = this.style ?? STYLES.blues;
+		const busy = st.busy[ this.mix.drums > 0.05 ? 0 : 1 ];
 		if ( r < busy ) return null;
-		const motifs = [ [ 0, 2, 3 ], [ 3, 5, 6, 8 ], [ 6, 9, 11 ], [ 2, 3, 5 ], [ 0, 3, 6, 9 ] ];
+		if ( st.sparse ) return [ [ 0 ], [ 6 ], [ 0, 6 ] ][ Math.floor( Math.random() * 3 ) ]; // 해구: 한두 음만, 길게
+		const motifs = st.straight ? [ [ 0, 3, 6 ], [ 0, 6, 9 ], [ 3, 6, 9 ], [ 0, 3, 6, 9 ], [ 6, 9 ] ] : [ [ 0, 2, 3 ], [ 3, 5, 6, 8 ], [ 6, 9, 11 ], [ 2, 3, 5 ], [ 0, 3, 6, 9 ] ];
 		return motifs[ Math.floor( Math.random() * motifs.length ) ];
 
 	}

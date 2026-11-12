@@ -146,8 +146,8 @@ export class DawnSea {
 
 	buildIce() {
 
-		const top = new THREE.MeshStandardMaterial( { color: 0xeaf4ff, roughness: 0.55, metalness: 0, emissive: 0x1a2a44, emissiveIntensity: 0.6, flatShading: true } );
-		const side = new THREE.MeshStandardMaterial( { color: 0x7fb2e0, roughness: 0.25, metalness: 0.1, emissive: 0x0a2a50, emissiveIntensity: 0.8, flatShading: true } );
+		const top = new THREE.MeshStandardMaterial( { color: 0xb4c8dc, roughness: 0.8, metalness: 0, emissive: 0x1a2a44, emissiveIntensity: 0.35, flatShading: true } ); // 너무 하얗면 등대 · 새벽 빛에 번져 눈부시다
+		const side = new THREE.MeshStandardMaterial( { color: 0x6a9cc8, roughness: 0.5, metalness: 0.05, emissive: 0x0a2a50, emissiveIntensity: 0.5, flatShading: true } );
 		this.iceMats = [ top, side ];
 		const list = [];
 		const fits = ( x, z, r ) => {
@@ -599,6 +599,14 @@ export class DawnSea {
 
 	}
 
+	// 바다가 화난다: 함대 위의 빛을 먹으면 남쪽 하늘로 먹구름이 몰려가고, 어디서든 비가 내리기 시작한다
+	angerStorm() {
+
+		this.storm.anger = 1;
+		this.onLightning?.( 0.7 );
+
+	}
+
 	// 폭풍이 잦아든다 (8번이 함께 가기로 했을 때)
 	calmStorm() {
 
@@ -609,7 +617,7 @@ export class DawnSea {
 	updateStorm( dt, hazel, cam, active ) {
 
 		const S = DAWN_PLACES.storm, st = this.storm;
-		const target = this.stormAt( hazel.pos.x, hazel.pos.z ) * st.power;
+		const target = Math.max( this.stormAt( hazel.pos.x, hazel.pos.z ), ( st.anger ?? 0 ) * 0.4 ) * st.power;
 		st.k += ( target - st.k ) * Math.min( 1, dt * 0.8 );
 		// 비
 		this.rainMat.opacity = Math.min( 0.55, st.k * 0.7 );

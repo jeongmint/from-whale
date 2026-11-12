@@ -272,7 +272,7 @@ export class World {
 				this.beams.rotation.y += dt * 0.7;
 				this.beamMat.uniforms.uOn.value = this.on;
 				this.lampMat.emissiveIntensity = 0.2 + 4.8 * this.on;
-				this.light.intensity = 2.2 * this.on;
+				this.light.intensity = 1.3 * Math.min( 1, this.on ); // 박자마다 환해져도 둘레의 얼음이 번지지 않게
 				this.beams.visible = this.on > 0.02;
 
 			}
@@ -491,7 +491,7 @@ export class World {
 
 				group.visible = this.ready;
 				if ( ! group.visible ) return;
-				group.position.y = sampleOcean( this.x, this.z ) + 1.6 + Math.sin( t * 2.4 + phase ) * 0.4;
+				group.position.y = sampleOcean( this.x, this.z ) + ( this.lift ?? 1.6 ) + Math.sin( t * 2.4 + phase ) * 0.4;
 				core.rotation.y = t * 2 + phase;
 				halo.material.rotation = t * 0.5;
 
