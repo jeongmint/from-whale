@@ -84,7 +84,7 @@ export default {
 			symP5: '[E] 길게 — 52Hz에 모두의 목소리가 하나씩 더해진다. 다 모이면 놓기',
 			symP5Short: '조금 더 길게 — 아직 모두가 모이지 않았다',
 			holdTitle: '52HZ · 노래',
-			holdEchoWait: '귀 기울이기… {who}의 메아리가 돌아온다',
+			holdEchoWait: '흐린 칸에 막대가 닿으면 [E] 길게 — {who}의 메아리',
 			holdEchoNow: '지금 [E] 길게 — 메아리가 끝나면 놓기',
 			holdTooLong: '너무 오래 눌렀다',
 			holdTooShort: '너무 빨리 놓았다',

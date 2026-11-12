@@ -84,7 +84,7 @@ export default {
 			symP5: 'Hold [E] — every voice joins 52Hz, one by one. Let go when all are in',
 			symP5Short: 'A little longer — not everyone is in yet',
 			holdTitle: '52HZ · SONG',
-			holdEchoWait: 'Listen… {who}\'s echo is coming back',
+			holdEchoWait: 'When the line reaches the faint block, hold [E] — {who}\'s echo',
 			holdEchoNow: 'Hold [E] now — let go when the echo ends',
 			holdTooLong: 'Held too long',
 			holdTooShort: 'Let go too soon',

@@ -84,7 +84,7 @@ export default {
 			symP5: '[E] 長押し — 52Hzにみんなの声がひとつずつ重なる。そろったら離す',
 			symP5Short: 'もう少し長く — まだみんながそろっていない',
 			holdTitle: '52HZ · うた',
-			holdEchoWait: '耳をすまして… {who}のこだまが返ってくる',
+			holdEchoWait: '線が薄いマスに届いたら [E] 長押し — {who}のこだま',
 			holdEchoNow: '今 [E] 長押し — こだまが終わったら離す',
 			holdTooLong: '長く押しすぎた',
 			holdTooShort: '早く離しすぎた',

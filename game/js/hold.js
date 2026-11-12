@@ -16,7 +16,9 @@ const T = () => lang().ui.map3;
 // opts: { kind, who, title, notes: [ { at, len } ] (len 0 = 짧은 소리), call: { actor, color, play( note ) }, host, need, maxTries, onBeat, onStray( t ), jump(), cue( ) }
 export function respond( G, opts ) {
 
-	const { kind, who = '', notes = [], call = {}, maxTries = 3 } = opts;
+	const { kind, who = '', call = {}, maxTries = 3 } = opts;
+	// 메아리는 막대 맨 앞에서 바로 시작하지 않게: 적어도 2초 앞서 자리를 보여 주고 박자를 센다
+	const notes = kind === 'echo' ? ( opts.notes ?? [] ).map( ( n ) => ( { ...n, at: Math.max( 2, n.at ) } ) ) : ( opts.notes ?? [] );
 	const own = ! opts.host; // 따로 받은 자리가 없으면 #hold 창을 연다
 	const host = opts.host ?? $( 'hold-body' );
 	return new Promise( ( resolve ) => {
@@ -79,7 +81,7 @@ export function respond( G, opts ) {
 			const dt = Math.min( 0.25, now() - lastT );
 			lastT = now();
 			const t = now() - t0;
-			if ( phase === 'call' || phase === 'answer' || phase === 'echo' ) head.style.left = X( t );
+			if ( phase === 'call' || phase === 'answer' || phase === 'echo' || ( phase === 'wait' && kind === 'echo' ) ) head.style.left = X( t );
 			// 누르는 동안: 금빛 막대가 자라고 둘레의 빛이 커진다
 			if ( pressAt !== null ) {
 
@@ -150,12 +152,15 @@ export function respond( G, opts ) {
 			say( T().holdEchoWait );
 			const n = notes[ 0 ];
 			t0 = now();
+			// 메아리가 올 자리를 미리 흐리게 보여 주고, 막대가 다가가는 동안 두 번 박자를 센다
+			const ghost = block( n.at, n.len, 'them ghost' );
+			for ( const k of [ 1, 0.5 ] ) later( n.at - k, () => phase === 'wait' && G.audio.play( 'blip' ) );
 			later( n.at - 0.05, () => {
 
 				phase = 'echo';
 				call.play?.( n );
 				call.actor?.setGlow?.( 0.7, call.color );
-				block( n.at, n.len, 'them' );
+				ghost.classList.remove( 'ghost' );
 				say( T().holdEchoNow );
 
 			} );
