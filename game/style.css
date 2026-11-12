@@ -344,6 +344,28 @@ body.singing #sonar-bar { pointer-events: none; }
 #song.turn #song-hint { color: var(--cyan); font-weight: 700; }
 body.singing #stick, body.singing #minimap-wrap { opacity: 0; pointer-events: none; }
 
+/* MAP 3: 노래로 응답하기 — 막대에는 들린 소리(하늘색)와 헤이즐이 누른 길이(금빛), 오른쪽 원은 롱탭 · 용기 */
+#hold {
+	position: fixed; left: 50%; bottom: 22px;
+	transform: translateX(-50%);
+	width: min(460px, calc(100vw - 24px));
+	z-index: 5;
+}
+#hold-body, .sym-hold { display: grid; grid-template-columns: 1fr 52px; grid-template-rows: auto auto; gap: 8px 12px; align-items: center; }
+.hold-trk { position: relative; height: 28px; border: 2px solid var(--line); background: rgba(0, 0, 0, 0.32); overflow: hidden; }
+.hold-trk .head { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--ink); opacity: 0.7; left: 0; }
+.hold-trk em { position: absolute; top: 5px; height: 14px; min-width: 10px; border-radius: 7px; }
+.hold-trk em.them { top: 3px; height: 9px; background: var(--cyan); box-shadow: 0 0 10px var(--cyan); }
+.hold-trk em.them.ghost { opacity: 0.35; }
+.hold-trk em.me { top: 15px; height: 9px; background: var(--gold); box-shadow: 0 0 10px var(--gold); }
+.hold-trk em.me.bad, .hold-trk em.me.stray { background: #ff3355; box-shadow: 0 0 10px #ff3355; }
+.hold-ring { --k: 0; position: relative; grid-row: span 2; width: 52px; height: 52px; border-radius: 50%; border: 2px solid var(--line); overflow: hidden; display: grid; place-items: center; transition: box-shadow 0.2s; box-shadow: 0 0 calc(var(--k) * 26px) var(--gold); }
+.hold-ring b { position: absolute; left: 0; right: 0; bottom: 0; height: 0; background: linear-gradient(0deg, var(--gold), rgba(255, 211, 107, 0.3)); }
+.hold-ring span { position: relative; font-size: 20px; color: var(--ink); }
+.hold-ring.on { border-color: var(--gold); transform: scale(calc(1 + var(--k) * 0.15)); }
+.hold-hint { grid-column: 1; margin: 0; font-size: 14px; color: var(--cyan); font-weight: 700; text-align: center; }
+body.touch #hold { bottom: 150px; }
+
 /* MAP 3: 고래의 교향곡 — 줄마다 한 목소리, 맨 위는 샤먼의 북 (미리 보여 주지 않고 들린 것만 잠깐 남는다) */
 #sym {
 	position: fixed; left: 50%; bottom: 22px;
@@ -364,6 +386,11 @@ body.singing #stick, body.singing #minimap-wrap { opacity: 0; pointer-events: no
 @keyframes thump { 0% { border-color: #ff3355; transform: translateX(-2px); } 100% { border-color: var(--line); transform: none; } }
 #sym-hint { margin: 8px 0 0; font-size: 14px; color: var(--ink-dim); text-align: center; }
 #sym-hint { color: var(--cyan); font-weight: 700; }
+#sym .sym-hold { margin-top: 8px; }
+#sym .sym-hold:empty { display: none; }
+#sym.final .tug { display: none; } /* 5단계: 막대가 사라진다 */
+.sym-final { --k: 0; grid-column: span 2; justify-self: center; width: 84px; height: 84px; border-radius: 50%; border: 2px solid var(--gold); display: grid; place-items: center; font-size: 34px; color: var(--gold); box-shadow: 0 0 calc(10px + var(--k) * 40px) var(--gold); transition: transform 0.2s, box-shadow 0.3s; }
+.sym-final.on { transform: scale(calc(1.05 + var(--k) * 0.25)); background: rgba(255, 211, 107, 0.15); }
 body.touch #sym { bottom: 150px; }
 
 /* MAP 3 엔딩: 장면 연출 (위아래 검은 띠), 가운데의 시, 아래쪽 자막 */
