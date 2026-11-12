@@ -39,6 +39,7 @@ const TURN_RATE = 1.9;
 const MAX_HEARTS = 3;
 const DETECT = 56;
 const DASH_SPEED = 50;
+const RIDE_SPEED = 44; // MAP 3 빛 타기: 통통 튀며 얼음 위를 넘어간다
 const REVERSE_SPEED = 9; // 조이스틱을 아래로 당기거나 폰을 뒤로 젖혔을 때 최고 후진 속도
 const STUN_TIME = 1.1; // 떨어지는 별
 const CHARGE_STUN = 1.5; // 돌진하는 모비에게 받혔을 때
@@ -960,26 +961,36 @@ Object.assign( G, {
 	},
 
 	// MAP 3 용기의 노래: 롱탭을 놓고 진짜로 뛰어오른다
-	// MAP 3: 노래를 마친 자리 위에 뜨는 빛 조각. 먹으면 다음 바다까지 빛을 타고 빠르게 (G.ride)
-	spawnRideOrb( at, lift = 4 ) {
+	// MAP 3: 빛 조각. 먹으면 몇 번 통통 튄다 (G.ride). auto면 먹는 순간 바로 튀기 시작 (다음 바다로 가는 빛 조각 길)
+	spawnRideOrb( at, lift = 4, { auto = false, scale = 1.5 } = {} ) {
 
 		const s = G.world.makeLightShard( { x: at.x, z: at.z } );
 		s.lift = lift;
 		s.taken = false;
-		s.group.scale.setScalar( 1.5 );
+		s.auto = auto;
+		s.group.scale.setScalar( scale );
 		G.rideOrbs.push( s );
 		return s;
 
 	},
 
-	startRide( to, stop = 200 ) {
+	clearRideOrbs() {
 
-		G.ride = { to, stop, end: G.time + 45 };
-		G.dash = 1;
+		for ( const s of G.rideOrbs ) G.world.scene.remove( s.group );
+		G.rideOrbs = [];
+
+	},
+
+	// 물에 hops번 닿을 때까지 통통 튄다 (얼음을 딛는 건 세지 않는다). 타는 중에 또 먹으면 다시 채워진다
+	startRide( hops = 4 ) {
+
+		if ( G.ride ) G.ride.hops = Math.max( G.ride.hops, hops );
+		else G.ride = { hops };
+		G.dash = 0;
 		G.stamina = 1;
-		audio.play( 'dash' );
+		audio.play( 'pickup' );
 		const h = G.actors.hazel;
-		G.world.ring( h.pos.x, h.pos.z, { color: 0xffc27a, to: 34, life: 1, width: 0.2 } );
+		G.world.ring( h.pos.x, h.pos.z, { color: 0xffd36b, to: 26, life: 1, width: 0.2 } );
 
 	},
 
@@ -1820,7 +1831,7 @@ function updateStunStars( h, on ) {
 function lukeGuards() {
 
 	const h = G.actors.hazel;
-	if ( G.invuln > 0 || h.airborne || G.cutsceneOn || G.fainting || G.dash > 0 ) return false;
+	if ( G.invuln > 0 || h.airborne || G.cutsceneOn || G.fainting || G.dash > 0 || G.ride ) return false;
 	return G.flags.lukeSaved && G.party.luke === 'on' && ! G.lukeFalling && G.save.chapter <= 4 && ! G.flags.mobyMet;
 
 }
@@ -1828,7 +1839,7 @@ function lukeGuards() {
 function damage( n, from, { stun = 0 } = {} ) {
 
 	const h = G.actors.hazel;
-	if ( G.invuln > 0 || h.airborne || G.cutsceneOn || G.fainting || G.dash > 0 ) return false;
+	if ( G.invuln > 0 || h.airborne || G.cutsceneOn || G.fainting || G.dash > 0 || G.ride ) return false;
 	G.hearts -= n;
 	G.invuln = 2.4;
 	if ( stun > 0 ) {
@@ -4150,15 +4161,47 @@ function updatePlayer( dt ) {
 		throttle = G.autoSwim.throttle;
 
 	}
-	// MAP 3 빛 타기: 손을 놓고 있어도 다음 바다 쪽으로 빠르게 (방향키로 조금씩 틀 수 있다)
+	// MAP 3 빛 타기: 손을 놓고 있어도 다음 바다 쪽으로 통통 튀며 간다 (방향키로 조금씩 틀 수 있다)
+	// 물에 닿으면 바로 다시 뛰어오르고, 얼음 위에 떨어지면 얼음을 딛고 튀어 오른다. 얼음에 막히지 않는다
+	// 방향은 직접 잡는다. 정해진 횟수만큼 튀고 나면 그냥 헤엄 (다음 빛 조각을 먹으면 이어서)
+	let riding = false;
 	if ( G.ride ) {
 
-		const r = G.ride, dx = r.to.x - h.pos.x, dz = r.to.z - h.pos.z;
-		if ( Math.hypot( dx, dz ) < r.stop || G.time > r.end ) G.ride = null;
-		else if ( control ) {
+		const r = G.ride;
+		const ice = G.world.colliders.some( ( c ) => Math.hypot( h.pos.x - c.x, h.pos.z - c.z ) < c.r + 3.2 );
+		// 얼음 위에선 물까지 내려가기 전에 얼음 높이에서 튀어 오른다
+		if ( ice && h.airborne && h.vy < 0 && h.jumpY < 1.6 ) h.airborne = false;
+		if ( ! h.airborne ) {
 
-			G.dash = Math.max( G.dash, 0.4 );
-			if ( Math.abs( turn ) < 0.05 ) turn = Math.max( - 1.2, Math.min( 1.2, wrapAngle( Math.atan2( dx, dz ) - h.yaw ) * 1.6 ) );
+			if ( ! ice && r.hops <= 0 ) {
+
+				G.ride = null;
+				G.world.splash( h.pos.x, h.root.position.y, h.pos.z, { count: 30, power: 5 } );
+				audio.play( 'splash', { vel: 0.2 } );
+
+			} else if ( G.started && ! G.cutsceneOn ) {
+
+				if ( ! ice ) r.hops --;
+				h.breach( ice ? 12 : 10.5 );
+				if ( ice ) {
+
+					audio.play( 'pop', { f: 640, up: true } );
+					G.world.ring( h.pos.x, h.pos.z, { color: 0xffd36b, from: 2, to: 10, life: 0.6, width: 0.3 } );
+
+				} else {
+
+					G.world.splash( h.pos.x, h.root.position.y, h.pos.z, { count: 16, power: 4 } );
+					audio.play( 'splash', { vel: 0.08 } );
+
+				}
+
+			}
+
+		}
+
+		if ( G.ride && control ) {
+
+			riding = true;
 			throttle = 1;
 
 		}
@@ -4189,7 +4232,8 @@ function updatePlayer( dt ) {
 
 	}
 
-	h.setGlow( G.dash > 0 ? 0.5 : 0, 0xffb070 );
+	if ( riding ) target = RIDE_SPEED;
+	h.setGlow( G.dash > 0 ? 0.5 : G.ride ? 0.3 : 0, G.ride ? 0xffd36b : 0xffb070 );
 	// 엔딩 6개 보상: 빛 문양이 더 밝게, 천천히 반짝인다
 	if ( G.goldenSea ) {
 
@@ -4197,7 +4241,7 @@ function updatePlayer( dt ) {
 		for ( const m of h.materials ) m.emissiveIntensity = k;
 
 	}
-	h.speed += ( target - h.speed ) * Math.min( 1, dt * ( G.dash > 0 ? 3 : throttle === 0 ? 0.9 : 1.6 ) );
+	h.speed += ( target - h.speed ) * Math.min( 1, dt * ( G.dash > 0 || riding ? 3 : throttle === 0 ? 0.9 : 1.6 ) );
 
 	// 대화 중에는 상대를 바라본다
 	if ( G.faceTarget && ! control ) {
@@ -4220,7 +4264,7 @@ function updatePlayer( dt ) {
 	h.pos.x += f.x * h.speed * dt + G.knock.x * dt;
 	h.pos.z += f.z * h.speed * dt + G.knock.z * dt;
 	G.knock.multiplyScalar( Math.exp( - dt * 4 ) );
-	G.world.collide( h.pos, 3.2 );
+	if ( ! G.ride ) G.world.collide( h.pos, 3.2 ); // 빛을 타는 동안엔 얼음 위로 넘어간다
 
 	// 세상의 끝
 	const cx = h.pos.x - 150, cz = h.pos.z - 150;
@@ -4399,6 +4443,7 @@ function updateBottlesAndKelp( dt ) {
 			s.active = false;
 			s.respawn = Infinity;
 			G.world.scene.remove( s.group );
+			if ( s.auto ) G.startRide( s.hops ?? 4 );
 
 		}
 
