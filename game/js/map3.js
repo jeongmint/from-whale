@@ -146,8 +146,8 @@ export class DawnSea {
 
 	buildIce() {
 
-		const top = new THREE.MeshStandardMaterial( { color: 0xeaf4ff, roughness: 0.55, metalness: 0, emissive: 0x1a2a44, emissiveIntensity: 0.6, flatShading: true } );
-		const side = new THREE.MeshStandardMaterial( { color: 0x7fb2e0, roughness: 0.25, metalness: 0.1, emissive: 0x0a2a50, emissiveIntensity: 0.8, flatShading: true } );
+		const top = new THREE.MeshStandardMaterial( { color: 0xb4c8dc, roughness: 0.8, metalness: 0, emissive: 0x1a2a44, emissiveIntensity: 0.35, flatShading: true } ); // 너무 하얗면 등대 · 새벽 빛에 번져 눈부시다
+		const side = new THREE.MeshStandardMaterial( { color: 0x6a9cc8, roughness: 0.5, metalness: 0.05, emissive: 0x0a2a50, emissiveIntensity: 0.5, flatShading: true } );
 		this.iceMats = [ top, side ];
 		const list = [];
 		const fits = ( x, z, r ) => {
@@ -599,6 +599,14 @@ export class DawnSea {
 
 	}
 
+	// 바다가 화난다: 함대 위의 빛을 먹으면 남쪽 하늘로 먹구름이 몰려가고, 어디서든 비가 내리기 시작한다
+	angerStorm() {
+
+		this.storm.anger = 1;
+		this.onLightning?.( 0.7 );
+
+	}
+
 	// 폭풍이 잦아든다 (8번이 함께 가기로 했을 때)
 	calmStorm() {
 
@@ -609,7 +617,7 @@ export class DawnSea {
 	updateStorm( dt, hazel, cam, active ) {
 
 		const S = DAWN_PLACES.storm, st = this.storm;
-		const target = this.stormAt( hazel.pos.x, hazel.pos.z ) * st.power;
+		const target = Math.max( this.stormAt( hazel.pos.x, hazel.pos.z ), ( st.anger ?? 0 ) * 0.4 ) * st.power;
 		st.k += ( target - st.k ) * Math.min( 1, dt * 0.8 );
 		// 비
 		this.rainMat.opacity = Math.min( 0.55, st.k * 0.7 );
@@ -945,35 +953,49 @@ export class DawnSea {
 
 	}
 
+	// 북 한 번: 네 박마다 모두가 한꺼번에 나아가고 붉은 고리, 열여섯 박마다 다 함께 뛰어오른다
+	// silent: 북소리는 음악의 박자에 맞춰 이미 걸어 두었다
+	marchBeat( silent = false ) {
+
+		const mc = this.march, sh = this.shaman;
+		if ( ! mc ) return;
+		mc.beat ++;
+		if ( ! silent && mc.k > 0.02 ) this.onDrum?.( mc.k, mc.beat % 4 === 0 );
+		if ( mc.beat % 4 === 0 ) {
+
+			for ( const o of this.army ) o.lunge = 1;
+			if ( mc.on && mc.k > 0.05 ) {
+
+				const mesh = makeSurfaceDecal( { color: 0xff3355, inner: 0.95, outer: 1, opacity: 0.9, lift: 0.5 } );
+				mesh.position.set( sh.pos.x, 0, sh.pos.z );
+				mesh.scale.setScalar( 8 );
+				this.group.add( mesh );
+				mc.rings.push( { r: 8, x: sh.pos.x, z: sh.pos.z, mesh, hit: false } );
+
+			}
+
+		}
+
+		if ( mc.beat % 16 === 0 && mc.k > 0.05 ) for ( const o of this.army ) o.whale.breach( 15 );
+
+	}
+
 	updateMarch( dt, hazel, active, sangAt, time ) {
 
 		const mc = this.march, sh = this.shaman;
 		if ( ! mc ) return;
 		const d0 = Math.hypot( hazel.pos.x - DAWN_PLACES.army.x, hazel.pos.z - DAWN_PLACES.army.z );
 		mc.k = 1 - THREE.MathUtils.smoothstep( d0, 160, 520 ); // 가까울수록 북소리가 크다
-		// 북: 박자마다 둥. 네 박마다 모두가 한꺼번에 나아가고 붉은 고리, 열여섯 박마다 다 함께 뛰어오른다
-		mc.timer -= dt;
-		if ( mc.timer <= 0 ) {
+		// 북: 박자마다 둥 (marchBeat). 배경 음악의 박자에 맞춰 main이 부른다 (beatSync). 음악이 없을 때만 따로 센다
+		if ( ! this.beatSync ) {
 
-			mc.timer += BEAT;
-			mc.beat ++;
-			if ( mc.k > 0.02 ) this.onDrum?.( mc.k, mc.beat % 4 === 0 );
-			if ( mc.beat % 4 === 0 ) {
+			mc.timer -= dt;
+			if ( mc.timer <= 0 ) {
 
-				for ( const o of this.army ) o.lunge = 1;
-				if ( mc.on && mc.k > 0.05 ) {
-
-					const mesh = makeSurfaceDecal( { color: 0xff3355, inner: 0.95, outer: 1, opacity: 0.9, lift: 0.5 } );
-					mesh.position.set( sh.pos.x, 0, sh.pos.z );
-					mesh.scale.setScalar( 8 );
-					this.group.add( mesh );
-					mc.rings.push( { r: 8, x: sh.pos.x, z: sh.pos.z, mesh, hit: false } );
-
-				}
+				mc.timer += BEAT;
+				this.marchBeat();
 
 			}
-
-			if ( mc.beat % 16 === 0 && mc.k > 0.05 ) for ( const o of this.army ) o.whale.breach( 15 );
 
 		}
 

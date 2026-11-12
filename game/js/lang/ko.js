@@ -45,7 +45,6 @@ export default {
 			objFrozen: '끊어진 노래 따라가기 · 얼어붙은 항로',
 			iceHint: '얼음 사이의 좁은 물길로 — 얼음은 지나갈 수 없다',
 			twelve: '12번',
-			objVoices: '흩어진 목소리 찾기 · 침몰한 함대 · 폭풍의 바다 · 어디부터든',
 			objWrecks: '가라앉은 배 곁에서 노래하기 [E] · {n}/3',
 			objEye: '폭풍 한가운데로 · 큰 파도는 [Space] 점프로 넘기',
 			fleetHint: '가라앉은 배 곁에서 노래하면 [E] 배에 남은 기억이 깨어난다',
@@ -84,7 +83,7 @@ export default {
 			symP5: '[E] 길게 — 52Hz에 모두의 목소리가 하나씩 더해진다. 다 모이면 놓기',
 			symP5Short: '조금 더 길게 — 아직 모두가 모이지 않았다',
 			holdTitle: '52HZ · 노래',
-			holdEchoWait: '귀 기울이기… {who}의 메아리가 돌아온다',
+			holdEchoWait: '흐린 칸에 막대가 닿으면 [E] 길게 — {who}의 메아리',
 			holdEchoNow: '지금 [E] 길게 — 메아리가 끝나면 놓기',
 			holdTooLong: '너무 오래 눌렀다',
 			holdTooShort: '너무 빨리 놓았다',
@@ -112,7 +111,11 @@ export default {
 			objEnsemble: '등대 합주 · 메아리, 기억, 용기',
 			ensembleTitle: '등대 합주',
 			ensembleHint: '세 고래의 노래를 차례로 — 마지막 교향곡에서도 그대로',
-			crackHint: '푸르게 갈라진 얼음 곁에서 노래하면 [E] 12번의 메아리가 돌아온다'
+			crackHint: '푸르게 갈라진 얼음 곁에서 노래하면 [E] 12번의 메아리가 돌아온다',
+			objFleet: '침몰한 함대로 · 서쪽',
+			objStorm: '폭풍의 바다로 · 남쪽',
+			objOrb: '노래를 마친 자리 위의 빛 조각 먹기',
+			orbHint: '빛 조각을 먹으면 다음 바다까지 빛을 타고 빠르게'
 		},
 		// MAP 2 낚시
 		fish: {
@@ -764,6 +767,11 @@ export default {
 					[ 'nine', '둘 다 기억할래. 그러니까 해안엔 아직 안 가.' ],
 					[ 'nine', '다 용서한 건 아니야.\n그래도 너희 곁에서, 내 눈으로 보고 정할 거야.' ],
 					[ 'luke', '그거면 충분해.', 'luke' ]
+				],
+				anger: [
+					[ 'narrator', '빛이 몸에 닿자, 바다가 술렁였다.\n가라앉은 배들이 삐걱거리고, 남쪽 하늘로 먹구름이 몰려가기 시작했다.' ],
+					[ 'luke', '…바다가 화났어. 남쪽이야. 폭풍 속에 누가 있어.', 'luke' ],
+					[ 'finn', '저 먹구름… 8번이 있는 쪽이야.', 'finn' ]
 				]
 			},
 			storm: {

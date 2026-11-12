@@ -45,7 +45,6 @@ export default {
 			objFrozen: '途切れた歌をたどる · 凍った航路',
 			iceHint: '氷のあいだの細い水路へ — 氷は通り抜けられない',
 			twelve: '12番',
-			objVoices: '散らばった声を探す · 沈んだ艦隊 · 嵐の海 · どこからでも',
 			objWrecks: '沈んだ船のそばで歌う [E] · {n}/3',
 			objEye: '嵐の真ん中へ · 大波は [Space] ジャンプで越える',
 			fleetHint: '沈んだ船のそばで歌うと [E] 船に残った記憶が目を覚ます',
@@ -84,7 +83,7 @@ export default {
 			symP5: '[E] 長押し — 52Hzにみんなの声がひとつずつ重なる。そろったら離す',
 			symP5Short: 'もう少し長く — まだみんながそろっていない',
 			holdTitle: '52HZ · うた',
-			holdEchoWait: '耳をすまして… {who}のこだまが返ってくる',
+			holdEchoWait: '線が薄いマスに届いたら [E] 長押し — {who}のこだま',
 			holdEchoNow: '今 [E] 長押し — こだまが終わったら離す',
 			holdTooLong: '長く押しすぎた',
 			holdTooShort: '早く離しすぎた',
@@ -112,7 +111,11 @@ export default {
 			objEnsemble: '灯台の合奏 · こだま、記憶、勇気',
 			ensembleTitle: '灯台の合奏',
 			ensembleHint: '三頭の歌を順番に — 最後の交響曲でもそのまま',
-			crackHint: '青くひび割れた氷のそばで歌うと [E] 12番のこだまが返ってくる'
+			crackHint: '青くひび割れた氷のそばで歌うと [E] 12番のこだまが返ってくる',
+			objFleet: '沈んだ艦隊へ · 西',
+			objStorm: '嵐の海へ · 南',
+			objOrb: '歌い終えた場所の上の光のかけらを取る',
+			orbHint: '光のかけらを取ると次の海まで光に乗って速く'
 		},
 		// MAP 2 낚시
 		fish: {
@@ -762,6 +765,11 @@ export default {
 					[ 'nine', 'どっちも覚えておく。だから海岸には、まだ行かない。' ],
 					[ 'nine', 'ぜんぶ許したわけじゃない。\nでもきみたちのそばで、自分の目で見て決める。' ],
 					[ 'luke', 'それで十分だ。', 'luke' ]
+				],
+				anger: [
+					[ 'narrator', '光が体にふれると、海がざわめいた。\n沈んだ船たちがきしみ、南の空へ黒い雲が流れはじめた。' ],
+					[ 'luke', '…海が怒ってる。南だ。嵐の中に誰かいる。', 'luke' ],
+					[ 'finn', 'あの黒い雲… 8番がいる方だ。', 'finn' ]
 				]
 			},
 			storm: {

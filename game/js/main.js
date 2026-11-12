@@ -227,6 +227,8 @@ const G = {
 	boss: null,
 	shards: [],
 	dash: 0,
+	rideOrbs: [],
+	ride: null,
 	compass: null,
 	save: loadSave(),
 	customName: loadName(),
@@ -958,6 +960,29 @@ Object.assign( G, {
 	},
 
 	// MAP 3 용기의 노래: 롱탭을 놓고 진짜로 뛰어오른다
+	// MAP 3: 노래를 마친 자리 위에 뜨는 빛 조각. 먹으면 다음 바다까지 빛을 타고 빠르게 (G.ride)
+	spawnRideOrb( at, lift = 4 ) {
+
+		const s = G.world.makeLightShard( { x: at.x, z: at.z } );
+		s.lift = lift;
+		s.taken = false;
+		s.group.scale.setScalar( 1.5 );
+		G.rideOrbs.push( s );
+		return s;
+
+	},
+
+	startRide( to, stop = 200 ) {
+
+		G.ride = { to, stop, end: G.time + 45 };
+		G.dash = 1;
+		G.stamina = 1;
+		audio.play( 'dash' );
+		const h = G.actors.hazel;
+		G.world.ring( h.pos.x, h.pos.z, { color: 0xffc27a, to: 34, life: 1, width: 0.2 } );
+
+	},
+
 	doJump() {
 
 		G.jumpCooldown = 0;
@@ -2249,6 +2274,7 @@ function duet( chart, title = null ) {
 		const lat = ctx ? ( ctx.outputLatency || ctx.baseLatency || 0 ) : 0;
 		const clock = () => ( ctx && audio.ctx === ctx ) ? ctx.currentTime - lat : performance.now() / 1000;
 		const beat = 60 / 92;
+		audio.setStyle( 'blues' ); // 듀엣은 블루스 위에서
 		const bar0 = ( ctx && audio.restartForm() ) || clock() + 0.6; // 첫 마디는 스텔라의 카운트
 		const t0 = bar0 + beat * 4;
 		const notes = chart.map( ( [ b, lane, midi ] ) => {
@@ -3750,6 +3776,7 @@ async function enterDive() {
 	G.audio.play( 'splash' );
 	await G.ui.fade( 1, 0.8 );
 	G.diving = true;
+	audio.setStyle( 'deep' ); // MAP 2는 해구의 음악
 	G.diveY = - 6;
 	G.diveCheckpoint = { x: h.pos.x, z: h.pos.z, y: - 6 };
 	G.diveVy = 0;
@@ -3818,6 +3845,7 @@ async function enterDive() {
 function leaveDive() {
 
 	G.diving = false;
+	audio.setStyle( 'blues' );
 	G.dive.exit();
 	document.body.classList.remove( 'diving' );
 	G.diveY = 0;
@@ -3839,6 +3867,7 @@ async function enterDawn() {
 	G.cutscene( true );
 	await G.ui.fade( 1, 0.8 );
 	if ( G.diving ) leaveDive();
+	audio.setStyle( 'dawn' ); // MAP 3은 새벽의 음악
 	G.setStarfall( false );
 	G.compass = null;
 	G.ui.setCompass( null );
@@ -3875,6 +3904,17 @@ async function enterDawn() {
 		G.map3.onFreed = ( p ) => G.world.ring( p.x, p.z, { color: 0x7fe9ff, to: 14, life: 1.2, width: 0.25 } );
 		// 샤먼의 진군: 북소리 (가까울수록 크게), 고리에 밀리거나 52Hz로 버틴다
 		G.map3.onDrum = ( k, accent ) => G.audio.play( 'drum', { vel: k * ( accent ? 0.5 : 0.3 ) } );
+		// 샤먼의 북은 배경 음악의 박자 그대로: 소리는 그 박의 시각에 걸어 두고, 무리의 움직임은 그 순간에
+		G.map3.beatSync = true;
+		G.audio.onBeat( ( t ) => {
+
+			const sea = G.map3, mc = sea?.march;
+			if ( ! mc || G.ended ) return;
+			const accent = ( mc.beat + 1 ) % 4 === 0;
+			if ( mc.k > 0.02 && ! G.sym ) G.audio.play( 'drum', { vel: mc.k * ( accent ? 0.5 : 0.3 ), at: t } ); // 교향곡 중엔 교향곡의 북만
+			setTimeout( () => sea.marchBeat( true ), G.audio.until( t ) * 1000 );
+
+		} );
 		G.map3.onDrumHit = ( dir ) => {
 
 			const h = G.actors.hazel;
@@ -4110,6 +4150,21 @@ function updatePlayer( dt ) {
 		throttle = G.autoSwim.throttle;
 
 	}
+	// MAP 3 빛 타기: 손을 놓고 있어도 다음 바다 쪽으로 빠르게 (방향키로 조금씩 틀 수 있다)
+	if ( G.ride ) {
+
+		const r = G.ride, dx = r.to.x - h.pos.x, dz = r.to.z - h.pos.z;
+		if ( Math.hypot( dx, dz ) < r.stop || G.time > r.end ) G.ride = null;
+		else if ( control ) {
+
+			G.dash = Math.max( G.dash, 0.4 );
+			if ( Math.abs( turn ) < 0.05 ) turn = Math.max( - 1.2, Math.min( 1.2, wrapAngle( Math.atan2( dx, dz ) - h.yaw ) * 1.6 ) );
+			throttle = 1;
+
+		}
+
+	}
+
 	const tilting = tiltActive();
 	if ( tilting !== G.tilting ) { G.tilting = tilting; document.body.classList.toggle( 'tilt', tilting ); }
 
@@ -4156,7 +4211,7 @@ function updatePlayer( dt ) {
 	const turnRate = TURN_RATE * ( 0.6 + 0.4 * ( 1 - Math.min( Math.abs( h.speed ) / BOOST_SPEED, 1 ) ) );
 	h.yaw += turn * turnRate * dt;
 	// PC 카메라는 따로 돈다. 앞쪽(W 쪽)으로 헤엄칠 때만 천천히 등 뒤로 따라간다 (A/D만 누르면 옆으로 헤엄)
-	if ( ! G.touch && steer !== null && Math.abs( steer ) < 0.8 && ! drag ) G.camYaw += wrapAngle( h.yaw - G.camYaw ) * ( 1 - Math.exp( - dt * 1.2 ) );
+	if ( ! G.touch && steer !== null && Math.abs( steer ) < 0.8 && ! drag ) G.camYaw += wrapAngle( h.yaw - G.camYaw ) * ( 1 - Math.exp( - dt * 2.2 ) );
 	h.bank = - turn * Math.min( 1, Math.abs( h.speed ) / MAX_SPEED ) * 0.45;
 	if ( stunned ) h.bank = Math.sin( G.time * 16 ) * 0.35 * Math.min( 1, G.stun / 0.4 );
 	updateStunStars( h, stunned );
@@ -4334,6 +4389,23 @@ function updateCompanions( dt ) {
 
 function updateBottlesAndKelp( dt ) {
 
+	// MAP 3: 노래를 마친 자리 위의 빛 조각 (먹으면 빛을 타고 다음 바다로)
+	for ( const s of G.rideOrbs ) {
+
+		s.update( dt, G.time );
+		if ( s.ready && ! s.taken && G.started && ! G.cutsceneOn && ! G.ui.dialogOpen && G.distTo( s ) < 12 ) {
+
+			s.taken = true;
+			s.active = false;
+			s.respawn = Infinity;
+			G.world.scene.remove( s.group );
+
+		}
+
+	}
+
+	G.rideOrbs = G.rideOrbs.filter( ( s ) => ! s.taken );
+
 	if ( G.map3 ) return G.ui.prompt( null ); // MAP 3엔 맵 1의 유리병 · 미역 · 빛 조각이 없다
 
 	if ( G.diving ) return G.ui.prompt( ! G.fishing && ! G.cutsceneOn && ! G.ui.dialogOpen && nearFishSpot() ? t( 'fish.prompt' ) : null ); // MAP 2엔 맵 1의 유리병 · 미역 · 빛 조각이 없다. 낚시 자리 안내만
@@ -4348,6 +4420,7 @@ function updateBottlesAndKelp( dt ) {
 
 	for ( const k of Object.values( G.kelps ) ) k.update( dt, G.time );
 	for ( const k of G.groves ) k.update( dt, G.time );
+
 
 	for ( const s of G.shards ) {
 
@@ -4451,7 +4524,20 @@ function updateCamera( dt ) {
 	}
 
 	const k = 1 - Math.exp( - dt * ( G.camSweep ? 2.4 : G.camTarget ? 1.6 : 3.2 ) );
-	camera.position.lerp( desired, k );
+	// 따라가는 카메라는 헤이즐과 함께 움직이고 (뒤처졌다 따라붙는 끌림이 없게), 도는 것과 높이만 부드럽게
+	if ( G.started && ! G.camTarget ) {
+
+		const r = G.camRel ??= { x: camera.position.x - h.pos.x, z: camera.position.z - h.pos.z, lx: camLook.x - h.pos.x, lz: camLook.z - h.pos.z };
+		r.x += ( desired.x - h.pos.x - r.x ) * k;
+		r.z += ( desired.z - h.pos.z - r.z ) * k;
+		camera.position.set( h.pos.x + r.x, camera.position.y + ( desired.y - camera.position.y ) * k, h.pos.z + r.z );
+
+	} else {
+
+		G.camRel = null;
+		camera.position.lerp( desired, k );
+
+	}
 	if ( G.diving ) {
 
 		camera.position.y = THREE.MathUtils.clamp( camera.position.y, DIVE_BOTTOM - 4, - 1.2 ); // 물 밖으로 나가지 않게
@@ -4471,7 +4557,15 @@ function updateCamera( dt ) {
 		if ( camera.position.y < floor ) camera.position.y = floor;
 
 	}
-	camLook.lerp( look, 1 - Math.exp( - dt * 5 ) );
+	const kl = 1 - Math.exp( - dt * 5 );
+	if ( G.camRel ) {
+
+		const r = G.camRel;
+		r.lx += ( look.x - h.pos.x - r.lx ) * kl;
+		r.lz += ( look.z - h.pos.z - r.lz ) * kl;
+		camLook.set( h.pos.x + r.lx, camLook.y + ( look.y - camLook.y ) * kl, h.pos.z + r.lz );
+
+	} else camLook.lerp( look, kl );
 	camera.lookAt( camLook );
 
 	if ( G.shake > 0 ) {

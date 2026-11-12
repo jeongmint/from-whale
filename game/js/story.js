@@ -720,24 +720,28 @@ export async function map3( G ) {
 	await voiceCard( U().cards.frozen );
 	G.cutscene( false );
 
-	// 흩어진 목소리: 침몰한 함대와 폭풍의 바다 (어느 순서로든)
+	// 흩어진 목소리: 침몰한 함대 → 폭풍의 바다. 노래를 마친 자리마다 빛 조각이 떠서, 먹으면 다음 바다까지 빛을 타고 간다
 	await G.say( pick( T().next ) );
-	const REGIONS = { fleet: { at: DAWN_PLACES.fleet, r: 230, run: fleet }, storm: { at: DAWN_PLACES.storm, r: 330, run: storm } };
-	const left = new Set( Object.keys( REGIONS ) );
-	while ( left.size ) {
+	await rideOrb( { x: tw.whale.pos.x, z: tw.whale.pos.z }, DAWN_PLACES.fleet, 200 );
+	G.objective( U().label, U().objFleet, DAWN_PLACES.fleet );
+	await G.until( () => free() && dist( DAWN_PLACES.fleet ) < 230 );
+	await fleet();
+	// 함대 위의 빛: 먹으면 바다가 화난다 (비가 갑자기 쏟아지지 않게, 여기서부터 먹구름이 몰려온다)
+	const big = sea.wrecks.filter( ( w ) => w.memory >= 0 ).sort( ( a, b ) => b.len - a.len )[ 0 ];
+	await rideOrb( big, DAWN_PLACES.storm, 300, async () => {
 
-		// 가장 가까운, 아직 안 간 바다를 가리킨다
-		const near = [ ...left ].sort( ( a, b ) => dist( REGIONS[ a ].at ) - dist( REGIONS[ b ].at ) )[ 0 ];
-		G.objective( U().label, U().objVoices, REGIONS[ near ].at );
-		let key = null;
-		await G.until( () => free() && ( key = [ ...left ].find( ( k ) => dist( REGIONS[ k ].at ) < REGIONS[ k ].r ) ) );
-		left.delete( key );
-		await REGIONS[ key ].run();
+		sea.angerStorm();
+		await G.say( pick( T().fleet.anger ) );
 
-	}
+	} );
+	G.objective( U().label, U().objStorm, DAWN_PLACES.storm );
+	await G.until( () => free() && dist( DAWN_PLACES.storm ) < 330 );
+	await storm();
 
 	await G.say( pick( T().gathered ) );
+	await rideOrb( { x: sea.voices.eight.whale.pos.x, z: sea.voices.eight.whale.pos.z }, DAWN_PLACES.lighthouse, 130 );
 	await lighthouse();
+	await rideOrb( { x: DAWN_PLACES.lighthouse.x + 44, z: DAWN_PLACES.lighthouse.z }, DAWN_PLACES.army, 400 );
 	await coast();
 	await finale();
 	await dawn();
@@ -745,6 +749,31 @@ export async function map3( G ) {
 	function dist( p ) {
 
 		return Math.hypot( h.pos.x - p.x, h.pos.z - p.z );
+
+	}
+
+	// 노래를 마친 자리 위에 빛 조각 → 먹으면 다음 바다까지 빛을 타고 (멀리 헤엄치지 않게)
+	async function rideOrb( at, to, stop, onTake ) {
+
+		const orb = G.spawnRideOrb( at, at.len ? 9 : 4 );
+		G.objective( U().label, U().objOrb, orb );
+		if ( ! G.flags.rideTip ) {
+
+			G.flags.rideTip = true;
+			G.ui.toast( U().orbHint );
+
+		}
+
+		await G.until( () => orb.taken );
+		if ( onTake ) {
+
+			G.cutscene( true );
+			await onTake();
+			G.cutscene( false );
+
+		}
+
+		G.startRide( to, stop );
 
 	}
 
@@ -1056,7 +1085,7 @@ export async function map3( G ) {
 		G.objective( U().label, U().objSym );
 		G.camFocus( { x: ( h.pos.x + shaman.pos.x ) / 2, y: 0, z: ( h.pos.z + shaman.pos.z ) / 2 }, { side: 1, dist: 85, height: 22 } );
 		G.symphony = await symphony( G, V, {
-			drum: ( vel ) => G.audio.play( 'drum', { vel } ),
+			drum: ( vel, at ) => G.audio.play( 'drum', { vel, at } ),
 			drumTap: () => G.symphonyDrumTap(),
 			join: ( i, frac ) => G.symphonyJoin( frac ),
 			hazel: ( m ) => hazelNote( G, m )

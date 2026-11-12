@@ -11,12 +11,16 @@ const $ = ( id ) => document.getElementById( id );
 export const SHORT = 0.25; // 이보다 짧으면 숏탭
 export const LONG = 0.4; // 이보다 길면 롱탭
 const TOL = 0.32; // 누르는 순간의 허용 (초)
+const LEAD = 1; // 따라 부르기: 막대가 첫 음에 닿기까지
 const T = () => lang().ui.map3;
 
 // opts: { kind, who, title, notes: [ { at, len } ] (len 0 = 짧은 소리), call: { actor, color, play( note ) }, host, need, maxTries, onBeat, onStray( t ), jump(), cue( ) }
 export function respond( G, opts ) {
 
-	const { kind, who = '', notes = [], call = {}, maxTries = 3 } = opts;
+	const { kind, who = '', call = {}, maxTries = 3 } = opts;
+	// 메아리는 막대 맨 앞에서 바로 시작하지 않게: 적어도 2초 앞서 자리를 보여 주고 박자를 센다
+	// 따라 부르기도 첫 음이 막대 맨 앞에 붙지 않게 1초 띄운다 (그 사이 두 번 박자)
+	const notes = ( opts.notes ?? [] ).map( ( n ) => kind === 'echo' ? { ...n, at: Math.max( 2, n.at ) } : kind === 'answer' ? { ...n, at: n.at + LEAD } : n );
 	const own = ! opts.host; // 따로 받은 자리가 없으면 #hold 창을 연다
 	const host = opts.host ?? $( 'hold-body' );
 	return new Promise( ( resolve ) => {
@@ -79,7 +83,7 @@ export function respond( G, opts ) {
 			const dt = Math.min( 0.25, now() - lastT );
 			lastT = now();
 			const t = now() - t0;
-			if ( phase === 'call' || phase === 'answer' || phase === 'echo' ) head.style.left = X( t );
+			if ( phase === 'call' || phase === 'answer' || phase === 'echo' || ( phase === 'wait' && kind === 'echo' ) ) head.style.left = X( t );
 			// 누르는 동안: 금빛 막대가 자라고 둘레의 빛이 커진다
 			if ( pressAt !== null ) {
 
@@ -150,12 +154,15 @@ export function respond( G, opts ) {
 			say( T().holdEchoWait );
 			const n = notes[ 0 ];
 			t0 = now();
+			// 메아리가 올 자리를 미리 흐리게 보여 주고, 막대가 다가가는 동안 두 번 박자를 센다
+			const ghost = block( n.at, n.len, 'them ghost' );
+			for ( const k of [ 1, 0.5 ] ) later( n.at - k, () => phase === 'wait' && G.audio.play( 'blip' ) );
 			later( n.at - 0.05, () => {
 
 				phase = 'echo';
 				call.play?.( n );
 				call.actor?.setGlow?.( 0.7, call.color );
-				block( n.at, n.len, 'them' );
+				ghost.classList.remove( 'ghost' );
 				say( T().holdEchoNow );
 
 			} );
@@ -206,21 +213,7 @@ export function respond( G, opts ) {
 
 			} );
 			const end = 0.3 + Math.max( ...notes.map( ( n ) => n.at + n.len ) ) + 0.5;
-			// 두 번 박자를 세고 헤이즐 차례
-			later( end, () => {
-
-				say( T().holdReady );
-				opts.onBeat?.();
-				G.audio.play( 'blip' );
-
-			} );
-			later( end + 0.55, () => {
-
-				opts.onBeat?.();
-				G.audio.play( 'blip' );
-
-			} );
-			later( end + 1.1, startAnswer );
+			later( end, startAnswer );
 
 		}
 
@@ -229,7 +222,16 @@ export function respond( G, opts ) {
 			phase = 'answer';
 			t0 = now();
 			trk.querySelectorAll( 'em.them' ).forEach( ( e ) => e.classList.add( 'ghost' ) );
-			say( T().holdAnswer );
+			say( T().holdReady );
+			// 막대가 첫 음에 닿기 전에 두 번 박자를 세고 헤이즐 차례
+			const first = Math.min( ...notes.map( ( n ) => n.at ) );
+			for ( const k of [ 1, 0.5 ] ) later( first - k, () => {
+
+				opts.onBeat?.();
+				G.audio.play( 'blip' );
+
+			} );
+			later( first - 0.4, () => phase === 'answer' && say( T().holdAnswer ) );
 			const end = Math.max( ...notes.map( ( n ) => n.at + n.len ) ) + 0.9;
 			later( end, () => {
 

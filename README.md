@@ -31,7 +31,7 @@ A sea adventure of **Hazel**, a whale who sings at 52Hz. Another world, the year
 - **No fighting** — no attacks, only a 52Hz song. Even the boss, Moby Dick, is won over by singing
 - **52Hz as a game rule** — a song no one understands, letters translated by Luke
 - **Call and response** — answer Finn's sobbing rhythm with a song (ch. 2)
-- **Growing music** — synthesized live. Luke's bass, Finn's drums, dropped when a friend leaves. Saxophone in the epilogue
+- **Growing music** — synthesized live. Luke's bass, Finn's drums, dropped when a friend leaves. Saxophone in the epilogue. A different piece per map (MAP 1 shuffle blues · MAP 2 a low, slow D minor for the trench · MAP 3 a bright dawn F → G → Em → Am)
 - **6 endings + ending gallery** — 4 decided by Luke's and Finn's fates + The Late Whale + A Whale's Stopped Heart (below). Unseen endings show hints only. All 6 unlock a **golden sea** (moon glitter fading from gold to sky blue, a golden moon, Hazel's glowing pattern sparkling brighter)
 - **Kelp** — signposts with written directions, sing beside them to restore hearts
 - **Moby Dick boss fight** — 6 songs that reach him win him over. Body hits and falling stars cost a heart; stun 1.1 s from stars, 1.5 s from charges (with Finn's Tears, a song clears it at once)
@@ -96,7 +96,9 @@ Subtitle: Song of Liberation (working title). After the red eyes go dark, an All
 - Sky: a slow shift from night to dawn. Red spreads from the eastern horizon; stars, the Milky Way and the moon fade. Sea color, fog and light follow (brighter with each voice gathered)
 - Prologue · the silent Alliance: the Alliance surfaces and won't move, even at the Shaman's command → three ways (whales who follow the Shaman · whales who want revenge · whales who refuse the war) → the Shaman's new order: the whole Alliance leaps together twice toward the coast, then marches toward the rising sun and the human coast
 - The Frozen Lane: an ice field to the north. Ice floes block the way (shown on the sonar), a winding narrow channel, snow, thick fog
-- Three scattered voices: each whale has its own task (after No.12, in any order). Once they come along, they follow in their own place beside Hazel
+- Three scattered voices: each whale has its own task (No.12 → No.9 → No.8, in turn). Once they come along, they follow in their own place beside Hazel
+- Riding the light: a light shard above the place where you finished singing → take it to ride fast to the next sea (heads there hands-free, a little steering allowed). Ice pool → fleet → storm → lighthouse → coast
+- The angry sea: the moment you take the light above the fleet, the sea stirs and dark clouds roll to the south; the rain starts from there
 
 | Sea | Play | Whale |
 | --- | --- | --- |
@@ -175,7 +177,7 @@ Color options (`Whale` in `game/js/actors.js`): `solidColor` for a single color,
 | `game/js/sky.js` | Night sky, ringed planet, shooting stars, reflection cubemap, dawn · storm sky (MAP 3) |
 | `game/js/world.js` | Seabed, rocks, lighthouse, kelp, bottles, light shards |
 | `game/js/actors.js` | Whale models, swim shader, recoloring, portraits |
-| `game/js/audio.js` | Synthesized music, sound effects |
+| `game/js/audio.js` | Synthesized music (a different piece per map), sound effects |
 | `game/js/ui.js` | HUD, dialog box, chapter cards, sonar |
 | `game/js/story.js` | Chapter flow, branching endings, map coordinates, MAP 2 story · stop code, MAP 3 story · each whale's song (No.12 · No.9 · No.8) |
 | `game/js/lang/*.js` | Text per language (ko / en / ja) |
