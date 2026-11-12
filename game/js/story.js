@@ -1085,7 +1085,7 @@ export async function map3( G ) {
 		G.objective( U().label, U().objSym );
 		G.camFocus( { x: ( h.pos.x + shaman.pos.x ) / 2, y: 0, z: ( h.pos.z + shaman.pos.z ) / 2 }, { side: 1, dist: 85, height: 22 } );
 		G.symphony = await symphony( G, V, {
-			drum: ( vel ) => G.audio.play( 'drum', { vel } ),
+			drum: ( vel, at ) => G.audio.play( 'drum', { vel, at } ),
 			drumTap: () => G.symphonyDrumTap(),
 			join: ( i, frac ) => G.symphonyJoin( frac ),
 			hazel: ( m ) => hazelNote( G, m )

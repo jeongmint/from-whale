@@ -3904,6 +3904,17 @@ async function enterDawn() {
 		G.map3.onFreed = ( p ) => G.world.ring( p.x, p.z, { color: 0x7fe9ff, to: 14, life: 1.2, width: 0.25 } );
 		// 샤먼의 진군: 북소리 (가까울수록 크게), 고리에 밀리거나 52Hz로 버틴다
 		G.map3.onDrum = ( k, accent ) => G.audio.play( 'drum', { vel: k * ( accent ? 0.5 : 0.3 ) } );
+		// 샤먼의 북은 배경 음악의 박자 그대로: 소리는 그 박의 시각에 걸어 두고, 무리의 움직임은 그 순간에
+		G.map3.beatSync = true;
+		G.audio.onBeat( ( t ) => {
+
+			const sea = G.map3, mc = sea?.march;
+			if ( ! mc || G.ended ) return;
+			const accent = ( mc.beat + 1 ) % 4 === 0;
+			if ( mc.k > 0.02 && ! G.sym ) G.audio.play( 'drum', { vel: mc.k * ( accent ? 0.5 : 0.3 ), at: t } ); // 교향곡 중엔 교향곡의 북만
+			setTimeout( () => sea.marchBeat( true ), G.audio.until( t ) * 1000 );
+
+		} );
 		G.map3.onDrumHit = ( dir ) => {
 
 			const h = G.actors.hazel;
@@ -4200,7 +4211,7 @@ function updatePlayer( dt ) {
 	const turnRate = TURN_RATE * ( 0.6 + 0.4 * ( 1 - Math.min( Math.abs( h.speed ) / BOOST_SPEED, 1 ) ) );
 	h.yaw += turn * turnRate * dt;
 	// PC 카메라는 따로 돈다. 앞쪽(W 쪽)으로 헤엄칠 때만 천천히 등 뒤로 따라간다 (A/D만 누르면 옆으로 헤엄)
-	if ( ! G.touch && steer !== null && Math.abs( steer ) < 0.8 && ! drag ) G.camYaw += wrapAngle( h.yaw - G.camYaw ) * ( 1 - Math.exp( - dt * 1.2 ) );
+	if ( ! G.touch && steer !== null && Math.abs( steer ) < 0.8 && ! drag ) G.camYaw += wrapAngle( h.yaw - G.camYaw ) * ( 1 - Math.exp( - dt * 2.2 ) );
 	h.bank = - turn * Math.min( 1, Math.abs( h.speed ) / MAX_SPEED ) * 0.45;
 	if ( stunned ) h.bank = Math.sin( G.time * 16 ) * 0.35 * Math.min( 1, G.stun / 0.4 );
 	updateStunStars( h, stunned );
@@ -4513,7 +4524,20 @@ function updateCamera( dt ) {
 	}
 
 	const k = 1 - Math.exp( - dt * ( G.camSweep ? 2.4 : G.camTarget ? 1.6 : 3.2 ) );
-	camera.position.lerp( desired, k );
+	// 따라가는 카메라는 헤이즐과 함께 움직이고 (뒤처졌다 따라붙는 끌림이 없게), 도는 것과 높이만 부드럽게
+	if ( G.started && ! G.camTarget ) {
+
+		const r = G.camRel ??= { x: camera.position.x - h.pos.x, z: camera.position.z - h.pos.z, lx: camLook.x - h.pos.x, lz: camLook.z - h.pos.z };
+		r.x += ( desired.x - h.pos.x - r.x ) * k;
+		r.z += ( desired.z - h.pos.z - r.z ) * k;
+		camera.position.set( h.pos.x + r.x, camera.position.y + ( desired.y - camera.position.y ) * k, h.pos.z + r.z );
+
+	} else {
+
+		G.camRel = null;
+		camera.position.lerp( desired, k );
+
+	}
 	if ( G.diving ) {
 
 		camera.position.y = THREE.MathUtils.clamp( camera.position.y, DIVE_BOTTOM - 4, - 1.2 ); // 물 밖으로 나가지 않게
@@ -4533,7 +4557,15 @@ function updateCamera( dt ) {
 		if ( camera.position.y < floor ) camera.position.y = floor;
 
 	}
-	camLook.lerp( look, 1 - Math.exp( - dt * 5 ) );
+	const kl = 1 - Math.exp( - dt * 5 );
+	if ( G.camRel ) {
+
+		const r = G.camRel;
+		r.lx += ( look.x - h.pos.x - r.lx ) * kl;
+		r.lz += ( look.z - h.pos.z - r.lz ) * kl;
+		camLook.set( h.pos.x + r.lx, camLook.y + ( look.y - camLook.y ) * kl, h.pos.z + r.lz );
+
+	} else camLook.lerp( look, kl );
 	camera.lookAt( camLook );
 
 	if ( G.shake > 0 ) {

@@ -87,31 +87,53 @@ export function symphony( G, voices, on = {} ) {
 
 		}
 
-		// 배경: 샤먼의 북 (박자마다), 1단계엔 샤먼이 계속 밀고, 합류한 고래들은 엇박마다 제 음
+		// 박 하나: 북이 화면에서 울리는 순간 (소리는 음악의 박자에 맞춰 미리 걸어 둔다)
+		function onBeatNow( sounded ) {
+
+			if ( finished ) return;
+			beat ++;
+			lastBeatAt = performance.now() / 1000;
+			if ( ! silent ) {
+
+				if ( ! sounded ) on.drum?.( ( 0.12 + 0.2 * ( 1 - p ) ) * drumVel );
+				on.drumTap?.();
+				if ( phase === 'mash' ) push( - DRUM * ( p < 0.15 ? 0.4 : 1 ) );
+				tug.classList.remove( 'thump' );
+				void tug.offsetWidth;
+				tug.classList.add( 'thump' );
+
+			}
+
+			joined.forEach( ( v, i ) => later( BEAT / 2 + i * 0.02, () => ! finished && v.play( v.pitches[ ( beat + i ) % v.pitches.length ] ) ) );
+
+		}
+
+		// 샤먼의 북은 배경 음악의 박자 그대로 (음악이 없으면 따로 센다)
+		const synced = !! G.audio.ctx && !! G.audio.onBeat;
+		const offBeat = synced ? G.audio.onBeat( ( t ) => {
+
+			if ( finished ) return;
+			if ( ! silent ) on.drum?.( ( 0.12 + 0.2 * ( 1 - p ) ) * drumVel, t );
+			later( G.audio.until( t ), () => onBeatNow( true ) );
+
+		} ) : null;
+
+		// 배경: 1단계엔 샤먼이 계속 민다
 		function tick( now ) {
 
 			if ( finished ) return;
 			const dt = Math.min( 0.25, ( now - last ) / 1000 );
 			last = now;
 			if ( phase === 'mash' ) push( - ( p < 0.15 ? 0.4 : 1 ) * SHAMAN * dt );
-			beatT -= dt;
-			if ( beatT <= 0 ) {
+			if ( ! synced ) {
 
-				beatT += BEAT;
-				beat ++;
-				lastBeatAt = performance.now() / 1000;
-				if ( ! silent ) {
+				beatT -= dt;
+				if ( beatT <= 0 ) {
 
-					on.drum?.( ( 0.12 + 0.2 * ( 1 - p ) ) * drumVel );
-					on.drumTap?.();
-					if ( phase === 'mash' ) push( - DRUM * ( p < 0.15 ? 0.4 : 1 ) );
-					tug.classList.remove( 'thump' );
-					void tug.offsetWidth;
-					tug.classList.add( 'thump' );
+					beatT += BEAT;
+					onBeatNow( false );
 
 				}
-
-				joined.forEach( ( v, i ) => later( BEAT / 2 + i * 0.02, () => ! finished && v.play( v.pitches[ ( beat + i ) % v.pitches.length ] ) ) );
 
 			}
 
@@ -300,6 +322,7 @@ export function symphony( G, voices, on = {} ) {
 		function finish() {
 
 			finished = true;
+			offBeat?.();
 			timers.forEach( clearTimeout );
 			cancelAnimationFrame( raf );
 			G.puzzle = null;

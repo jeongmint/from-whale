@@ -386,7 +386,24 @@ export class AudioEngine {
 
 	}
 
+	// 배경 음악의 박자마다 불린다: fn( 오디오 시각, 박 번호, 마디 첫 박인지 ). 샤먼의 북이 음악과 어긋나지 않게
+	onBeat( fn ) {
+
+		( this.beatFns ??= new Set() ).add( fn );
+		return () => this.beatFns.delete( fn );
+
+	}
+
+	// 오디오 시각 t가 화면에서는 몇 초 뒤인지
+	until( t ) {
+
+		return this.ctx ? Math.max( 0, t - this.ctx.currentTime ) : 0;
+
+	}
+
 	playStep( s, t ) {
+
+		if ( s % 3 === 0 && this.beatFns?.size ) for ( const fn of this.beatFns ) fn( t, this.bar * 4 + s / 3, s === 0 );
 
 		const st = this.style ?? STYLES.blues;
 		const chord = st.chords[ st.prog[ this.bar % st.prog.length ] ];
@@ -880,7 +897,7 @@ export class AudioEngine {
 	play( name, opt = {} ) {
 
 		if ( ! this.ctx ) return;
-		const t = this.ctx.currentTime + 0.01;
+		const t = Math.max( this.ctx.currentTime + 0.01, opt.at ?? 0 ); // at: 오디오 시계로 정해 둔 시각 (박자에 맞춰 칠 때)
 		switch ( name ) {
 
 			case 'sing': {

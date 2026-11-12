@@ -953,35 +953,49 @@ export class DawnSea {
 
 	}
 
+	// 북 한 번: 네 박마다 모두가 한꺼번에 나아가고 붉은 고리, 열여섯 박마다 다 함께 뛰어오른다
+	// silent: 북소리는 음악의 박자에 맞춰 이미 걸어 두었다
+	marchBeat( silent = false ) {
+
+		const mc = this.march, sh = this.shaman;
+		if ( ! mc ) return;
+		mc.beat ++;
+		if ( ! silent && mc.k > 0.02 ) this.onDrum?.( mc.k, mc.beat % 4 === 0 );
+		if ( mc.beat % 4 === 0 ) {
+
+			for ( const o of this.army ) o.lunge = 1;
+			if ( mc.on && mc.k > 0.05 ) {
+
+				const mesh = makeSurfaceDecal( { color: 0xff3355, inner: 0.95, outer: 1, opacity: 0.9, lift: 0.5 } );
+				mesh.position.set( sh.pos.x, 0, sh.pos.z );
+				mesh.scale.setScalar( 8 );
+				this.group.add( mesh );
+				mc.rings.push( { r: 8, x: sh.pos.x, z: sh.pos.z, mesh, hit: false } );
+
+			}
+
+		}
+
+		if ( mc.beat % 16 === 0 && mc.k > 0.05 ) for ( const o of this.army ) o.whale.breach( 15 );
+
+	}
+
 	updateMarch( dt, hazel, active, sangAt, time ) {
 
 		const mc = this.march, sh = this.shaman;
 		if ( ! mc ) return;
 		const d0 = Math.hypot( hazel.pos.x - DAWN_PLACES.army.x, hazel.pos.z - DAWN_PLACES.army.z );
 		mc.k = 1 - THREE.MathUtils.smoothstep( d0, 160, 520 ); // 가까울수록 북소리가 크다
-		// 북: 박자마다 둥. 네 박마다 모두가 한꺼번에 나아가고 붉은 고리, 열여섯 박마다 다 함께 뛰어오른다
-		mc.timer -= dt;
-		if ( mc.timer <= 0 ) {
+		// 북: 박자마다 둥 (marchBeat). 배경 음악의 박자에 맞춰 main이 부른다 (beatSync). 음악이 없을 때만 따로 센다
+		if ( ! this.beatSync ) {
 
-			mc.timer += BEAT;
-			mc.beat ++;
-			if ( mc.k > 0.02 ) this.onDrum?.( mc.k, mc.beat % 4 === 0 );
-			if ( mc.beat % 4 === 0 ) {
+			mc.timer -= dt;
+			if ( mc.timer <= 0 ) {
 
-				for ( const o of this.army ) o.lunge = 1;
-				if ( mc.on && mc.k > 0.05 ) {
-
-					const mesh = makeSurfaceDecal( { color: 0xff3355, inner: 0.95, outer: 1, opacity: 0.9, lift: 0.5 } );
-					mesh.position.set( sh.pos.x, 0, sh.pos.z );
-					mesh.scale.setScalar( 8 );
-					this.group.add( mesh );
-					mc.rings.push( { r: 8, x: sh.pos.x, z: sh.pos.z, mesh, hit: false } );
-
-				}
+				mc.timer += BEAT;
+				this.marchBeat();
 
 			}
-
-			if ( mc.beat % 16 === 0 && mc.k > 0.05 ) for ( const o of this.army ) o.whale.breach( 15 );
 
 		}
 
