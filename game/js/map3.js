@@ -896,7 +896,20 @@ export class DawnSea {
 
 	}
 
-	// 새벽: 모두 저마다의 바다로 흩어진다
+	// 클로징: 북에서 풀려난 연합군이 헤이즐 뒤에 넓게 퍼져 함께 헤엄친다
+	closingSwim() {
+
+		this.closing = true;
+		( this.army ?? [] ).forEach( ( o, i ) => {
+
+			o.leaveTo = null;
+			o.slot = { x: ( ( i % 9 ) - 4 ) * 11 + ( Math.floor( i / 9 ) % 2 ) * 5, z: - 46 - Math.floor( i / 9 ) * 14 };
+
+		} );
+
+	}
+
+		// 새벽: 모두 저마다의 바다로 흩어진다
 	scatterArmy() {
 
 		for ( const o of this.army ) {
@@ -943,6 +956,15 @@ export class DawnSea {
 		for ( const o of this.army ) {
 
 			const w = o.whale;
+			if ( this.closing && o.slot ) {
+
+				followSlot( w, hazel, o.slot, dt, 14 );
+				w.depth += ( 0 - w.depth ) * Math.min( 1, dt );
+				w.update( dt );
+				continue;
+
+			}
+
 			if ( o.leaveTo ) {
 
 				// 흩어진다: 저마다의 바다로

@@ -965,6 +965,32 @@ Object.assign( G, {
 
 	},
 
+	// MAP 3 클로징: 모두가 함께 해가 뜨는 도시를 향해 헤엄친다. 카메라는 무리 둘레를 천천히 돈다
+	closingSwim( yaw ) {
+
+		G.camRelease();
+		G.autoSwim = { yaw, throttle: 0.4 }; // 천천히 (해안선에 닿기 전에 끝나게)
+		G.closing = true;
+		G.map3.closingSwim();
+		for ( const key of [ 'moby', 'stella', 'shaman' ] ) G.actors[ key ].hold = false;
+		G.camSweep = { t0: G.time, keys: [
+			{ t: 0, a: Math.PI, r: 24, y: 4, look: 10 },
+			{ t: 7, a: Math.PI * 0.55, r: 30, y: 5, look: 10 },
+			{ t: 13, a: 0.25, r: 38, y: 6, look: 4 },
+			{ t: 18, a: - 0.35, r: 46, y: 9, look: 4 },
+			{ t: 32, a: - Math.PI * 0.94, r: 85, y: 24, look: 150, ly: 4 } // 무리 바로 뒤 하늘에서, 무리 너머로 도시와 해를 함께
+		] };
+
+	},
+
+	endClosing() {
+
+		G.autoSwim = null;
+		G.camSweep = null;
+		G.closing = false;
+
+	},
+
 	// 아래쪽 자막 (엔딩에서 고래마다 어디로 가는지)
 	caption( title, sub = '' ) {
 
@@ -1288,7 +1314,7 @@ async function showMap3Ending( key ) {
 	$( 'ending-stats' ).innerHTML = [
 		`PLAY TIME ${minutes}:${String( seconds ).padStart( 2, '0' )}`,
 		`VOICES · ${( G.finaleVoices ?? [] ).join( ' · ' )}`,
-		G.symphony ? `SYMPHONY · ${t( 'map3.symDrum' )} ${G.symphony.drumTaps}` : '',
+		G.symphony ? `SYMPHONY · ${G.symphony.taps} TAPS` : '',
 		t( 'ending.dawnHint' )
 	].filter( Boolean ).join( '<br>' );
 	$( 'btn-again' ).textContent = t( 'ending.again' );
@@ -3914,6 +3940,15 @@ function updateDawn( dt ) {
 	hemiLight.intensity *= ( 1 + G.dawn * 0.6 ) * ( 1 - storm * 0.45 );
 	moonLight.intensity *= ( 1 + G.dawn * 0.25 ) * ( 1 - storm * 0.6 );
 	ambientLight.intensity *= ( 1 + G.dawn * 0.5 ) * ( 1 - storm * 0.3 );
+	// 클로징: 모비 딕 · 스텔라 · 샤먼도 무리를 따라 함께 헤엄친다
+	if ( G.closing ) {
+
+		followSlot( G.actors.moby, h, { x: - 34, z: - 30 }, dt, 14 );
+		if ( G.actors.stella.root.visible ) followSlot( G.actors.stella, h, { x: 110, z: - 170 }, dt, 14 );
+		followSlot( G.actors.shaman, h, { x: 0, z: - 95 }, dt, 14 );
+
+	}
+
 	// 샤먼은 해가 뜨는 쪽으로 진군한다
 	const s = G.actors.shaman;
 	if ( G.shamanMarch && s.root.visible ) {
@@ -4002,6 +4037,14 @@ function updatePlayer( dt ) {
 	// 대화나 장면이 끝나 다시 움직일 수 있게 되면 지금 자세를 기울기 기준으로
 	if ( control && ! G.hadControl ) tilt.cal = true;
 	G.hadControl = control;
+	// MAP 3 클로징: 장면 중에도 정해 둔 쪽(해가 뜨는 도시)으로 천천히 헤엄친다
+	if ( G.autoSwim ) {
+
+		const diff = wrapAngle( G.autoSwim.yaw - h.yaw );
+		turn = Math.max( - 1, Math.min( 1, diff * 2 ) );
+		throttle = G.autoSwim.throttle;
+
+	}
 	const tilting = tiltActive();
 	if ( tilting !== G.tilting ) { G.tilting = tilting; document.body.classList.toggle( 'tilt', tilting ); }
 
@@ -4278,6 +4321,22 @@ function updateCamera( dt ) {
 		desired.set( h.pos.x + Math.sin( a ) * 34, 9 + Math.sin( G.time * 0.3 ) * 1.5, h.pos.z + Math.cos( a ) * 34 );
 		look = new THREE.Vector3( h.pos.x, 4, h.pos.z );
 
+	} else if ( G.camSweep ) {
+
+		// MAP 3 클로징: 헤엄치는 무리 둘레를 천천히 도는 카메라 (뒤 → 옆 → 정면 → 높이). 각도는 헤이즐이 보는 쪽 기준
+		const sw = G.camSweep, k = sw.keys;
+		const tt = G.time - sw.t0;
+		let i = 0;
+		while ( i < k.length - 2 && tt > k[ i + 1 ].t ) i ++;
+		const a = k[ i ], b = k[ i + 1 ];
+		const e = THREE.MathUtils.smootherstep( tt, a.t, b.t );
+		const ang = h.yaw + THREE.MathUtils.lerp( a.a, b.a, e );
+		const r = THREE.MathUtils.lerp( a.r, b.r, e ), y = THREE.MathUtils.lerp( a.y, b.y, e ), ahead = THREE.MathUtils.lerp( a.look ?? 8, b.look ?? 8, e );
+		const ly = THREE.MathUtils.lerp( a.ly ?? 3, b.ly ?? 3, e );
+		const f = h.forward;
+		desired.set( h.pos.x + Math.sin( ang ) * r, y, h.pos.z + Math.cos( ang ) * r );
+		look = new THREE.Vector3( h.pos.x + f.x * ahead, ly, h.pos.z + f.z * ahead );
+
 	} else if ( G.camTarget ) {
 
 		const t = G.camTarget;
@@ -4326,7 +4385,7 @@ function updateCamera( dt ) {
 
 	}
 
-	const k = 1 - Math.exp( - dt * ( G.camTarget ? 1.6 : 3.2 ) );
+	const k = 1 - Math.exp( - dt * ( G.camSweep ? 2.4 : G.camTarget ? 1.6 : 3.2 ) );
 	camera.position.lerp( desired, k );
 	if ( G.diving ) {
 

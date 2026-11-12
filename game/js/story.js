@@ -964,7 +964,7 @@ export async function map3( G ) {
 
 	}
 
-	// 고래의 교향곡: 모비 딕(과 스텔라)이 오고, 모은 목소리가 하나씩 대답하며 줄이 늘어난다 (이 맵의 단 하나의 리듬)
+	// 고래의 교향곡: 모비 딕(과 스텔라)이 오고, 연타로 샤먼의 북을 밀어내는 줄다리기. 밀어낼수록 동료가 하나씩 합류한다
 	async function finale() {
 
 		const F = T().finale;
@@ -1001,7 +1001,7 @@ export async function map3( G ) {
 			hazel: ( m ) => hazelNote( G, m )
 		} );
 		G.symphonyJoin( 1 );
-		on.drummed = G.symphony.drumTaps >= 3;
+		on.drummed = G.symphony.overpowered; // 샤먼의 합창에 거의 묻힐 뻔했다
 		await G.say( pick( F.after ) );
 
 	}
@@ -1011,13 +1011,6 @@ export async function map3( G ) {
 
 		const D = T().dawnEnd;
 		const shaman = G.actors.shaman;
-		// 헤이즐 뒤에서 해가 뜨는 쪽을 바라본다
-		const faceSun = () => {
-
-			G.camRelease();
-			h.yaw = G.camYaw = Math.atan2( SUN_DIR.x, SUN_DIR.z );
-
-		};
 		G.camFocus( shaman, { side: - 1, dist: 34, height: 6 } );
 		await G.say( pick( D.question ) );
 		G.audio.play( 'sing' );
@@ -1027,53 +1020,18 @@ export async function map3( G ) {
 		await G.say( pick( D.voice ) );
 		await G.say( pick( D.after ) );
 
-		// 해가 뜬다: 위아래 검은 띠, 동쪽 하늘로
+		// 클로징: 해가 뜨고, 모두 함께 해가 뜨는 도시를 향해 헤엄친다. 카메라는 무리 둘레를 천천히 돈다 (글은 마지막 한 줄만)
 		G.cinema( true );
 		G.sunrise();
-		G.setMusic( { tension: 0, drums: 0, bass: 0, melody: 1, piano: 1, sax: 0.6 } );
-		faceSun();
-		await G.wait( 5 );
-
-		// 저마다의 바다로: 고래마다 어디로 가는지 자막
-		G.scatterAll();
-		const where = D.where;
-		const DIR = { twelve: DAWN_PLACES.north, nine: { x: 1150, z: 700 }, eight: DAWN_PLACES.deep };
-		for ( const k of G.voices ) {
-
-			const v = sea.voices[ k ];
-			Object.assign( v, { state: 'leave', to: DIR[ k ], dive: false } );
-			G.camFocus( v.whale, { side: 1, dist: 36, height: 8 } );
-			G.caption( where[ k ][ 0 ], where[ k ][ 1 ] );
-			await G.wait( 3.6 );
-
-		}
-
-		const moby = G.actors.moby;
-		moby.hold = false;
-		G.camFocus( moby, { side: 1, dist: 80, height: 14 } );
-		G.caption( where.moby[ 0 ], where.moby[ 1 ] );
-		await G.wait( 3.6 );
-		if ( on.stella ) {
-
-			G.camFocus( G.actors.stella, { side: 1, dist: 200, height: 40 } );
-			G.caption( where.stella[ 0 ], where.stella[ 1 ] );
-			await G.wait( 3.6 );
-
-		}
-
-		G.camFocus( shaman, { side: 1, dist: 40, height: 7 } );
-		G.caption( where.shaman[ 0 ], where.shaman[ 1 ] );
-		await G.wait( 3.6 );
-		G.camFocus( h, { side: 1, dist: 30, height: 6 } );
-		G.caption( ...( on.luke || on.finn ? where.us : where.alone ) );
-		await G.wait( 3.6 );
-		G.caption( '' );
-
-		// 마지막 시: 해돋이 위에 한 줄씩
-		faceSun();
+		G.setMusic( { tension: 0, drums: 0, bass: 0.4, melody: 1, piano: 1, sax: 0.7 } );
+		h.yaw = G.camYaw = Math.atan2( SUN_DIR.x, SUN_DIR.z );
+		G.closingSwim( h.yaw );
+		await G.wait( 25 ); // 높이 올라가는 장면 가운데쯤
 		await G.poem( D.poem );
-		// 엔딩: 교향곡에서 북이 아니라 동료의 노래를 들었다면 '모두의 노래', 아니면 '52Hz의 새벽'
-		await G.showEnding( G.symphony.drumTaps <= 2 ? 'chorus' : 'lone' );
+		await G.wait( 2 );
+		// 엔딩: 교향곡에서 샤먼의 합창에 밀리지 않았다면 '모두의 노래', 거의 묻혔다면 '52Hz의 새벽'
+		await G.showEnding( G.symphony.overpowered ? 'lone' : 'chorus' );
+		G.endClosing();
 
 	}
 

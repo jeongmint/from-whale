@@ -63,17 +63,11 @@ export default {
 			drumHit: 'Pushed back by the drum — [E] the moment the ring reaches you',
 			drumBlock: '52Hz cut through the drumbeat',
 			coastCard: [ 'MAP 3', 'The Coastal City', 'Before the March' ],
-			objSym: 'The Whale Symphony · answer your friends\' songs',
+			objSym: 'The Whale Symphony · mash to push back the Shaman\'s drum',
 			objDawn: 'Dawn',
 			symTitle: 'WHALE SYMPHONY',
 			symDrum: 'Shaman\'s drum',
-			symListen: 'Listen… {who}\'s song (answer in the same places next bar)',
-			symAgain: 'Listen once more… {who}',
-			symAnswer: 'Now! Answer in the same places [E] — follow {who}, not the drum',
-			symHelp: '{who} — matched you first',
-			symJoin: '{who} — sings along',
-			symFinal: 'Everyone together — sing in 52Hz [E]',
-			symDrumWarn: 'Following the drum makes the Shaman\'s chorus louder — listen for your friends\' off-beats',
+			symJoin: '{who} — pushes with you!',
 			symDone: 'Different voices became one song',
 			objCracks: 'Sing beside the weak spots in the ice [E] · {n}/3',
 			crackHint: 'Sing beside the ice where it glows cracked and blue [E] to break it',
@@ -83,7 +77,9 @@ export default {
 				frozen: [ 'The Frozen Lane', 'No.12 comes along' ],
 				fleet: [ 'The Sunken Fleet', 'No.9 comes along' ],
 				storm: [ 'The Storm Sea', 'No.8 comes along' ]
-			}
+			},
+			symMash: 'Mash [E]! — push back the Shaman\'s drum',
+			symPushed: 'The Shaman\'s chorus is winning — faster [E]!'
 		},
 		// MAP 2 낚시
 		fish: {
@@ -182,8 +178,8 @@ export default {
 			late: { name: 'The Late Whale', hint: 'If you gather every letter in a bottle before meeting Moby Dick' },
 			heart: { name: 'A Whale\'s Stopped Heart', hint: 'If you fall twice in one chapter…' },
 			deep: { name: 'A Song Heard', hint: 'If you sing the stop code at the very bottom of the sea' },
-			chorus: { name: 'Everyone\'s Song', hint: 'If you follow your friends\' songs, not the drum, in the symphony' },
-			lone: { name: 'A 52Hz Dawn', hint: 'If the Shaman\'s drum pulls you along in the symphony' },
+			chorus: { name: 'Everyone\'s Song', hint: 'If the Shaman\'s chorus never pushes you back in the symphony' },
+			lone: { name: 'A 52Hz Dawn', hint: 'If the Shaman\'s chorus nearly drowns you out in the symphony' },
 			stella: 'Another 52Hz'
 		},
 		toast: {
@@ -856,12 +852,12 @@ export default {
 				start: [
 					[ 'luke', 'I\'ll start. Then one by one, each in its own voice.', 'luke' ],
 					[ 'narrator', 'Far away, the lighthouse marked the first beat.', 'lukeGone' ],
-					[ 'narrator', 'Not the drum — they had to listen to their friends. And answer in the same places.' ]
+					[ 'narrator', 'The Shaman\'s drum was rolling over every voice.\nThey had to keep singing, without stopping.' ]
 				],
 				after: [
 					[ 'narrator', 'The drum fell silent.' ],
 					[ 'narrator', 'One by one, the Alliance lifted their heads, each looking a different way.' ],
-					[ 'narrator', '{N} got pulled along by the drum a few times. Still, the song stayed 52Hz to the end.', 'drummed' ]
+					[ 'narrator', 'For a moment, {N}\'s song was almost drowned by the drum. Still, it stayed 52Hz to the end.', 'drummed' ]
 				]
 			},
 			dawnEnd: {
@@ -876,17 +872,7 @@ export default {
 					[ 'finn', 'Now I\'ll… try living in my own voice.', 'finn' ],
 					[ 'luke', '{N}, it was heard. Our song.', 'luke' ]
 				],
-				poem: [ 'What were we born for?\nNo one ever told us.', 'So we began to sing.', 'In different voices,\ntoward different seas.', 'And for the first time,\nthe song was no one\'s order.' ],
-				where: {
-					twelve: [ 'No.12 — to the northern sea', 'to see a real sea that isn\'t frozen' ],
-					nine: [ 'No.9 — along the coast', 'to watch over the humans with its own eyes. Not by order' ],
-					eight: [ 'No.8 — to the southern sea', 'to ride more waves' ],
-					moby: [ 'Moby Dick — to the deep', 'for the long sleep it kept putting off' ],
-					stella: [ 'Stella — to the sea where the stars look brightest', 'waiting for the next duet' ],
-					shaman: [ 'The Shaman — staying right here', 'to try that first sound of its own once more' ],
-					us: [ '{N} and friends — together', '52Hz, still 52Hz' ],
-					alone: [ '{N} — alone, yet not alone', '52Hz, still 52Hz' ]
-				}
+				poem: [ 'And for the first time,\nthe song was no one\'s order.' ]
 			},
 			free: [
 				[ 'narrator', 'As the last of the ice split, open sea appeared beyond the pool.' ],

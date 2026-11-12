@@ -57,7 +57,7 @@ A sea adventure of **Hazel**, a whale who sings at 52Hz. Another world, the year
 | Sacrifice | ✕ | ✕ |
 | The Late Whale | any | any |
 
-- MAP 3 endings: **Everyone's Song** if you follow your friends' songs, not the drum, in the symphony (at most 2 taps on the drum), **A 52Hz Dawn** if the drum pulls you along. Whether you met Luke, Finn and Stella changes the symphony's lanes and lines
+- MAP 3 endings: **Everyone's Song** if the Shaman's chorus never pushes you back in the symphony, **A 52Hz Dawn** if it nearly drowns you out (the bar almost at the red end). Whether you met Luke, Finn and Stella changes who joins and the lines
 
 ### MAP 2 · A Sea Born Without Waves
 
@@ -114,19 +114,17 @@ Subtitle: Song of Liberation (working title). After the red eyes go dark, an All
   - The Shaman's march: the Alliance in three rows with the Shaman glowing red at the front. On every drumbeat they all surge forward; every sixteen beats they leap together. The drum grows louder as you approach
   - Drum rings: every four beats a red ring spreads from the Shaman. Sing the moment it reaches you to hold your ground (a golden ring), or get pushed back
   - The standoff: the Shaman's question "What were you made for!" → the Alliance's scattered answers → with Finn, No.7 says no by his own will for the first time; without him, No.7's story spreads through J's records → card "The Coastal City · Before the March"
-- The Whale Symphony (the only rhythm game in MAP 3)
+- The Whale Symphony (a button-mash tug-of-war)
   - Moby Dick comes from behind ("I too once tried to cover the whole sea with my song alone"), and Stella too if you've met her
-  - Lanes: the Shaman's drum on top · the voices you gathered (Luke → Finn → No.12 · No.9 · No.8 → Moby Dick → Stella) · Hazel at the bottom
-  - A friend sings an off-beat phrase for one bar; answer in the same places the next bar. No notes shown ahead, only what was heard lingers briefly. Generous timing (±0.19 s); after two misses the other voice matches you first
-  - Each voice you reach keeps repeating its phrase from the next bar → an ensemble that grows a lane at a time, and as many of the Alliance break free of the drum
-  - The Shaman's drum keeps hitting every beat. Tapping on the drum grows the Shaman's chorus (red bar) and makes the Alliance flinch forward — not following orders is the answer
-  - Last bar: everyone together; when Hazel sings, every voice answers in its own note. Hazel stays 52Hz to the end
+  - A bar in the middle: the Shaman's drum on the red side, Hazel and friends on the gold. Mash the sing button to push toward gold (holding it down doesn't count)
+  - The Shaman's drum never stops pushing, and hits harder on every beat. On each beat, the Alliance still bound to the drum flinches forward
+  - Each time the bar passes a marker, a friend joins (Luke → Finn → No.12 · No.9 · No.8 → Moby Dick → Stella): its name lights up, it pushes with you and sings its own note on the off-beats, and as many of the Alliance break free of the drum
+  - Push all the way and everyone sings at once in their own notes. Hazel stays 52Hz to the end
 - Dawn (cinematic)
   - The Shaman asks "Without orders, what are we supposed to live for?" → Hazel sings instead of answering → the Shaman's first sound of its own
-  - Letterbox bars, HUD hidden; the sun rises from below the eastern horizon and the lighthouse goes dark
-  - Everyone to their own sea: each whale leaving, with a caption (No.12 the northern sea · No.9 along the coast · No.8 the southern sea · Moby Dick the deep · Stella · the Shaman staying behind · Hazel and friends)
-  - Closing poem: line by line, large in the middle of the screen over the sunrise
-  - MAP 3 ending screen: this map's two endings, the voices that sang, times the drum pulled you along
+  - Closing: letterbox bars, HUD hidden; the sun rises from below the eastern horizon and the lighthouse goes dark. Hazel, her friends, No.12 · No.9 · No.8, Moby Dick, Stella, the freed Alliance and the Shaman at the rear all swim together toward the city in the sunrise, while the camera slowly circles the pod (behind → side → front → rising high over the city and the whole pod)
+  - Only one closing line: "And for the first time, the song was no one's order"
+  - MAP 3 ending screen: this map's two endings, the voices that sang, symphony tap count
 
 ### Characters
 
@@ -154,7 +152,7 @@ Color options (`Whale` in `game/js/actors.js`): `solidColor` for a single color,
 | `Shift` | `»` | Boost (stamina) |
 | `Space` | `⤴` (UP under the sea) | Jump (invincible in the air) · ambush dodge · duet jump notes · swim up under the sea |
 | `C` | `⤵` (under the sea only) | Swim down under the sea |
-| `E` | `♪` | Sing · talk · sonar · next line · call and response · duet song notes · fishing (MAP 2) · breaking ice · holding against the drum · answering in the symphony (MAP 3) |
+| `E` | `♪` | Sing · talk · sonar · next line · call and response · duet song notes · fishing (MAP 2) · breaking ice · holding against the drum · mashing in the symphony (MAP 3) |
 | `L` / `M` / `Esc` | Top-right buttons | Letters / sound / pause |
 | Whale chip in the POD window | Whale chip in the POD window | Home page |
 
@@ -186,7 +184,7 @@ Color options (`Whale` in `game/js/actors.js`): `solidColor` for a single color,
 | `game/js/sealife.js` | MAP 2 sea life: where each kind lives, schools, drifting jellyfish, bottom crawlers, moray eel ambushes |
 | `game/js/map2.js` | MAP 2: trench terrain, landmarks per layer (sub · lab · terminal · whale bones · base), research log positions |
 | `game/js/map3.js` | MAP 3: dawn sea colors, ice field · channel, snow, the Sunken Fleet, the storm (rain · lightning · big waves), song stones, the coastal city, the Shaman's march · drum, the silent Alliance, the whales you meet |
-| `game/js/symphony.js` | MAP 3 Whale Symphony: the Shaman's drum · answering friends' off-beat phrases · lanes that build up · a Shaman's chorus that grows when you follow the drum |
+| `game/js/symphony.js` | MAP 3 Whale Symphony: a button-mash tug-of-war with the Shaman's drum, friends joining one by one |
 | `game/js/voices.js` | MAP 3 whale voices (orca whistles, Luke's horn, Moby Dick, Stella, Hazel), the old whale songs |
 | `game/js/scores.js` | Duet scoreboard window (saves on this device only when the server can't be reached) |
 | `game/js/main.js` | Rendering, bloom, input, Alliance AI, boss fight, routes · ending gallery, epilogue |

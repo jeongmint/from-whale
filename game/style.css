@@ -352,26 +352,18 @@ body.singing #stick, body.singing #minimap-wrap { opacity: 0; pointer-events: no
 	z-index: 5;
 	cursor: pointer;
 }
-#sym-meters { display: flex; gap: 8px; margin-bottom: 8px; }
-#sym-meters .m { flex: 1; height: 6px; background: rgba(0, 0, 0, 0.35); border: 1px solid var(--line); }
-#sym-meters .m b { display: block; height: 100%; width: 0; transition: width 0.4s; }
-#sym-meters .gold b { background: var(--gold); box-shadow: 0 0 8px var(--gold); }
-#sym-meters .red b { background: #ff3355; box-shadow: 0 0 8px #ff3355; }
-#sym-lanes .lane { display: flex; align-items: center; gap: 8px; height: 18px; margin: 3px 0; }
-#sym-lanes .nm { width: 64px; flex: none; font-size: 11px; color: var(--ink-dim); text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-#sym-lanes .trk { position: relative; flex: 1; height: 100%; border: 1px solid var(--line); background: rgba(0, 0, 0, 0.3); }
-#sym-lanes .trk s { position: absolute; top: 2px; bottom: 2px; width: 1px; background: var(--line); }
-#sym-lanes .head { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--ink); opacity: 0.7; }
-#sym-lanes em { position: absolute; top: 50%; width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; transform: rotate(45deg); background: var(--cyan); animation: symfade 2.4s forwards; }
-#sym-lanes em.soft { opacity: 0.45; }
-#sym-lanes em.d { background: #ff3355; box-shadow: 0 0 8px #ff3355; width: 6px; height: 6px; margin: -3px 0 0 -3px; }
-#sym-lanes em.ok { background: var(--gold); box-shadow: 0 0 10px var(--gold); }
-#sym-lanes em.bad { background: #ff3355; box-shadow: 0 0 10px #ff3355; }
-#sym-lanes .me .nm { color: var(--gold); }
-#sym-lanes .drum .nm { color: #ff6b8b; }
-@keyframes symfade { 0% { opacity: 1; } 70% { opacity: 0.8; } 100% { opacity: 0; } }
+#sym-lanes .tug { position: relative; height: 26px; margin: 6px 0 10px; border: 2px solid var(--line); background: rgba(0, 0, 0, 0.35); overflow: hidden; }
+#sym-lanes .tug .gold { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(90deg, rgba(255, 211, 107, 0.35), var(--gold)); box-shadow: 0 0 14px var(--gold); }
+#sym-lanes .tug .red { position: absolute; right: 0; top: 0; bottom: 0; background: linear-gradient(90deg, #ff3355, rgba(255, 51, 85, 0.35)); }
+#sym-lanes .tug s { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: rgba(255, 255, 255, 0.45); }
+#sym-lanes .tug .mark { position: absolute; top: -2px; bottom: -2px; width: 4px; margin-left: -2px; background: #fff; box-shadow: 0 0 12px #fff; }
+#sym-lanes .chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+#sym-lanes .chips span { padding: 2px 7px; font-size: 11px; border: 1px solid var(--line); color: var(--ink-dim); opacity: 0.5; transition: all 0.3s; }
+#sym-lanes .chips span.on { opacity: 1; color: var(--gold); border-color: var(--gold); box-shadow: 0 0 10px rgba(255, 211, 107, 0.5); }
+#sym.thump .tug { animation: thump 0.25s ease; }
+@keyframes thump { 0% { border-color: #ff3355; transform: translateX(-2px); } 100% { border-color: var(--line); transform: none; } }
 #sym-hint { margin: 8px 0 0; font-size: 14px; color: var(--ink-dim); text-align: center; }
-#sym.turn #sym-hint { color: var(--cyan); font-weight: 700; }
+#sym-hint { color: var(--cyan); font-weight: 700; }
 body.touch #sym { bottom: 150px; }
 
 /* MAP 3 엔딩: 장면 연출 (위아래 검은 띠), 가운데의 시, 아래쪽 자막 */
