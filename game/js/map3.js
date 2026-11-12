@@ -261,6 +261,37 @@ export class DawnSea {
 
 	}
 
+	// 12번의 웅덩이 둘레, 푸르게 갈라진 얼음의 약한 곳 셋 (곁에서 노래하면 깨진다)
+	showCracks() {
+
+		if ( this.cracks ) return this.cracks;
+		const tex = snowTexture();
+		this.cracks = [ - Math.PI / 2, Math.PI * 0.95, 0.05 ].map( ( a ) => {
+
+			const x = P.x + Math.cos( a ) * ( POOL_R + 5 ), z = P.z + Math.sin( a ) * ( POOL_R + 5 );
+			const ring = makeSurfaceDecal( { color: 0x7fe9ff, inner: 0.55, outer: 1, opacity: 0.8, lift: 0.7, fill: 1 } );
+			ring.position.set( x, 0, z );
+			ring.scale.setScalar( 6 );
+			const glow = new THREE.Sprite( new THREE.SpriteMaterial( { map: tex, color: 0x9ff0ff, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending, depthWrite: false } ) );
+			glow.position.set( x, 2.5, z );
+			glow.scale.setScalar( 7 );
+			this.group.add( ring, glow );
+			return { x, z, pos: { x, z }, ring, glow, done: false };
+
+		} );
+		return this.cracks;
+
+	}
+
+	// 약한 곳이 깨진다: 둘레의 얼음이 밀려나고 빛이 사라진다
+	breakCrack( c ) {
+
+		c.done = true;
+		c.ring.visible = c.glow.visible = false;
+		this.crack( c, 34, 7 );
+
+	}
+
 	// 노래가 얼음을 가른다: center 둘레 radius 안의 얼음이 바깥(그리고 북쪽)으로 밀려난다
 	crack( center, radius, push = 6 ) {
 
@@ -633,7 +664,21 @@ export class DawnSea {
 			if ( ! w.hit && before < d && w.r >= d ) {
 
 				w.hit = true;
-				if ( active && ! hazel.airborne && d > STORM_EYE ) this.onWave?.( { x: ( hazel.pos.x - S.x ) / d, z: ( hazel.pos.z - S.z ) / d } );
+				if ( active && d > STORM_EYE ) {
+
+					if ( hazel.airborne ) this.onWaveClear?.(); // 뛰어넘었다
+					else this.onWave?.( { x: ( hazel.pos.x - S.x ) / d, z: ( hazel.pos.z - S.z ) / d } );
+
+				}
+
+			}
+
+			// 함께 가는 고래들은 파도가 닿으면 저절로 뛰어넘는다
+			for ( const v of Object.values( this.voices ) ) {
+
+				if ( v.state !== 'follow' ) continue;
+				const dv = Math.hypot( v.whale.pos.x - S.x, v.whale.pos.z - S.z );
+				if ( before < dv && w.r >= dv && dv > STORM_EYE ) v.whale.breach( 13 );
 
 			}
 
@@ -851,7 +896,20 @@ export class DawnSea {
 
 	}
 
-	// 새벽: 모두 저마다의 바다로 흩어진다
+	// 클로징: 북에서 풀려난 연합군이 헤이즐 뒤에 넓게 퍼져 함께 헤엄친다
+	closingSwim() {
+
+		this.closing = true;
+		( this.army ?? [] ).forEach( ( o, i ) => {
+
+			o.leaveTo = null;
+			o.slot = { x: ( ( i % 9 ) - 4 ) * 11 + ( Math.floor( i / 9 ) % 2 ) * 5, z: - 46 - Math.floor( i / 9 ) * 14 };
+
+		} );
+
+	}
+
+		// 새벽: 모두 저마다의 바다로 흩어진다
 	scatterArmy() {
 
 		for ( const o of this.army ) {
@@ -898,6 +956,15 @@ export class DawnSea {
 		for ( const o of this.army ) {
 
 			const w = o.whale;
+			if ( this.closing && o.slot ) {
+
+				followSlot( w, hazel, o.slot, dt, 14 );
+				w.depth += ( 0 - w.depth ) * Math.min( 1, dt );
+				w.update( dt );
+				continue;
+
+			}
+
 			if ( o.leaveTo ) {
 
 				// 흩어진다: 저마다의 바다로
@@ -1105,6 +1172,15 @@ export class DawnSea {
 			} else w.speed *= 0.95;
 
 			w.update( dt );
+
+		}
+
+		// 얼음의 약한 곳: 숨 쉬듯 빛난다
+		for ( const c of this.cracks ?? [] ) if ( ! c.done ) {
+
+			const k = 0.6 + Math.sin( t * 3 + c.x ) * 0.3;
+			c.ring.material.uniforms.uOpacity.value = k;
+			c.glow.material.opacity = k;
 
 		}
 

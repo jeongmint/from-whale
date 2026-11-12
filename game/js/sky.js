@@ -60,7 +60,8 @@ export class Sky {
 		this.moon = this.makeMoon();
 		this.planet = this.makePlanet();
 
-		this.group.add( this.dome, this.stars, this.moon, this.planet );
+		this.sun = this.makeSun();
+		this.group.add( this.dome, this.stars, this.moon, this.planet, this.sun );
 		onSkyLayer( this.group );
 
 		// 별똥별: 머리(원점)에서 꼬리(+y)로 가늘어지는 원뿔
@@ -272,6 +273,29 @@ export class Sky {
 
 	}
 
+	// MAP 3 해돋이: 동쪽 지평선 아래에서 떠오르는 해 (새벽 정도 0.55부터)
+	makeSun() {
+
+		const c = document.createElement( 'canvas' );
+		c.width = c.height = 128;
+		const g = c.getContext( '2d' );
+		const grad = g.createRadialGradient( 64, 64, 0, 64, 64, 64 );
+		grad.addColorStop( 0, 'rgba(255,250,235,1)' );
+		grad.addColorStop( 0.16, 'rgba(255,236,190,1)' );
+		grad.addColorStop( 0.24, 'rgba(255,190,120,0.55)' );
+		grad.addColorStop( 0.5, 'rgba(255,140,80,0.16)' );
+		grad.addColorStop( 1, 'rgba(255,120,60,0)' );
+		g.fillStyle = grad;
+		g.fillRect( 0, 0, 128, 128 );
+		const mat = new THREE.SpriteMaterial( { map: new THREE.CanvasTexture( c ), transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, fog: false } );
+		const sun = new THREE.Sprite( mat );
+		sun.scale.setScalar( 520 );
+		sun.renderOrder = - 8;
+		sun.visible = false;
+		return sun;
+
+	}
+
 	makePlanet() {
 
 		const group = new THREE.Group();
@@ -436,6 +460,11 @@ export class Sky {
 		u.uDawn.value = k;
 		this.starFade.value = 1 - THREE.MathUtils.smoothstep( k, 0.1, 0.85 ) * 0.94;
 		this.moonUniforms.uFade.value = 1 - k * 0.6;
+		// 해: 지평선 아래에서 천천히 떠오른다
+		const up = THREE.MathUtils.smoothstep( k, 0.55, 1 );
+		this.sun.visible = up > 0;
+		this.sun.material.opacity = Math.min( 1, up * 1.6 );
+		this.sun.position.set( SUN_DIR.x, - 0.05 + up * 0.13, SUN_DIR.z ).normalize().multiplyScalar( 1500 );
 
 	}
 

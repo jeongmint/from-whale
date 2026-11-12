@@ -920,6 +920,120 @@ Object.assign( G, {
 
 	},
 
+	// 얼음의 약한 곳이 깨진다
+	breakCrack( c ) {
+
+		G.map3.breakCrack( c );
+		G.audio.play( 'boom' );
+		G.world.ring( c.x, c.z, { color: 0xdcf0ff, to: 40, life: 1.4 } );
+		G.world.splash( c.x, 0.5, c.z, { count: 80, power: 9, color: 0xe8f4ff } );
+
+	},
+
+	// 등대의 합주: 헤이즐이 한 번 노래하면 모두가 차례로, 제 소리로 짧게 대답한다 (누를 것은 한 번뿐)
+	async answerAll( responders ) {
+
+		const pitches = [ 0, 3, 5, 7 ];
+		for ( const r of responders ) {
+
+			for ( let i = 0; i < 3; i ++ ) {
+
+				r.play( r.base + pitches[ ( i + responders.indexOf( r ) ) % 4 ] );
+				r.actor.setGlow?.( 0.8, r.color );
+				G.world.ring( r.actor.pos.x, r.actor.pos.z, { color: r.color, to: 16, life: 0.8, width: 0.3 } );
+				await G.wait( 0.28 );
+				r.actor.setGlow?.( r.rest ?? 0, r.restColor ?? r.color );
+
+			}
+
+			await G.wait( 0.25 );
+
+		}
+
+		// 마지막엔 모두 한꺼번에
+		for ( const r of responders ) r.play( r.base );
+		const h = G.actors.hazel;
+		G.world.ring( h.pos.x, h.pos.z, { color: 0xffd36b, to: 70, life: 2 } );
+
+	},
+
+	// 장면 연출: 위아래 검은 띠, HUD를 숨긴다
+	cinema( on ) {
+
+		document.body.classList.toggle( 'cinema', on );
+		if ( on ) G.stun = 0; // 기절 별이 장면에 남지 않게
+
+	},
+
+	// MAP 3 클로징: 모두가 함께 해가 뜨는 도시를 향해 헤엄친다. 카메라는 무리 둘레를 천천히 돈다
+	closingSwim( yaw ) {
+
+		G.camRelease();
+		G.autoSwim = { yaw, throttle: 0.4 }; // 천천히 (해안선에 닿기 전에 끝나게)
+		G.closing = true;
+		G.map3.closingSwim();
+		for ( const key of [ 'moby', 'stella', 'shaman' ] ) G.actors[ key ].hold = false;
+		G.camSweep = { t0: G.time, keys: [
+			{ t: 0, a: Math.PI, r: 24, y: 4, look: 10 },
+			{ t: 7, a: Math.PI * 0.55, r: 30, y: 5, look: 10 },
+			{ t: 13, a: 0.25, r: 38, y: 6, look: 4 },
+			{ t: 18, a: - 0.35, r: 46, y: 9, look: 4 },
+			{ t: 32, a: - Math.PI * 0.94, r: 85, y: 24, look: 150, ly: 4 } // 무리 바로 뒤 하늘에서, 무리 너머로 도시와 해를 함께
+		] };
+
+	},
+
+	endClosing() {
+
+		G.autoSwim = null;
+		G.camSweep = null;
+		G.closing = false;
+
+	},
+
+	// 아래쪽 자막 (엔딩에서 고래마다 어디로 가는지)
+	caption( title, sub = '' ) {
+
+		const el = $( 'caption' );
+		el.querySelector( 'strong' ).textContent = G.ui.dev( title );
+		el.querySelector( 'em' ).textContent = G.ui.dev( sub );
+		el.classList.remove( 'show' );
+		void el.offsetWidth;
+		el.classList.toggle( 'show', !! title );
+
+	},
+
+	// 화면 가운데 큰 글씨로, 한 줄씩 떠올랐다 사라지는 시
+	poem( lines ) {
+
+		const el = $( 'poem' );
+		el.classList.remove( 'hidden' );
+		return new Promise( ( resolve ) => {
+
+			let i = 0;
+			const next = () => {
+
+				if ( i >= lines.length ) {
+
+					el.classList.add( 'hidden' );
+					return resolve();
+
+				}
+
+				el.innerHTML = G.ui.dev( lines[ i ++ ] ).split( '\n' ).map( ( l ) => `<span>${l}</span>` ).join( '' );
+				el.classList.remove( 'show' );
+				void el.offsetWidth;
+				el.classList.add( 'show' );
+				setTimeout( next, 4200 );
+
+			};
+
+			next();
+
+		} );
+
+	},
+
 	// 교향곡에 목소리가 모일수록 연합군이 북에서 풀려나고, 북에 맞춰 누르면 움찔 나아간다
 	symphonyJoin( frac ) {
 
@@ -983,6 +1097,7 @@ Object.assign( G, {
 	quietMarch() {
 
 		if ( G.map3.march ) G.map3.march.on = false;
+		G.stun = 0;
 
 	},
 
@@ -1184,24 +1299,27 @@ async function showMap2Ending() {
 
 }
 
-// MAP 3 엔딩 화면: 모은 목소리, 교향곡
+// MAP 3 엔딩 화면: 이 맵의 엔딩 둘과, 함께 노래한 목소리들
 async function showMap3Ending( key ) {
 
 	const minutes = Math.floor( G.stats.time / 60 ), seconds = Math.floor( G.stats.time % 60 );
 	saveEnding( key );
+	const seen = loadEndings();
 	$( 'ending-head' ).textContent = `MAP 3 ENDING · ${t( `endings.${key}.name` )}`;
-	renderEndings( $( 'ending-list' ), key );
+	$( 'ending-list' ).innerHTML = `<li class="head">MAP 3 · ${t( 'map3.label' ).split( ' · ' ).pop()}</li>` + [ 'chorus', 'lone' ].map( ( k ) => seen.includes( k ) || k === key
+		? `<li class="seen${k === key ? ' now' : ''}">☀ ${t( `endings.${k}.name` )}</li>`
+		: `<li>☀ ??? <small>${G.ui.dev( t( `endings.${k}.hint` ) )}</small></li>` ).join( '' );
 	for ( const id of [ 'btn-duet-end', 'btn-dive', 'btn-search', 'btn-dawn' ] ) $( id ).classList.add( 'hidden' );
 	$( 'ending-quote' ).innerHTML = t( 'ending.dawnQuote' );
-	const voices = G.voices ?? [];
 	$( 'ending-stats' ).innerHTML = [
 		`PLAY TIME ${minutes}:${String( seconds ).padStart( 2, '0' )}`,
-		`VOICES ${voices.filter( ( v ) => v.way !== 'alone' ).length}/${voices.length} · ${voices.map( ( v ) => ( { listen: '♪', lead: '▸', alone: '·' } )[ v.way ] ).join( ' ' )}`,
-		G.symphony ? `SYMPHONY · DRUM ${G.symphony.drumTaps}` : '',
+		`VOICES · ${( G.finaleVoices ?? [] ).join( ' · ' )}`,
+		G.symphony ? `SYMPHONY · ${G.symphony.taps} TAPS` : '',
 		t( 'ending.dawnHint' )
 	].filter( Boolean ).join( '<br>' );
 	$( 'btn-again' ).textContent = t( 'ending.again' );
-	await G.ui.fade( 0.6, 2 );
+	await G.ui.fade( 0.85, 2 );
+	G.cinema( false );
 	G.ui.show( 'hud', false );
 	G.ui.show( 'ending' );
 
@@ -3740,6 +3858,14 @@ async function enterDawn() {
 
 		};
 
+		G.map3.onWaveClear = () => {
+
+			G.waveClears = ( G.waveClears ?? 0 ) + 1;
+			const h = G.actors.hazel;
+			G.world.ring( h.pos.x, h.pos.z, { color: 0xbfeaff, from: 2, to: 18, life: 0.8, width: 0.3 } );
+
+		};
+
 		G.map3.onWave = ( dir ) => {
 
 			const h = G.actors.hazel;
@@ -3814,6 +3940,15 @@ function updateDawn( dt ) {
 	hemiLight.intensity *= ( 1 + G.dawn * 0.6 ) * ( 1 - storm * 0.45 );
 	moonLight.intensity *= ( 1 + G.dawn * 0.25 ) * ( 1 - storm * 0.6 );
 	ambientLight.intensity *= ( 1 + G.dawn * 0.5 ) * ( 1 - storm * 0.3 );
+	// 클로징: 모비 딕 · 스텔라 · 샤먼도 무리를 따라 함께 헤엄친다
+	if ( G.closing ) {
+
+		followSlot( G.actors.moby, h, { x: - 34, z: - 30 }, dt, 14 );
+		if ( G.actors.stella.root.visible ) followSlot( G.actors.stella, h, { x: 110, z: - 170 }, dt, 14 );
+		followSlot( G.actors.shaman, h, { x: 0, z: - 95 }, dt, 14 );
+
+	}
+
 	// 샤먼은 해가 뜨는 쪽으로 진군한다
 	const s = G.actors.shaman;
 	if ( G.shamanMarch && s.root.visible ) {
@@ -3902,6 +4037,14 @@ function updatePlayer( dt ) {
 	// 대화나 장면이 끝나 다시 움직일 수 있게 되면 지금 자세를 기울기 기준으로
 	if ( control && ! G.hadControl ) tilt.cal = true;
 	G.hadControl = control;
+	// MAP 3 클로징: 장면 중에도 정해 둔 쪽(해가 뜨는 도시)으로 천천히 헤엄친다
+	if ( G.autoSwim ) {
+
+		const diff = wrapAngle( G.autoSwim.yaw - h.yaw );
+		turn = Math.max( - 1, Math.min( 1, diff * 2 ) );
+		throttle = G.autoSwim.throttle;
+
+	}
 	const tilting = tiltActive();
 	if ( tilting !== G.tilting ) { G.tilting = tilting; document.body.classList.toggle( 'tilt', tilting ); }
 
@@ -4178,6 +4321,22 @@ function updateCamera( dt ) {
 		desired.set( h.pos.x + Math.sin( a ) * 34, 9 + Math.sin( G.time * 0.3 ) * 1.5, h.pos.z + Math.cos( a ) * 34 );
 		look = new THREE.Vector3( h.pos.x, 4, h.pos.z );
 
+	} else if ( G.camSweep ) {
+
+		// MAP 3 클로징: 헤엄치는 무리 둘레를 천천히 도는 카메라 (뒤 → 옆 → 정면 → 높이). 각도는 헤이즐이 보는 쪽 기준
+		const sw = G.camSweep, k = sw.keys;
+		const tt = G.time - sw.t0;
+		let i = 0;
+		while ( i < k.length - 2 && tt > k[ i + 1 ].t ) i ++;
+		const a = k[ i ], b = k[ i + 1 ];
+		const e = THREE.MathUtils.smootherstep( tt, a.t, b.t );
+		const ang = h.yaw + THREE.MathUtils.lerp( a.a, b.a, e );
+		const r = THREE.MathUtils.lerp( a.r, b.r, e ), y = THREE.MathUtils.lerp( a.y, b.y, e ), ahead = THREE.MathUtils.lerp( a.look ?? 8, b.look ?? 8, e );
+		const ly = THREE.MathUtils.lerp( a.ly ?? 3, b.ly ?? 3, e );
+		const f = h.forward;
+		desired.set( h.pos.x + Math.sin( ang ) * r, y, h.pos.z + Math.cos( ang ) * r );
+		look = new THREE.Vector3( h.pos.x + f.x * ahead, ly, h.pos.z + f.z * ahead );
+
 	} else if ( G.camTarget ) {
 
 		const t = G.camTarget;
@@ -4226,7 +4385,7 @@ function updateCamera( dt ) {
 
 	}
 
-	const k = 1 - Math.exp( - dt * ( G.camTarget ? 1.6 : 3.2 ) );
+	const k = 1 - Math.exp( - dt * ( G.camSweep ? 2.4 : G.camTarget ? 1.6 : 3.2 ) );
 	camera.position.lerp( desired, k );
 	if ( G.diving ) {
 

@@ -45,32 +45,6 @@ export default {
 			objFrozen: 'Follow the broken song · The Frozen Lane',
 			iceHint: 'Take the narrow channel between the ice — you can\'t swim through it',
 			twelve: 'No.12',
-			choiceTitle: 'How will you sing?',
-			choiceHint: 'Choose a song for {who} · 1 2 3 or tap',
-			songs: {
-				listen: { name: 'Listening Song', desc: 'Hear {who}\'s song first, then answer in the same rhythm' },
-				lead: { name: 'Leading Song', desc: '{N} sets the beat, and {who} follows' },
-				alone: { name: 'Solo Song', desc: 'Sing only {N}\'s song, and move on' }
-			},
-			listenTitle: 'LISTEN · {who} ↔ 52HZ',
-			leadTitle: 'LEAD · 52HZ → {who}',
-			listen: 'Listen… {who}\'s song',
-			turn: 'Now! Answer in the same rhythm [E]',
-			miss: 'Not quite… listen again',
-			help: '{who} matched {N}\'s rhythm first',
-			good: 'Two voices overlapped',
-			listenDone: '{who}\'s song grew clear',
-			leadReady: 'Set the beat — sing freely for 4 beats [E]',
-			leadAgain: 'Once more — a different rhythm is fine too',
-			leadTurn: 'Now! Sing with [E]',
-			leadEmpty: 'Sing at least twice so it can be followed',
-			leadEcho: '{who} sings it right back…',
-			leadDone: '{who} has learned the beat',
-			voiceCard: {
-				listen: [ 'VOICE 1', 'The Frozen Lane', 'No.12 comes along in its own voice' ],
-				lead: [ 'VOICE 1', 'The Frozen Lane', 'No.12 follows {N}\'s beat' ],
-				alone: [ 'VOICE 1', 'The Frozen Lane', 'No.12 chose a path of its own' ]
-			},
 			objVoices: 'Find the scattered voices · The Sunken Fleet · The Storm Sea · any order',
 			objWrecks: 'Sing beside the sunken ships [E] · {n}/3',
 			objEye: 'Into the heart of the storm · jump big waves with [Space]',
@@ -79,25 +53,9 @@ export default {
 			waveHit: 'Swept back by a wave — jump [Space] just before it hits',
 			nine: 'No.9',
 			eight: 'No.8',
-			fleetCard: {
-				listen: [ 'VOICE', 'The Sunken Fleet', 'No.9 chose a song over revenge' ],
-				lead: [ 'VOICE', 'The Sunken Fleet', 'No.9 follows {N}\'s beat' ],
-				alone: [ 'VOICE', 'The Sunken Fleet', 'No.9 left for the coast' ]
-			},
-			stormCard: {
-				listen: [ 'VOICE', 'The Storm Sea', 'No.8 rides the waves for the first time' ],
-				lead: [ 'VOICE', 'The Storm Sea', 'No.8 follows, hearing only {N}\'s beat' ],
-				alone: [ 'VOICE', 'The Storm Sea', 'No.8 went back down where there are no waves' ]
-			},
 			objLight: 'To the Forgotten Lighthouse',
 			objStones: 'Sing beside the song stones below the lighthouse [E] · {n}/3',
 			stoneHint: 'Sing beside a song stone [E] to wake the old whale song Luke carved there',
-			stones: [ 'the humpback stone', 'the blue whale stone', 'the sperm whale stone' ],
-			answerTitle: 'ANSWER · 52HZ → EVERYONE',
-			answerReady: '{N} goes first — sing freely for 4 beats [E]',
-			answerAgain: 'Once more — try a different beat',
-			answerEcho: 'The answers come back… each in its own voice',
-			answerDone: 'Different voices became one song',
 			lightCard: [ 'MAP 3', 'The Forgotten Lighthouse', 'The Language of the Sea' ],
 			objCoast: 'To the coast · stand before the Shaman\'s march',
 			objFront: 'Break through the drumbeat to the Shaman · [E] as a ring reaches you',
@@ -105,18 +63,23 @@ export default {
 			drumHit: 'Pushed back by the drum — [E] the moment the ring reaches you',
 			drumBlock: '52Hz cut through the drumbeat',
 			coastCard: [ 'MAP 3', 'The Coastal City', 'Before the March' ],
-			objSym: 'The Whale Symphony · answer your friends\' songs',
+			objSym: 'The Whale Symphony · mash to push back the Shaman\'s drum',
 			objDawn: 'Dawn',
 			symTitle: 'WHALE SYMPHONY',
 			symDrum: 'Shaman\'s drum',
-			symListen: 'Listen… {who}\'s song (answer in the same places next bar)',
-			symAgain: 'Listen once more… {who}',
-			symAnswer: 'Now! Answer in the same places [E] — follow {who}, not the drum',
-			symHelp: '{who} — matched you first',
-			symJoin: '{who} — sings along',
-			symFinal: 'Everyone together — sing in 52Hz [E]',
-			symDrumWarn: 'Following the drum makes the Shaman\'s chorus louder — listen for your friends\' off-beats',
-			symDone: 'Different voices became one song'
+			symJoin: '{who} — pushes with you!',
+			symDone: 'Different voices became one song',
+			objCracks: 'Sing beside the weak spots in the ice [E] · {n}/3',
+			crackHint: 'Sing beside the ice where it glows cracked and blue [E] to break it',
+			objRide: 'Jump the big waves together with No.8 [Space] · {n}/3',
+			objAnswer: 'Sing [E] — everyone will answer',
+			cards: {
+				frozen: [ 'The Frozen Lane', 'No.12 comes along' ],
+				fleet: [ 'The Sunken Fleet', 'No.9 comes along' ],
+				storm: [ 'The Storm Sea', 'No.8 comes along' ]
+			},
+			symMash: 'Mash [E]! — push back the Shaman\'s drum',
+			symPushed: 'The Shaman\'s chorus is winning — faster [E]!'
 		},
 		// MAP 2 낚시
 		fish: {
@@ -215,8 +178,8 @@ export default {
 			late: { name: 'The Late Whale', hint: 'If you gather every letter in a bottle before meeting Moby Dick' },
 			heart: { name: 'A Whale\'s Stopped Heart', hint: 'If you fall twice in one chapter…' },
 			deep: { name: 'A Song Heard', hint: 'If you sing the stop code at the very bottom of the sea' },
-			chorus: { name: 'Everyone\'s Song', hint: 'If the voices of the Frozen Lane, the Sunken Fleet and the Storm Sea all come along' },
-			lone: { name: 'A 52Hz Dawn', hint: 'If you sing until dawn in MAP 3' },
+			chorus: { name: 'Everyone\'s Song', hint: 'If the Shaman\'s chorus never pushes you back in the symphony' },
+			lone: { name: 'A 52Hz Dawn', hint: 'If the Shaman\'s chorus nearly drowns you out in the symphony' },
 			stella: 'Another 52Hz'
 		},
 		toast: {
@@ -724,45 +687,10 @@ export default {
 				[ 'twelve', 'Everyone went somewhere. No orders, so… anywhere.\nAnd I… I didn\'t know where to go.' ],
 				[ 'twelve', 'I wanted to see the sea. The real sea I only ever saw through the tank glass.\nBut now I\'m here, and it\'s all frozen.' ],
 				[ 'finn', 'No.12… I remember. We were in the same tank.\nThe one who always pressed its head against the glass.', 'finn' ],
-				[ 'luke', '{N}, sing for it.\nWhat kind of song — that\'s yours to choose.', 'luke' ],
-				[ 'narrator', 'What kind of song to sing was {N}\'s to choose.', 'lukeGone' ]
+				[ 'luke', '{N}, see that ice? Where it\'s cracked and blue. Break it there and the way will open.', 'luke' ],
+				[ 'finn', '…Hold on, No.12. We\'ll open a way out.', 'finn' ],
+				[ 'narrator', 'Here and there around the pool, the ice glowed with blue cracks.', 'lukeGone' ]
 			],
-			before: {
-				listen: [
-					[ 'twelve', '…A song? I don\'t know songs. Only command signals.' ],
-					[ 'hazel', '( Instead of answering, waits for No.12\'s voice )' ]
-				],
-				lead: [ [ 'twelve', '…What do I do? Tell me. I\'ll do exactly that.' ] ],
-				alone: [ [ 'hazel', '( Takes a deep breath )' ] ]
-			},
-			after: {
-				listen: [
-					[ 'twelve', 'Is this… my voice? Not a command signal?' ],
-					[ 'twelve', 'It\'s strange. Your song sounds nothing like mine,\nbut I can hear my own voice better.' ],
-					[ 'narrator', 'What No.12 remembered was dawn light shining on the tank glass —\nthe day it first wished to see the real sea.' ],
-					[ 'twelve', 'I\'ll come with you, in my own song. Not behind you. Beside you.' ],
-					[ 'finn', '…Well done, No.12.', 'finn' ]
-				],
-				lead: [
-					[ 'twelve', 'Like this? Is this right?\nOkay. I\'ll follow however you sing.' ],
-					[ 'twelve', 'Just decide for me. It\'s easier that way.' ],
-					[ 'luke', '……{N}. Doesn\'t that sound like something we\'ve heard before?', 'luke' ],
-					[ 'finn', 'The Shaman wanted… whales who answer like that.', 'finn' ],
-					[ 'narrator', 'No.12 followed quickly. In {N}\'s beat, in {N}\'s voice.', 'none' ]
-				],
-				alone: [
-					[ 'twelve', '…That\'s a pretty song.' ],
-					[ 'twelve', 'But it\'s your song.\nMine… I\'ll go and find it myself.' ],
-					[ 'narrator', 'No.12 dove beneath the ice. North, alone.' ],
-					[ 'luke', 'It chose its own way too. That\'s freedom as well.', 'luke' ],
-					[ 'finn', '…It\'ll be okay. Probably.', 'finn' ]
-				]
-			},
-			dawn: {
-				listen: [ [ 'narrator', 'Where the ice split open, the eastern sky grew a little brighter.\nTwo different voices called the same dawn.' ] ],
-				lead: [ [ 'narrator', 'Where the ice split open, the eastern sky grew a little brighter.\nThe two voices rang out in a single beat.' ] ],
-				alone: [ [ 'narrator', 'The song that vanished under the ice came back, faint and far away.\nThe eastern sky grew just a little brighter.' ] ]
-			},
 			next: [
 				[ 'luke', '{N}, I hear voices all over the sea.\nSunken ships to the west, and a storm on the southern sea.', 'luke' ],
 				[ 'finn', 'Alliance signals cut out in two places.\nBy the sunken ships… and inside the storm.', 'finn' ],
@@ -793,39 +721,15 @@ export default {
 					[ 'nine', '…Was it you who woke those ships with a song?' ],
 					[ 'nine', 'See? Humans hammered orders into our heads.\nSo this time, it\'s our turn to finish it.' ],
 					[ 'nine', 'The Shaman says to go to the coast. Just this once, I\'ll gladly follow.' ],
-					[ 'finn', 'No.9… do you remember the one who changed our water? That was a human too.', 'finn' ],
-					[ 'luke', '{N}, there won\'t be an easy song for this one.', 'luke' ]
+					[ 'finn', 'No.9… do you remember the one who changed our water? That was a human too.', 'finn' ]
 				],
-				before: {
-					listen: [ [ 'nine', 'A song? …Fine. I\'ll listen once.' ] ],
-					lead: [ [ 'nine', 'Set the beat. Let\'s see if it\'s stronger than mine.' ] ],
-					alone: [ [ 'hazel', '( Takes a deep breath )' ] ]
-				},
-				after: {
-					listen: [
-						[ 'nine', '…So that\'s how angry my voice was.' ],
-						[ 'nine', 'The hands that changed the water and the hands that put in the chip were both human.\nI\'ll remember both.' ],
-						[ 'nine', 'I\'m not going to the coast. I haven\'t forgiven everything.\nBut I\'ll think it over, beside your song.' ],
-						[ 'finn', '…Thank you, No.9.', 'finn' ]
-					],
-					lead: [
-						[ 'nine', '…Fine, your beat is strong. I\'ll follow.' ],
-						[ 'nine', 'But give clear orders. Hesitate, and I\'m off to the coast alone.' ],
-						[ 'luke', '……{N}. Maybe what it wants isn\'t a song, but a new order.', 'luke' ],
-						[ 'narrator', 'No.9 followed {N}\'s beat, as if that beat were an order.', 'lukeGone' ]
-					],
-					alone: [
-						[ 'nine', '…A pretty song won\'t change anything.' ],
-						[ 'narrator', 'No.9 swam toward the rising sun, toward the human coast.' ],
-						[ 'luke', 'We can\'t hold on to everyone. It chose its own way.', 'luke' ],
-						[ 'finn', '…Next time we meet, maybe it\'ll listen.', 'finn' ]
-					]
-				},
-				dawn: {
-					listen: [ [ 'narrator', 'One by one, the sunken ships\' windows flickered warm.\nThe eastern sky grew a little brighter.' ] ],
-					lead: [ [ 'narrator', 'One by one, the sunken ships\' windows flickered.\nThe eastern sky grew a little brighter.' ] ],
-					alone: [ [ 'narrator', 'The ships\' windows stayed lit. The memories remained, but No.9 was gone.\nEven so, the eastern sky grew just a little brighter.' ] ]
-				}
+				join: [
+					[ 'hazel', '( Instead of answering, sings a short 52Hz toward the waking ships )' ],
+					[ 'nine', '…The hands that changed the water and the hands that put in the chip were both human.' ],
+					[ 'nine', 'I\'ll remember both. So I\'m not going to the coast. Not yet.' ],
+					[ 'nine', 'I haven\'t forgiven everything.\nBut I\'ll stay beside you and decide with my own eyes.' ],
+					[ 'luke', 'That\'s enough.', 'luke' ]
+				]
 			},
 			storm: {
 				enter: [
@@ -839,45 +743,20 @@ export default {
 					[ 'eight', 'Don\'t come! The waves are coming! The sea is angry…' ],
 					[ 'eight', 'It\'s because I didn\'t obey, isn\'t it? I\'ll listen again. I\'ll listen again…' ],
 					[ 'eight', 'In the tank the water never moved like this. I\'m scared.' ],
-					[ 'finn', 'No.8, it\'s me. No.7. Crybaby No.7.\nI was scared at first too.', 'finn' ]
+					[ 'finn', 'No.8, it\'s me. No.7. Crybaby No.7.\nI was scared at first too.', 'finn' ],
+					[ 'hazel', '( Swims to No.8\'s side and watches the coming waves together )' ],
+					[ 'eight', '…Will you jump them with me? When a wave comes — together?' ],
+					[ 'luke', 'Right before it hits, {N}. No.8 will jump when it sees you jump.', 'luke' ]
 				],
-				before: {
-					listen: [
-						[ 'eight', '…A song? My voice is so small…' ],
-						[ 'hazel', '( Instead of answering, waits for No.8\'s small voice )' ]
-					],
-					lead: [ [ 'eight', 'I\'ll only listen to you. Everything else is scary.' ] ],
-					alone: [ [ 'hazel', '( Takes a deep breath )' ] ]
-				},
-				after: {
-					listen: [
-						[ 'eight', '…The waves aren\'t angry.' ],
-						[ 'eight', 'The sea is just breathing. Like me.' ],
-						[ 'narrator', 'As No.8\'s small song spread between the waves, the storm began to settle.' ],
-						[ 'eight', 'I want to ride the waves. In my own voice.' ],
-						[ 'finn', '…See, No.8? We\'re not crybabies anymore.', 'finn' ]
-					],
-					lead: [
-						[ 'eight', 'When I hear your beat, I\'m not scared at all.' ],
-						[ 'eight', 'Keep counting. Never stop.' ],
-						[ 'narrator', 'The storm began to settle. No.8 swam pressed close to {N}\'s beat.' ],
-						[ 'luke', '…It isn\'t listening to the sea. It\'s only listening to {N}.', 'luke' ]
-					],
-					alone: [
-						[ 'eight', '…You\'re not scared. I still am.' ],
-						[ 'eight', 'I want to go back where there are no waves. Deep down.' ],
-						[ 'narrator', 'No.8 sank beneath the storm, down into the deep where no waves reach.' ],
-						[ 'finn', 'No.8…', 'finn' ]
-					]
-				},
-				dawn: {
-					listen: [ [ 'narrator', 'As the clouds broke, the eastern sky showed through — a little brighter than before.' ] ],
-					lead: [ [ 'narrator', 'As the clouds broke, the eastern sky showed through — a little brighter than before.' ] ],
-					alone: [ [ 'narrator', 'The storm went on. Somewhere beyond the clouds, the sky was growing just a little brighter.' ] ]
-				}
+				calm: [
+					[ 'narrator', 'As they cleared the third wave together, the storm began to settle.' ],
+					[ 'eight', '…The waves weren\'t angry. The sea was just breathing.' ],
+					[ 'eight', 'I think I\'m going to like riding waves.' ],
+					[ 'finn', 'See, No.8? We\'re not crybabies anymore.', 'finn' ]
+				]
 			},
 			gathered: [
-				[ 'narrator', 'The Frozen Lane, the sunken ships, the Storm Sea.\nThe scattered voices had each chosen their own way.' ],
+				[ 'narrator', 'The Frozen Lane, the sunken ships, the Storm Sea.\nThe voices that had been scattered now swam the same sea.' ],
 				[ 'luke', '{N}, let\'s go to the lighthouse now. The whale songs I\'ve written down all my life are there.', 'luke' ],
 				[ 'narrator', 'Far away stood a lighthouse, its light gone out.', 'lukeGone' ]
 			],
@@ -915,10 +794,6 @@ export default {
 					[ 'luke', 'That\'s the language of the sea. Not orders — answers.', 'luke' ],
 					[ 'narrator', 'The voices that came along answered {N}\'s song, each in its own way. The lighthouse kept their beat.', 'lukeGone' ]
 				],
-				solo: [
-					[ 'narrator', 'No voice answered. Only the lighthouse blinked along with {N}\'s beat.' ],
-					[ 'narrator', 'Still, the song didn\'t break. Somewhere out at sea were voices that had not answered yet.' ]
-				],
 				end: [
 					[ 'narrator', 'The lighthouse beam swept east. Human lights dotted the coast.' ],
 					[ 'narrator', 'And toward those lights, the Shaman\'s pod swam in long lines.' ],
@@ -932,8 +807,7 @@ export default {
 					[ 'narrator', 'Before the lights of the coastal city, the Alliance stood in rows.\nWith every drumbeat, they all surged forward as one.' ],
 					[ 'narrator', 'The city\'s searchlights swept the sea. The humans were afraid of the sea too.' ],
 					[ 'luke', 'That isn\'t a song. It\'s an order.', 'luke' ],
-					[ 'finn', 'The Shaman\'s drum… the beat I heard every day at the base.\nMy body wants to move to it on its own.', 'finn' ],
-					[ 'nine', '…So you came, 52Hz. Don\'t stop me this time.', 'nineArmy' ]
+					[ 'finn', 'The Shaman\'s drum… the beat I heard every day at the base.\nMy body wants to move to it on its own.', 'finn' ]
 				],
 				front: [
 					[ 'narrator', '{N} stood between the Alliance and the shore.' ],
@@ -944,7 +818,6 @@ export default {
 				answers: [
 					[ 'orca', 'To protect the humans.' ],
 					[ 'orca', 'For revenge.' ],
-					[ 'nine', 'For revenge. I\'ve decided.', 'nineArmy' ],
 					[ 'orca', 'To survive.' ],
 					[ 'orca', '…I don\'t know.' ]
 				],
@@ -979,12 +852,12 @@ export default {
 				start: [
 					[ 'luke', 'I\'ll start. Then one by one, each in its own voice.', 'luke' ],
 					[ 'narrator', 'Far away, the lighthouse marked the first beat.', 'lukeGone' ],
-					[ 'narrator', 'Not the drum — they had to listen to their friends. And answer in the same places.' ]
+					[ 'narrator', 'The Shaman\'s drum was rolling over every voice.\nThey had to keep singing, without stopping.' ]
 				],
 				after: [
 					[ 'narrator', 'The drum fell silent.' ],
 					[ 'narrator', 'One by one, the Alliance lifted their heads, each looking a different way.' ],
-					[ 'narrator', '{N} got pulled along by the drum a few times. Still, the song stayed 52Hz to the end.', 'drummed' ]
+					[ 'narrator', 'For a moment, {N}\'s song was almost drowned by the drum. Still, it stayed 52Hz to the end.', 'drummed' ]
 				]
 			},
 			dawnEnd: {
@@ -995,36 +868,18 @@ export default {
 				voice: [
 					[ 'narrator', 'For the first time, the Shaman made a sound.\nClumsy, very small, and its own.' ]
 				],
-				sunrise: [
-					[ 'narrator', 'The sun rose in the east. The lighthouse slowly went dark.' ]
-				],
-				fare: {
-					twelve: {
-						listen: [ [ 'twelve', 'I\'m going north. The sea won\'t be frozen anymore.' ] ],
-						lead: [ [ 'twelve', '…Where do I go now? Tell me.' ] ]
-					},
-					nine: {
-						listen: [ [ 'nine', 'I\'m staying by the coast. I\'ll keep an eye on the humans.\nNot because I\'m ordered to protect them — because I want to see.' ] ],
-						lead: [ [ 'nine', 'What\'s the next order? …None?' ] ]
-					},
-					eight: {
-						listen: [ [ 'eight', 'I want to ride more waves! All the way out there!' ] ],
-						lead: [ [ 'eight', 'Keep counting the beat… okay?' ] ]
-					}
-				},
 				after: [
-					[ 'narrator', '{N} didn\'t set a beat for them. {N} just sang in 52Hz again.', 'leaders' ],
-					[ 'narrator', 'After a long hesitation, the whales chose their own way for the first time.', 'leaders' ],
-					[ 'narrator', 'Somewhere far out at sea, the voices that chose to go alone were meeting the dawn too.', 'lone' ],
 					[ 'finn', 'Now I\'ll… try living in my own voice.', 'finn' ],
 					[ 'luke', '{N}, it was heard. Our song.', 'luke' ]
 				],
-				poem: [
-					[ 'narrator', 'What were we born for?\nNo one ever told us.' ],
-					[ 'narrator', 'So we began to sing.\nIn different voices, toward different seas.' ],
-					[ 'narrator', 'And for the first time,\nthe song was no one\'s order.' ]
-				]
-			}
+				poem: [ 'And for the first time,\nthe song was no one\'s order.' ]
+			},
+			free: [
+				[ 'narrator', 'As the last of the ice split, open sea appeared beyond the pool.' ],
+				[ 'twelve', '…The sea. A real sea, not frozen.' ],
+				[ 'twelve', 'I still don\'t know where to go.\nBut… I\'ll come with you.' ],
+				[ 'finn', 'Let\'s go together, No.12.', 'finn' ]
+			]
 		},
 		epilogue: {
 			card: [ 'EPILOGUE', 'Looking for Stella' ],
