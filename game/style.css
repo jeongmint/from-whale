@@ -344,14 +344,6 @@ body.singing #sonar-bar { pointer-events: none; }
 #song.turn #song-hint { color: var(--cyan); font-weight: 700; }
 body.singing #stick, body.singing #minimap-wrap { opacity: 0; pointer-events: none; }
 
-/* MAP 3 이끄는 노래: 4박 막대 위에 헤이즐(금빛)과 상대(하늘빛)의 박자 */
-.lead-bar { position: relative; flex: 1 1 auto; width: 100%; height: 26px; margin: 4px 6px 2px; border: 2px solid var(--line); background: rgba(0, 0, 0, 0.3); }
-.lead-bar s { position: absolute; top: 3px; bottom: 3px; width: 1px; background: var(--line); }
-.lead-bar i { position: absolute; top: -4px; bottom: -4px; left: 0; width: 2px; background: var(--ink); box-shadow: 0 0 8px var(--ink); }
-.lead-bar em { position: absolute; width: 10px; height: 10px; margin-left: -5px; transform: rotate(45deg); }
-.lead-bar em.me { top: 3px; background: var(--gold); box-shadow: 0 0 10px var(--gold); }
-.lead-bar em.them { bottom: 3px; background: var(--cyan); box-shadow: 0 0 10px var(--cyan); }
-
 /* MAP 3: 고래의 교향곡 — 줄마다 한 목소리, 맨 위는 샤먼의 북 (미리 보여 주지 않고 들린 것만 잠깐 남는다) */
 #sym {
 	position: fixed; left: 50%; bottom: 22px;
@@ -382,30 +374,35 @@ body.singing #stick, body.singing #minimap-wrap { opacity: 0; pointer-events: no
 #sym.turn #sym-hint { color: var(--cyan); font-weight: 700; }
 body.touch #sym { bottom: 150px; }
 
-/* MAP 3: 어떻게 노래할까 */
-#choice {
-	position: fixed; left: 50%; bottom: 22px;
-	transform: translateX(-50%);
-	width: min(440px, calc(100vw - 24px));
-	z-index: 6;
+/* MAP 3 엔딩: 장면 연출 (위아래 검은 띠), 가운데의 시, 아래쪽 자막 */
+body::before, body::after {
+	content: ''; position: fixed; left: 0; right: 0; height: 0; z-index: 20;
+	background: #000; transition: height 1.6s ease; pointer-events: none;
 }
-#choice-list { display: flex; flex-direction: column; gap: 8px; }
-#choice .choice {
-	display: block; width: 100%; text-align: left;
-	padding: 10px 12px;
-	border: 2px solid var(--line);
-	background: rgba(0, 0, 0, 0.35);
-	color: var(--ink);
-	font: inherit;
-	cursor: pointer;
+body::before { top: 0; }
+body::after { bottom: 0; }
+body.cinema::before, body.cinema::after { height: 11vh; }
+body.cinema #dialog { z-index: 22; bottom: calc(11vh + 10px); }
+body.cinema #hud, body.cinema #touch, body.cinema #toasts, body.cinema #banner, body.cinema #marker { opacity: 0; pointer-events: none; transition: opacity 1s; }
+#poem {
+	position: fixed; inset: 0; z-index: 21;
+	display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+	pointer-events: none; text-align: center; padding: 0 24px;
+	font-size: clamp(20px, 3.2vw, 34px); line-height: 1.5; color: #fff6e8;
+	text-shadow: 0 0 24px rgba(255, 190, 120, 0.55), 0 2px 8px rgba(0, 0, 0, 0.6);
+	opacity: 0;
 }
-#choice .choice b { display: block; font-size: 16px; }
-#choice .choice b .mono { color: var(--ink-dim); margin-right: 4px; }
-#choice .choice small { display: block; margin-top: 3px; font-size: 13px; color: var(--ink-dim); }
-#choice .choice.on { border-color: var(--cyan); box-shadow: 0 0 14px rgba(127, 233, 255, 0.35); }
-#choice .choice.on b { color: var(--cyan); }
-#choice-hint { margin: 10px 0 0; font-size: 13px; color: var(--ink-dim); text-align: center; }
-body.choosing #stick, body.choosing #minimap-wrap, body.choosing #sonar-bar { opacity: 0; pointer-events: none; }
+#poem.show { animation: poemline 4.2s ease forwards; }
+@keyframes poemline { 0% { opacity: 0; transform: translateY(8px); } 22% { opacity: 1; transform: none; } 78% { opacity: 1; } 100% { opacity: 0; } }
+#caption {
+	position: fixed; left: 0; right: 0; bottom: calc(11vh + 18px); z-index: 21;
+	text-align: center; pointer-events: none; opacity: 0;
+	color: #fff; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
+}
+#caption strong { display: block; font-size: clamp(18px, 2.6vw, 26px); }
+#caption em { display: block; margin-top: 4px; font-style: normal; font-size: clamp(13px, 1.7vw, 16px); color: #ffe2b8; }
+#caption.show { animation: caption 3.4s ease forwards; }
+@keyframes caption { 0% { opacity: 0; } 18% { opacity: 1; } 82% { opacity: 1; } 100% { opacity: 0; } }
 
 /* MAP 2 핀의 기억: 물속이 잠깐 하얗게 바랜다 */
 #app canvas { transition: filter 0.9s; }
@@ -794,7 +791,7 @@ body.tilt #stick { display: none; }
 	body.touch #minimap { width: min(104px, calc(100vw - 272px)); height: min(104px, calc(100vw - 272px)); }
 	body.touch #minimap-wrap .win-bar { padding: 1px 6px; font-size: 10px; }
 	/* 따라 부르기 · 듀엣 창은 버튼 줄 위로 */
-	body.touch #song, body.touch #duet, body.touch #fish, body.touch #choice { bottom: 150px; }
+	body.touch #song, body.touch #duet, body.touch #fish { bottom: 150px; }
 	/* 바닷속: 깊이계는 오른쪽 버튼에 가려지니까 HAZEL 창 맨 아래 한 줄로 (창을 그만큼 늘린다) */
 	body.touch.diving #hud-status { height: 135px; }
 	body.touch.diving #toasts { top: 151px; }
