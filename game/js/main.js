@@ -2802,10 +2802,12 @@ function setTilt( on ) {
 
 	const DOE = window.DeviceOrientationEvent;
 	if ( on && ! DOE ) return tiltFailed();
-	// iOS는 버튼을 누른 그 순간에 권한을 물어야 한다
+	// iOS는 버튼을 누른 그 순간에 권한을 물어야 한다. 최근 크롬(안드로이드)에도 이 함수가 있는데,
+	// 'granted' 말고 'prompt'를 돌려주거나 거절(에러)해도 센서 값은 그대로 오는 경우가 있다.
+	// 그래서 분명히 'denied'일 때만 바로 실패로 보고, 나머지는 켜 둔 뒤 1.5초 안에 센서 값이 오는지로 판단한다
 	if ( on && typeof DOE.requestPermission === 'function' ) {
 
-		DOE.requestPermission().then( ( s ) => s === 'granted' ? enableTilt( true ) : tiltFailed() ).catch( tiltFailed );
+		DOE.requestPermission().then( ( s ) => s === 'denied' ? tiltFailed() : enableTilt( true ) ).catch( () => enableTilt( true ) );
 		return;
 
 	}
