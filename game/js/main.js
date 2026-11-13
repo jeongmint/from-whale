@@ -37,7 +37,7 @@ const MAX_SPEED = 17;
 const BOOST_SPEED = 33;
 const TURN_RATE = 1.9;
 const MAX_HEARTS = 3;
-const DETECT = 56;
+const DETECT = 46; // MAP 1 연합군이 헤이즐을 알아채는 거리
 const DASH_SPEED = 50;
 const RIDE_SPEED = 44; // MAP 3 빛 타기: 통통 튀며 얼음 위를 넘어간다
 const REVERSE_SPEED = 9; // 조이스틱을 아래로 당기거나 폰을 뒤로 젖혔을 때 최고 후진 속도
@@ -1416,12 +1416,13 @@ function updateOrcas( dt ) {
 				break;
 			case 'chase':
 				if ( frozen ) { w.speed *= 0.9; break; } // 대화 · 컷신 중엔 쫓지 않고 멈춰 기다린다
-				steerTo( w, h.pos.x, h.pos.z, 19.8, dt, 2.4 );
-				if ( fromHome > 220 || dP > 120 ) o.state = 'return';
+				// 헤이즐의 보통 속도(17)보다 조금 느리다. 들켜도 곧장 헤엄쳐 달아나면 떨칠 수 있다
+				steerTo( w, h.pos.x, h.pos.z, 15.5, dt, 2.4 );
+				if ( fromHome > 200 || dP > 95 ) o.state = 'return';
 				break;
 			case 'hunt':
 				if ( frozen ) { w.speed *= 0.9; break; }
-				steerTo( w, h.pos.x, h.pos.z, 19.5, dt, 2.2 );
+				steerTo( w, h.pos.x, h.pos.z, 16, dt, 2.2 ); // 매복 뒤 추격도 헤이즐보다 조금 느리게
 				if ( dP > 180 ) o.state = 'retreat';
 				break;
 			case 'return':
@@ -1489,6 +1490,7 @@ function updateOrcas( dt ) {
 				G.route.hits ++;
 				o.state = 'stun';
 				o.stunT = 1.6;
+				if ( ! o.ambush ) o.after = 'return'; // 한 번 들이받은 순찰대는 제자리로 (연달아 맞지 않게)
 				// 처음 맞으면 루크가 경고한다 (한 번만 더 맞으면 루크가 대신 들이받는다)
 				if ( G.route.hits === LUKE_MAX_HITS && G.party.luke === 'on' && ! G.flags.mobyMet ) G.ui.toast( t( 'toast.lukeWarn' ) );
 
@@ -2544,7 +2546,7 @@ function updateBoss( dt ) {
 
 			}
 
-			if ( b.t > 3.5 ) {
+			if ( b.t > 2.5 ) {
 
 				b.phase = 'windup';
 				b.t = 0;
@@ -3326,7 +3328,7 @@ async function boot() {
 	A.luke = new Whale( models.luke, { name: 'luke', length: 11, ride: 0.36, freq: 3.3, amp: 0.07, emissive: 1.4 } );
 	A.finn = new Whale( models.finn, { name: 'finn', length: 10, ride: 0.42, freq: 2.9, amp: 0.06, emissive: 0.55 } );
 	// 헤이즐(8)에 비해 커야 압도감이 난다. 실제 비율(상괭이 : 향유고래 : 대왕고래 ≈ 1.8m : 18m : 28m)보다는 작게
-	A.moby = new Whale( models.moby, { name: 'moby', length: 48, ride: 0.3, freq: 1.5, amp: 0.05, emissive: 0.6 } );
+	A.moby = new Whale( models.moby, { name: 'moby', length: 44, ride: 0.3, freq: 1.5, amp: 0.05, emissive: 0.6 } );
 	A.stella = new Whale( models.stella, { name: 'stella', length: 120, ride: 0.36, freq: 1.0, amp: 0.05, emissive: 1.6 } );
 	A.shaman = new Whale( models.orca, { name: 'shaman', length: 18, ride: 0.42, freq: 2.4, amp: 0.05, recolor: [ 0x7a1f4f, 0xffb3d1 ], emissive: 0.1 } );
 	for ( const a of Object.values( A ) ) scene.add( a.root );

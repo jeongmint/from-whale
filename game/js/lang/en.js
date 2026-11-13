@@ -323,9 +323,7 @@ export default {
 
 	mobyResonance: [
 		'...Why do you look at me like that?',
-		'Why keep singing a song that no one can hear?',
 		'My mother... sang a song like that, too.',
-		'Even if I end every human, she will not come back. Will she.',
 		'That night, the last song my mother sang... sounded like this.',
 		'......Enough. I hear you now.'
 	],
