@@ -58,8 +58,9 @@ export function startFishing( G, { layer, gear, onCatch } ) {
 		const T = () => lang().ui.fish;
 		const name = ( key ) => T().names[ key ] ?? key;
 		// 장비가 좋을수록 문 순간을 넉넉히 기다려 주고, 초록 칸이 넓다
-		const biteWindow = ( gear.horn ? 0.62 : 0.4 ) + ( gear.hook ? 0.18 : 0 );
-		const zoneWidth = ( gear.horn ? 0.3 : 0.2 ) + ( gear.hook ? 0.06 : 0 );
+		// 폰은 누르는 데 시간이 더 걸리니 처음부터 넉넉하게
+		const biteWindow = ( gear.horn ? 1.25 : 0.95 ) + ( gear.hook ? 0.25 : 0 );
+		const zoneWidth = ( gear.horn ? 0.32 : 0.24 ) + ( gear.hook ? 0.06 : 0 );
 		let state = 'cast', timers = [], fish = null, got = 0, strain = 0, pull = 0, cur = 0, dir = 1, speed = 0.9, zoneAt = 0.4, raf = 0, last = 0, caughtCount = 0;
 
 		const later = ( s, fn ) => timers.push( setTimeout( fn, s * 1000 ) );
@@ -70,7 +71,12 @@ export function startFishing( G, { layer, gear, onCatch } ) {
 
 		};
 		const say = ( text ) => hint.textContent = G.ui.dev( text );
-		const setBob = ( cls ) => bob.className = cls;
+		const setBob = ( cls ) => {
+
+			bob.className = cls;
+			if ( cls !== 'bite' ) box.classList.remove( 'biting' );
+
+		};
 		const showReel = ( on ) => {
 
 			reel.classList.toggle( 'hidden', ! on );
@@ -124,6 +130,7 @@ export function startFishing( G, { layer, gear, onCatch } ) {
 				state = 'bite';
 				fish = pick( FISH_BY_LAYER[ layer ] );
 				setBob( 'bite' );
+				box.classList.add( 'biting' );
 				say( T().bite );
 				G.audio.play( 'warn' );
 				later( biteWindow, () => {
@@ -144,7 +151,7 @@ export function startFishing( G, { layer, gear, onCatch } ) {
 			got = 0;
 			strain = 0;
 			pull = fish[ 3 ];
-			speed = 0.7 + pull * 0.12;
+			speed = 0.55 + pull * 0.09;
 			cur = 0;
 			dir = 1;
 			moveZone();
@@ -207,7 +214,7 @@ export function startFishing( G, { layer, gear, onCatch } ) {
 				reel.classList.add( 'ok' );
 				if ( got >= pull ) return catchIt();
 				moveZone();
-				speed *= 1.08;
+				speed *= 1.05;
 
 			} else {
 
@@ -262,7 +269,7 @@ export function startFishing( G, { layer, gear, onCatch } ) {
 		function tap() {
 
 			if ( state === 'cast' ) return drop();
-			if ( state === 'wait' ) return fail( T().early );
+			if ( state === 'wait' ) return say( T().early ); // 너무 일찍 눌러도 놓치지 않는다. 다시 알려 줄 뿐
 			if ( state === 'bite' ) return hook();
 			if ( state === 'reel' ) return reelTap();
 			if ( state === 'cast-ready' ) return cast();
@@ -292,6 +299,7 @@ export function startFishing( G, { layer, gear, onCatch } ) {
 			G.puzzle = null;
 			G.fishing = null;
 			box.onpointerdown = null;
+			box.classList.remove( 'biting' );
 			$( 'fish-quit' ).onpointerdown = null;
 			$( 'fish-dex' ).onpointerdown = null;
 			G.ui.show( 'fish', false );

@@ -37,7 +37,7 @@ const MAX_SPEED = 17;
 const BOOST_SPEED = 33;
 const TURN_RATE = 1.9;
 const MAX_HEARTS = 3;
-const DETECT = 56;
+const DETECT = 46; // MAP 1 연합군이 헤이즐을 알아채는 거리
 const DASH_SPEED = 50;
 const RIDE_SPEED = 44; // MAP 3 빛 타기: 통통 튀며 얼음 위를 넘어간다
 const REVERSE_SPEED = 9; // 조이스틱을 아래로 당기거나 폰을 뒤로 젖혔을 때 최고 후진 속도
@@ -1222,7 +1222,7 @@ Object.assign( G, {
 	nearLog( log ) {
 
 		const h = G.actors.hazel;
-		return Math.hypot( h.pos.x - log.pos.x, h.pos.z - log.pos.z ) < 13 && Math.abs( G.diveY - log.pos.y ) < 9;
+		return Math.hypot( h.pos.x - log.pos.x, h.pos.z - log.pos.z ) < 20 && Math.abs( G.diveY - log.pos.y ) < 14; // 조금 넉넉하게 (가까이 가면 바로 읽히게)
 
 	},
 
@@ -1416,12 +1416,13 @@ function updateOrcas( dt ) {
 				break;
 			case 'chase':
 				if ( frozen ) { w.speed *= 0.9; break; } // 대화 · 컷신 중엔 쫓지 않고 멈춰 기다린다
-				steerTo( w, h.pos.x, h.pos.z, 19.8, dt, 2.4 );
-				if ( fromHome > 220 || dP > 120 ) o.state = 'return';
+				// 헤이즐의 보통 속도(17)보다 느리다. 들켜도 곧장 헤엄쳐 달아나면 떨칠 수 있다
+				steerTo( w, h.pos.x, h.pos.z, 13, dt, 2.4 );
+				if ( fromHome > 200 || dP > 95 ) o.state = 'return';
 				break;
 			case 'hunt':
 				if ( frozen ) { w.speed *= 0.9; break; }
-				steerTo( w, h.pos.x, h.pos.z, 19.5, dt, 2.2 );
+				steerTo( w, h.pos.x, h.pos.z, 14, dt, 2.2 ); // 매복 뒤 추격도 헤이즐보다 느리게
 				if ( dP > 180 ) o.state = 'retreat';
 				break;
 			case 'return':
@@ -1489,6 +1490,7 @@ function updateOrcas( dt ) {
 				G.route.hits ++;
 				o.state = 'stun';
 				o.stunT = 1.6;
+				if ( ! o.ambush ) o.after = 'return'; // 한 번 들이받은 순찰대는 제자리로 (연달아 맞지 않게)
 				// 처음 맞으면 루크가 경고한다 (한 번만 더 맞으면 루크가 대신 들이받는다)
 				if ( G.route.hits === LUKE_MAX_HITS && G.party.luke === 'on' && ! G.flags.mobyMet ) G.ui.toast( t( 'toast.lukeWarn' ) );
 
@@ -2544,7 +2546,7 @@ function updateBoss( dt ) {
 
 			}
 
-			if ( b.t > 3.5 ) {
+			if ( b.t > 2.5 ) {
 
 				b.phase = 'windup';
 				b.t = 0;
@@ -2802,10 +2804,12 @@ function setTilt( on ) {
 
 	const DOE = window.DeviceOrientationEvent;
 	if ( on && ! DOE ) return tiltFailed();
-	// iOS는 버튼을 누른 그 순간에 권한을 물어야 한다
+	// iOS는 버튼을 누른 그 순간에 권한을 물어야 한다. 최근 크롬(안드로이드)에도 이 함수가 있는데,
+	// 'granted' 말고 'prompt'를 돌려주거나 거절(에러)해도 센서 값은 그대로 오는 경우가 있다.
+	// 그래서 분명히 'denied'일 때만 바로 실패로 보고, 나머지는 켜 둔 뒤 1.5초 안에 센서 값이 오는지로 판단한다
 	if ( on && typeof DOE.requestPermission === 'function' ) {
 
-		DOE.requestPermission().then( ( s ) => s === 'granted' ? enableTilt( true ) : tiltFailed() ).catch( tiltFailed );
+		DOE.requestPermission().then( ( s ) => s === 'denied' ? tiltFailed() : enableTilt( true ) ).catch( () => enableTilt( true ) );
 		return;
 
 	}
@@ -3020,6 +3024,8 @@ function setupTouch() {
 		btn.addEventListener( 'pointerdown', ( e ) => {
 
 			e.preventDefault();
+			// 롱탭 중에 손가락이 조금 밀려도 버튼을 놓친 걸로 치지 않게 (pointerleave가 끝까지 안 온다)
+			try { btn.setPointerCapture( e.pointerId ); } catch ( err ) { /* 안 되는 브라우저는 그대로 */ }
 			btn.classList.add( 'held' );
 			if ( act === 'boost' ) touch.boost = true;
 			else if ( act === 'sing' && singDown() ) return; // MAP 3 롱탭
@@ -3041,6 +3047,8 @@ function setupTouch() {
 		btn.addEventListener( 'pointerup', up );
 		btn.addEventListener( 'pointercancel', up );
 		btn.addEventListener( 'pointerleave', up );
+		// 안드로이드는 길게 누르면 메뉴를 띄우려다 누름을 취소해 버린다 (롱탭이 중간에 끊긴다)
+		btn.addEventListener( 'contextmenu', ( e ) => e.preventDefault() );
 
 	} );
 
@@ -3324,7 +3332,7 @@ async function boot() {
 	A.luke = new Whale( models.luke, { name: 'luke', length: 11, ride: 0.36, freq: 3.3, amp: 0.07, emissive: 1.4 } );
 	A.finn = new Whale( models.finn, { name: 'finn', length: 10, ride: 0.42, freq: 2.9, amp: 0.06, emissive: 0.55 } );
 	// 헤이즐(8)에 비해 커야 압도감이 난다. 실제 비율(상괭이 : 향유고래 : 대왕고래 ≈ 1.8m : 18m : 28m)보다는 작게
-	A.moby = new Whale( models.moby, { name: 'moby', length: 48, ride: 0.3, freq: 1.5, amp: 0.05, emissive: 0.6 } );
+	A.moby = new Whale( models.moby, { name: 'moby', length: 44, ride: 0.3, freq: 1.5, amp: 0.05, emissive: 0.6 } );
 	A.stella = new Whale( models.stella, { name: 'stella', length: 120, ride: 0.36, freq: 1.0, amp: 0.05, emissive: 1.6 } );
 	A.shaman = new Whale( models.orca, { name: 'shaman', length: 18, ride: 0.42, freq: 2.4, amp: 0.05, recolor: [ 0x7a1f4f, 0xffb3d1 ], emissive: 0.1 } );
 	for ( const a of Object.values( A ) ) scene.add( a.root );
@@ -4214,7 +4222,7 @@ function updatePlayer( dt ) {
 	// 핀이 있으면 부스트가 오래 간다
 	const finn = G.party.finn === 'on';
 	const boosting = boost && throttle > 0 && G.stamina > 0.02;
-	if ( boosting ) G.stamina = Math.max( 0, G.stamina - dt * ( finn ? 0.16 : 0.26 ) );
+	if ( boosting ) G.stamina = Math.max( 0, G.stamina - dt * ( finn ? 0.13 : 0.2 ) );
 	else G.stamina = Math.min( 1, G.stamina + dt * ( finn ? 0.26 : 0.16 ) );
 
 	let target = throttle > 0 ? throttle * ( boosting ? BOOST_SPEED : MAX_SPEED ) : throttle * REVERSE_SPEED;
@@ -4431,6 +4439,17 @@ function updateCompanions( dt ) {
 
 }
 
+// 노래해야 하는 자리 (G.singCue: 이야기가 정해 준다): 가까이 가면 '여기서 노래하기'를 크게 띄운다
+// { spots: () => [ { x, z } ], r, key } · spots가 없으면 어디서든
+function singCuePrompt() {
+
+	const c = G.singCue;
+	if ( ! c || ! G.started || G.cutsceneOn || G.ui.dialogOpen || G.ui.overlay || G.puzzle || G.fishing ) return null;
+	if ( c.spots && ! c.spots().some( ( s ) => G.distTo( s ) < c.r ) ) return null;
+	return t( c.key );
+
+}
+
 function updateBottlesAndKelp( dt ) {
 
 	// MAP 3: 노래를 마친 자리 위의 빛 조각 (먹으면 빛을 타고 다음 바다로)
@@ -4451,7 +4470,7 @@ function updateBottlesAndKelp( dt ) {
 
 	G.rideOrbs = G.rideOrbs.filter( ( s ) => ! s.taken );
 
-	if ( G.map3 ) return G.ui.prompt( null ); // MAP 3엔 맵 1의 유리병 · 미역 · 빛 조각이 없다
+	if ( G.map3 ) return G.ui.prompt( singCuePrompt() ); // MAP 3엔 맵 1의 유리병 · 미역 · 빛 조각이 없다. 노래할 자리 안내만
 
 	if ( G.diving ) return G.ui.prompt( ! G.fishing && ! G.cutsceneOn && ! G.ui.dialogOpen && nearFishSpot() ? t( 'fish.prompt' ) : null ); // MAP 2엔 맵 1의 유리병 · 미역 · 빛 조각이 없다. 낚시 자리 안내만
 
@@ -4488,7 +4507,7 @@ function updateBottlesAndKelp( dt ) {
 	if ( G.stun > 0 && G.flags.finnTears && ! G.cutsceneOn && ! G.ui.dialogOpen ) prompt = t( 'prompt.tears' );
 	if ( G.jumpCueOn ) prompt = t( 'prompt.jump' );
 
-	G.ui.prompt( prompt );
+	G.ui.prompt( prompt ?? singCuePrompt() );
 
 }
 

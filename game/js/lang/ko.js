@@ -27,7 +27,7 @@ export default {
 			obj: [ '부서진 잠수정 찾기 · 햇빛층', '해저 연구소 찾기 · 어스름층', '붉은 단말기 찾기 · 한밤층', '고래 뼈 찾기 · 한밤층', '마지막 기록 찾기 · 해구', '기지 출입문 찾기 · 맨 밑' ],
 			objBase: '기지 문 앞에서 정지 코드 부르기',
 			current: '물살이 기지 앞을 막는다 — 기록을 더 찾자',
-			objFind: '연구 기록 찾기 · {n}/5 · 어디부터든',
+			objFind: '연구 기록 {n}/5 · 다음: {place}',
 			stopTitle: 'STOP CODE · 52HZ ♥ 52HZ',
 			logs: 'LOGS {n}/6',
 			coelacanth: '실러캔스 — 4억 년을 버텨 온 \'살아 있는 화석\'',
@@ -121,12 +121,12 @@ export default {
 		fish: {
 			titleHorn: '낚시 · 루크의 뿔',
 			titleFin: '낚시 · 서툰 지느러미',
-			cast: '[E] 줄 내리기',
+			cast: '[E] 줄 내리기 · 찌가 쑥 들어가며 반짝이면 [E]로 걸기',
 			again: '[E] 한 번 더 · 그만하려면 아래 버튼',
-			wait: '기다려… 찌를 보자',
-			nibble: '톡… 톡… (아직!)',
+			wait: '기다려… 찌가 쑥 들어가며 반짝이면 [E]',
+			nibble: '톡… 톡… 아직! 쑥 들어갈 때까지',
 			bite: '쑥! 지금 [E]',
-			early: '너무 빨랐다 — 물고기가 달아났다',
+			early: '아직이야 — 찌가 쑥 들어가며 반짝일 때 [E]',
 			missed: '놓쳤다…',
 			reel: '[E] 하얀 선이 초록 칸에 왔을 때 끌어올리기',
 			snap: '줄이 끊어졌다! (빨간 칸 세 번)',
@@ -219,6 +219,7 @@ export default {
 			stella: '또 하나의 52Hz'
 		},
 		toast: {
+			singCloser: '조금 더 가까이 가서 노래해 봐 — 화살표 쪽으로',
 			spotted: '! 연합군에게 들켰다 — Shift로 도망치거나 Space로 점프!',
 			spottedLight: '! 연합군에게 들켰다 — 빛 조각을 먹고 도망쳐!',
 			dash: '루크의 빛 — 잠시 아주 빨라진다!',
@@ -252,7 +253,11 @@ export default {
 			recharge: '<kbd>E</kbd> 미역 곁에서 노래하기 — 하트 충전',
 			compass: '<kbd>E</kbd> 미역 곁에서 노래하기 — 나침반 맞추기',
 			jump: '<kbd>Space</kbd> 지금 뛰어올라!',
-			tears: '<kbd>E</kbd> 핀의 눈물 — 비로 정신 차리기'
+			tears: '<kbd>E</kbd> 핀의 눈물 — 비로 정신 차리기',
+			singFirst: '<kbd>E</kbd> 노래하기 — 나의 52Hz',
+			singCrack: '<kbd>E</kbd> 여기서 노래하기 — 얼음 아래 12번에게',
+			singShip: '<kbd>E</kbd> 여기서 노래하기 — 가라앉은 배에게',
+			singStone: '<kbd>E</kbd> 여기서 노래하기 — 노래 바위에게'
 		},
 		kelpReader: { luke: '미역 줄기 · 루크가 읽어 줌', finn: '미역 줄기 · 핀이 읽어 줌', none: '미역 줄기' },
 		bottleReact: { luke: '흥. 별 내용 없네. ...다음 거나 찾아.', finn: '...다 누군가의 노래였구나.' },
@@ -325,9 +330,7 @@ export default {
 	// 모비가 마음을 열 때마다 하는 말 (보스전)
 	mobyResonance: [
 		'...왜 그런 눈으로 보는 거냐.',
-		'아무도 듣지 못하는 노래를, 왜 계속 부르는 거지.',
 		'어미도... 그런 노래를 불렀었다.',
-		'인간을 모두 없앤다고, 어미가 돌아오진 않겠지.',
 		'그날 밤, 어미가 마지막으로 부른 노래도… 이런 소리였다.',
 		'......그만. 이제, 들린다.'
 	],

@@ -34,12 +34,12 @@ A sea adventure of **Hazel**, a whale who sings at 52Hz. Another world, the year
 - **Growing music** — synthesized live. Luke's bass, Finn's drums, dropped when a friend leaves. Saxophone in the epilogue. A different piece per map (MAP 1 shuffle blues · MAP 2 a low, slow D minor for the trench · MAP 3 a bright dawn F → G → Em → Am)
 - **6 endings + ending gallery** — 4 decided by Luke's and Finn's fates + The Late Whale + A Whale's Stopped Heart (below). Unseen endings show hints only. All 6 unlock a **golden sea** (moon glitter fading from gold to sky blue, a golden moon, Hazel's glowing pattern sparkling brighter)
 - **Kelp** — signposts with written directions, sing beside them to restore hearts
-- **Moby Dick boss fight** — 6 songs that reach him win him over. Body hits and falling stars cost a heart; stun 1.1 s from stars, 1.5 s from charges (with Finn's Tears, a song clears it at once)
-- **Stella (hidden ending)** — all 6 letters in bottles (Moby's prologue letter included) → 12-bar blues duet (PERFECT ±25 ms · EXCELLENT ±60 ms · GOOD ±150 ms, 450 max, S from 85% · A from 60%, a shooting star per jump note) → name the song and leave it with your nickname and score on the shared **Duet TOP 10**. After meeting Stella, "Sing the duet again" on the title or ending screen replays just the duet (save data untouched). Remaining letters can be found in the epilogue after the ending
+- **Moby Dick boss fight** — 4 songs that reach him win him over. Body hits and falling stars cost a heart; stun 1.1 s from stars, 1.5 s from charges (with Finn's Tears, a song clears it at once)
+- **Stella (hidden ending)** — all 6 letters in bottles (Moby's prologue letter included) → 12-bar blues duet (PERFECT ±25 ms · EXCELLENT ±60 ms · GOOD ±150 ms, 450 max, S from 85% · A from 60%, a shooting star per jump note) → name the song and leave it with your nickname and score on the shared **Duet TOP 10**. After meeting Stella, "Sing the duet again" on the title or ending screen replays just the duet (save data untouched). Remaining letters can be found in the epilogue after the ending (the arrow points at the nearest bottle, n/6 in the objective)
 - **Space and sea** — Gerstner waves, glittering ripples, ringed planet, shooting stars, bloom
 - **MAP 2 · A Sea Born Without Waves** — a second map that opens after meeting Stella. Descend a trench and uncover the Alliance's secret (see MAP 2 below)
 - **MAP 3 · A Song That Calls the Dawn** — back to the surface after the MAP 2 ending. Gather the Alliance's scattered voices into the Whale Symphony (see MAP 3 below)
-- **Retro blue UI** — window-style HUD, sonar minimap (tap its title bar to fold it, remembered on the device), chapter cards, PC controls guide, current objective inside the HAZEL window (top center left clear). Portrait phones: one bottom row of joystick · sonar · 2×2 buttons (right thumb, screen center clear). One-line dialog at the bottom, two-column title, and the call-and-response window at the bottom left in tilt mode on landscape phones
+- **Retro blue UI** — window-style HUD, sonar minimap (tap its title bar to fold it, remembered on the device), chapter cards, PC controls guide, current objective inside the HAZEL window (top center left clear). A gold "Sing here" prompt at singing spots (the ♪ button glows on phones), and "get a little closer" when singing too far away. Portrait phones: one bottom row of joystick · sonar · 2×2 buttons (right thumb, screen center clear). One-line dialog at the bottom, two-column title, and the call-and-response window at the bottom left in tilt mode on landscape phones
 - **Light models** — 500–650 vertices per whale, 512px textures. Phone support
 
 ### Branching endings
@@ -65,7 +65,7 @@ The name: the deep sea where no waves reach, and the Alliance (and Finn), born i
 
 
 - Way in: after meeting Stella, "Into the deep" on the ending screen → a portal on the surface → dive. MAP 1 (lighthouse, kelp, Alliance…) is gone
-- Progress: explore the five chambers (wreck, lab, terminal, whale bones, capsule) in any order. Only the base is held back by the current until all five are found. The sonar ◆ points at the nearest place not yet visited. Luke translates the writing, or only the drawings
+- Progress: explore the five chambers (wreck, lab, terminal, whale bones, capsule) in any order. Only the base is held back by the current until all five are found. The sonar ◆ and the arrow point at the nearest place not yet visited. The objective shows the count found (n/5) and the next chamber's name and zone. Luke translates the writing, or only the drawings
 - Finn's memories: each place found brings back one piece of Finn's past in the tank, always in order 1 → 5 (The Sea Behind the Glass, The Fishing Line, Crybaby No. 7, The Device on My Neck, Run), with the water briefly fading pale. Without Finn, recordings grad student J left for No. 7
 - Space: at each log's depth the trench opens into a wide chamber, with narrow passages between. Each chamber has a beacon visible from afar (wreck warning light, lab windows, red terminal, altar, capsule, base searchlight)
 - Walls: a colour per layer (sand and coral, teal, indigo, basalt with red veins), with the odd rock pillar
@@ -76,7 +76,7 @@ The name: the deep sea where no waves reach, and the Alliance (and Finn), born i
 - Objective marker: underwater it points at the log's real depth, with ▲ / ▼ and the height difference next to the distance
 - Singing: nearby morays glow red (red dots on the sonar). Close guards freeze for 3.5 s at the "perfect song" learned from Stella; guards farther off hear it and come
 - Moray eels: hide in the wall cracks, shiver, then lunge and bite (1 heart, short stun)
-- Fishing: after picking up a line at the first log (the wrecked sub), press the song button by the floating buoy in each chamber (a green ring on the sonar). Hook it when the float dives, then reel in when the white line is in the green (three reds and the line snaps). With Luke it's his horn as a rod (generous), without him a clumsy fin; J's stone fishhook makes fish bite more easily. Each layer has its own catch, shown for a moment then let go. A sea life log of 21 kinds (saved on the device, FISH count on the MAP 2 ending)
+- Fishing: after picking up a line at the first log (the wrecked sub), press the song button by the floating buoy in each chamber (a green ring on the sonar). Hook it when the float dives and flashes (a ! mark; pressing too early doesn't lose the fish), then reel in when the white line is in the green (three reds and the line snaps). With Luke it's his horn as a rod (generous), without him a clumsy fin; J's stone fishhook makes fish bite more easily. Each layer has its own catch, shown for a moment then let go. A sea life log of 21 kinds (saved on the device, FISH count on the MAP 2 ending)
 - Hearts: refilled by reading a log; a jellyfish touch gives 1 (that jellyfish recharges for 30 s). Fainting wakes Hazel by the last log read (no heart-stop ending)
 - Finale: an unexpected meeting outside the base (different if Finn survived) → the Shaman at the door → the stop code rhythm (light bubbles rise on each jump beat, a plankton ring on each song beat · Stella's voice + Finn's device, or the broken compass without Finn) → the red eyes go dark and the Shaman's Voice falls silent → MAP 2 ending "A Song Heard"
 
@@ -158,6 +158,7 @@ Color options (`Whale` in `game/js/actors.js`): `solidColor` for a single color,
 | `Space` | `⤴` (UP under the sea) | Jump (invincible in the air) · ambush dodge · duet jump notes · swim up under the sea · jump with No.8 after letting go of the song (MAP 3) |
 | `C` | `⤵` (under the sea only) | Swim down under the sea |
 | `E` | `♪` | Sing · talk · sonar · next line · call and response · duet song notes · fishing (MAP 2) · holding against the drum · mashing in the symphony (MAP 3). MAP 3 songs: short tap (under 0.25 s) · long press (0.4 s or more), with a ring of light around Hazel while held |
+| Click | Tap anywhere | Next line · close a letter |
 | `L` / `M` / `Esc` | Top-right buttons | Letters / sound / pause |
 | Whale chip in the POD window | Whale chip in the POD window | Home page |
 
