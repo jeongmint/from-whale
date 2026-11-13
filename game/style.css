@@ -54,6 +54,7 @@ html, body {
 
 /* 두 번 탭 확대 막기: touch-action은 상속되지 않아서 요소마다 직접 건다 */
 #app, #app canvas, #hud, .win, button, #touch, #touch *, #card, #banner, #prompt, #fade { touch-action: none; }
+#touch, #touch * { -webkit-touch-callout: none; } /* 길게 눌러도 메뉴 · 돋보기가 뜨지 않게 (롱탭) */
 .overlay, .overlay .win { touch-action: pan-y; }
 input { touch-action: manipulation; }
 
@@ -441,7 +442,10 @@ body.fishing #stick, body.fishing #minimap-wrap { opacity: 0; pointer-events: no
 #fish-bob.float, #fish-bob.nibble, #fish-bob.bite, #fish-bob.reel { visibility: visible; }
 #fish-bob.float { animation: bob 1.6s ease-in-out infinite; }
 #fish-bob.nibble { transform: translateY(5px); }
-#fish-bob.bite { transform: translateY(20px); box-shadow: 0 0 18px var(--gold); }
+#fish-bob.bite { transform: translateY(20px); box-shadow: 0 0 22px 6px var(--gold); animation: bite-flash 0.25s steps(2) infinite; }
+#fish-bob.bite::after { content: '!'; position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); font: 700 22px/1 var(--mono); color: var(--gold); text-shadow: 0 0 8px var(--gold); }
+#fish.biting { box-shadow: 0 0 0 2px var(--gold), 0 0 28px rgba(255, 211, 107, 0.45); }
+@keyframes bite-flash { 50% { background: linear-gradient(180deg, #ffd36b 50%, #fff 50%); } }
 #fish-bob.reel { transform: translateY(12px); animation: shake 0.18s linear infinite; }
 @keyframes bob { 50% { transform: translateY(-3px); } }
 @keyframes shake { 25% { margin-left: -9px; } 75% { margin-left: -5px; } }

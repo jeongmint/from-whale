@@ -1222,7 +1222,7 @@ Object.assign( G, {
 	nearLog( log ) {
 
 		const h = G.actors.hazel;
-		return Math.hypot( h.pos.x - log.pos.x, h.pos.z - log.pos.z ) < 13 && Math.abs( G.diveY - log.pos.y ) < 9;
+		return Math.hypot( h.pos.x - log.pos.x, h.pos.z - log.pos.z ) < 20 && Math.abs( G.diveY - log.pos.y ) < 14; // 조금 넉넉하게 (가까이 가면 바로 읽히게)
 
 	},
 
@@ -1416,13 +1416,13 @@ function updateOrcas( dt ) {
 				break;
 			case 'chase':
 				if ( frozen ) { w.speed *= 0.9; break; } // 대화 · 컷신 중엔 쫓지 않고 멈춰 기다린다
-				// 헤이즐의 보통 속도(17)보다 조금 느리다. 들켜도 곧장 헤엄쳐 달아나면 떨칠 수 있다
-				steerTo( w, h.pos.x, h.pos.z, 15.5, dt, 2.4 );
+				// 헤이즐의 보통 속도(17)보다 느리다. 들켜도 곧장 헤엄쳐 달아나면 떨칠 수 있다
+				steerTo( w, h.pos.x, h.pos.z, 13, dt, 2.4 );
 				if ( fromHome > 200 || dP > 95 ) o.state = 'return';
 				break;
 			case 'hunt':
 				if ( frozen ) { w.speed *= 0.9; break; }
-				steerTo( w, h.pos.x, h.pos.z, 16, dt, 2.2 ); // 매복 뒤 추격도 헤이즐보다 조금 느리게
+				steerTo( w, h.pos.x, h.pos.z, 14, dt, 2.2 ); // 매복 뒤 추격도 헤이즐보다 느리게
 				if ( dP > 180 ) o.state = 'retreat';
 				break;
 			case 'return':
@@ -3024,6 +3024,8 @@ function setupTouch() {
 		btn.addEventListener( 'pointerdown', ( e ) => {
 
 			e.preventDefault();
+			// 롱탭 중에 손가락이 조금 밀려도 버튼을 놓친 걸로 치지 않게 (pointerleave가 끝까지 안 온다)
+			try { btn.setPointerCapture( e.pointerId ); } catch ( err ) { /* 안 되는 브라우저는 그대로 */ }
 			btn.classList.add( 'held' );
 			if ( act === 'boost' ) touch.boost = true;
 			else if ( act === 'sing' && singDown() ) return; // MAP 3 롱탭
@@ -3045,6 +3047,8 @@ function setupTouch() {
 		btn.addEventListener( 'pointerup', up );
 		btn.addEventListener( 'pointercancel', up );
 		btn.addEventListener( 'pointerleave', up );
+		// 안드로이드는 길게 누르면 메뉴를 띄우려다 누름을 취소해 버린다 (롱탭이 중간에 끊긴다)
+		btn.addEventListener( 'contextmenu', ( e ) => e.preventDefault() );
 
 	} );
 
@@ -4218,7 +4222,7 @@ function updatePlayer( dt ) {
 	// 핀이 있으면 부스트가 오래 간다
 	const finn = G.party.finn === 'on';
 	const boosting = boost && throttle > 0 && G.stamina > 0.02;
-	if ( boosting ) G.stamina = Math.max( 0, G.stamina - dt * ( finn ? 0.16 : 0.26 ) );
+	if ( boosting ) G.stamina = Math.max( 0, G.stamina - dt * ( finn ? 0.13 : 0.2 ) );
 	else G.stamina = Math.min( 1, G.stamina + dt * ( finn ? 0.26 : 0.16 ) );
 
 	let target = throttle > 0 ? throttle * ( boosting ? BOOST_SPEED : MAX_SPEED ) : throttle * REVERSE_SPEED;

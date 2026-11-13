@@ -26,6 +26,22 @@ export class UI {
 
 		document.querySelectorAll( '[data-close]' ).forEach( ( b ) => b.addEventListener( 'click', () => this.closeOverlay() ) );
 
+		// 대화 중엔 화면 아무 데나 눌러도 다음으로 (대화창만 누르지 않아도). 버튼 · 입력칸 · 메뉴는 그대로 둔다
+		document.addEventListener( 'pointerdown', ( e ) => {
+
+			if ( ! this.dialogQueue || this.overlay ) return;
+			if ( e.target.closest?.( 'button, a, input, textarea, select, .overlay, #hold, #sym' ) ) return;
+			this.advance();
+
+		} );
+
+		// 편지는 닫기 버튼이 아니어도 아무 데나 눌러서 닫는다 (끌어서 읽는 건 click이 아니라 괜찮다)
+		$( 'letter' ).addEventListener( 'click', () => {
+
+			if ( this.overlay === 'letter' ) this.closeOverlay();
+
+		} );
+
 		// 소나 창 제목 줄을 누르면 접고 편다 (이 기기에 기억)
 		try {
 

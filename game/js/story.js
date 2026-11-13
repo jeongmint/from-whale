@@ -460,10 +460,28 @@ export async function epilogue( G ) {
 	G.setMusic( { tension: 0, drums: G.party.finn === 'on' ? 0.5 : 0, bass: 0, melody: 1, piano: 1, sax: 0.9 } );
 	const who = G.party.finn === 'on' ? 'finn' : G.party.luke === 'on' ? 'luke' : 'none';
 	await G.say( lines( T().start[ who ] ) );
-	G.objective( label( T().card ), T().objective );
+	// 엔딩 뒤엔 나침반이 흐려지지 않는다 (편지 찾기에만 집중). 화살표는 가장 가까운 남은 유리병을 가리킨다
+	G.compass = null;
+	G.ui.setCompass( null );
+	const nearest = () => G.bottles.filter( ( b ) => ! b.collected ).sort( ( a, b ) => G.distTo( a ) - G.distTo( b ) )[ 0 ] ?? null;
+	const text = () => `${T().objective} (${G.bottleCount()}/${LETTER_TOTAL})`;
+	G.objective( label( T().card ), text(), nearest() );
 	G.ui.toast( T().hint );
 
-	await G.until( () => G.bottleCount() >= LETTER_TOTAL && ! G.ui.overlay && ! G.ui.dialogOpen );
+	let count = G.bottleCount();
+	while ( ! ( G.bottleCount() >= LETTER_TOTAL && ! G.ui.overlay && ! G.ui.dialogOpen ) ) {
+
+		await G.wait( 0.5 );
+		G.objectiveTarget = nearest();
+		if ( G.bottleCount() !== count ) {
+
+			count = G.bottleCount();
+			G.ui.setObjective( label( T().card ), text() );
+
+		}
+
+	}
+
 	await G.wait( 1.2 );
 	G.cutscene( true );
 	await meetStella( G );
@@ -515,7 +533,8 @@ export async function map2( G ) {
 
 		}
 
-		G.objective( U().label, U().objFind.replace( '{n}', memories ), best?.pos ?? null );
+		// 몇 개 찾았는지 + 화살표가 가리키는 가장 가까운 방의 이름 (어느 층인지까지)
+		G.objective( U().label, U().objFind.replace( '{n}', memories ).replace( '{place}', best ? U().obj[ best.index ] : '' ), best?.pos ?? null );
 
 	};
 

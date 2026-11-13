@@ -114,7 +114,9 @@ export function respond( G, opts ) {
 			stopTone = holdTone( G, 57 );
 			ring.classList.add( 'on' );
 			opts.onPress?.();
-			if ( phase === 'answer' || phase === 'echo' ) pressBlock = block( pressAt - t0, 0.001, 'me' );
+			// 메아리는 막대가 닿기 조금 전에 눌러도 (폰은 손이 먼저 가기 쉽다) 금빛 막대를 그린다. 판정도 그만큼 봐준다
+			if ( phase === 'answer' || phase === 'echo' || ( kind === 'echo' && phase === 'wait' ) ) pressBlock = block( pressAt - t0, 0.001, 'me' );
+			else pressBlock = null;
 
 		}
 
@@ -130,6 +132,8 @@ export function respond( G, opts ) {
 			ring.style.setProperty( '--k', 0 );
 			if ( phase === 'answer' ) judgeAnswer( at, dur );
 			else if ( phase === 'echo' ) judgeEcho( at, dur );
+			else if ( pressBlock ) pressBlock.classList.add( 'stray' ); // 메아리가 오기 전에 이미 놓았다
+			pressBlock = null;
 
 		}
 
