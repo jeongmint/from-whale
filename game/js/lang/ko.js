@@ -219,6 +219,7 @@ export default {
 			stella: '또 하나의 52Hz'
 		},
 		toast: {
+			singCloser: '조금 더 가까이 가서 노래해 봐 — 화살표 쪽으로',
 			spotted: '! 연합군에게 들켰다 — Shift로 도망치거나 Space로 점프!',
 			spottedLight: '! 연합군에게 들켰다 — 빛 조각을 먹고 도망쳐!',
 			dash: '루크의 빛 — 잠시 아주 빨라진다!',
@@ -252,7 +253,11 @@ export default {
 			recharge: '<kbd>E</kbd> 미역 곁에서 노래하기 — 하트 충전',
 			compass: '<kbd>E</kbd> 미역 곁에서 노래하기 — 나침반 맞추기',
 			jump: '<kbd>Space</kbd> 지금 뛰어올라!',
-			tears: '<kbd>E</kbd> 핀의 눈물 — 비로 정신 차리기'
+			tears: '<kbd>E</kbd> 핀의 눈물 — 비로 정신 차리기',
+			singFirst: '<kbd>E</kbd> 노래하기 — 나의 52Hz',
+			singCrack: '<kbd>E</kbd> 여기서 노래하기 — 얼음 아래 12번에게',
+			singShip: '<kbd>E</kbd> 여기서 노래하기 — 가라앉은 배에게',
+			singStone: '<kbd>E</kbd> 여기서 노래하기 — 노래 바위에게'
 		},
 		kelpReader: { luke: '미역 줄기 · 루크가 읽어 줌', finn: '미역 줄기 · 핀이 읽어 줌', none: '미역 줄기' },
 		bottleReact: { luke: '흥. 별 내용 없네. ...다음 거나 찾아.', finn: '...다 누군가의 노래였구나.' },

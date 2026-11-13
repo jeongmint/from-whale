@@ -39,7 +39,7 @@ A sea adventure of **Hazel**, a whale who sings at 52Hz. Another world, the year
 - **Space and sea** — Gerstner waves, glittering ripples, ringed planet, shooting stars, bloom
 - **MAP 2 · A Sea Born Without Waves** — a second map that opens after meeting Stella. Descend a trench and uncover the Alliance's secret (see MAP 2 below)
 - **MAP 3 · A Song That Calls the Dawn** — back to the surface after the MAP 2 ending. Gather the Alliance's scattered voices into the Whale Symphony (see MAP 3 below)
-- **Retro blue UI** — window-style HUD, sonar minimap (tap its title bar to fold it, remembered on the device), chapter cards, PC controls guide, current objective inside the HAZEL window (top center left clear). Portrait phones: one bottom row of joystick · sonar · 2×2 buttons (right thumb, screen center clear). One-line dialog at the bottom, two-column title, and the call-and-response window at the bottom left in tilt mode on landscape phones
+- **Retro blue UI** — window-style HUD, sonar minimap (tap its title bar to fold it, remembered on the device), chapter cards, PC controls guide, current objective inside the HAZEL window (top center left clear). A gold "Sing here" prompt at singing spots (the ♪ button glows on phones), and "get a little closer" when singing too far away. Portrait phones: one bottom row of joystick · sonar · 2×2 buttons (right thumb, screen center clear). One-line dialog at the bottom, two-column title, and the call-and-response window at the bottom left in tilt mode on landscape phones
 - **Light models** — 500–650 vertices per whale, 512px textures. Phone support
 
 ### Branching endings

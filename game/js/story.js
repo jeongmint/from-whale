@@ -148,7 +148,9 @@ async function prologue( G ) {
 	await G.until( () => G.stats.swum > 45 );
 
 	G.objective( label( T.card ), T.objSing );
+	G.singCue = { key: 'prompt.singFirst' };
 	await G.untilEvent( 'sing' );
+	G.singCue = null;
 	await G.wait( 2.2 );
 	await G.say( lines( lang().story.prologue.noAnswer ) );
 
@@ -699,12 +701,18 @@ export async function map3( G ) {
 
 	aimCrack();
 	let broken = 0;
+	G.singCue = { spots: () => cracks.filter( ( c ) => ! c.done ), r: 18, key: 'prompt.singCrack' };
 	while ( cracks.some( ( c ) => ! c.done ) ) {
 
 		// 노래하면 얼음 아래에서 12번의 메아리가 돌아온다 → 메아리가 들리는 동안 롱탭, 끝나면 놓기 (갈수록 길게)
 		await G.untilEvent( 'sing' );
 		const c = cracks.find( ( x ) => ! x.done && dist( x ) < 18 );
-		if ( ! c ) continue;
+		if ( ! c ) {
+
+			closer();
+			continue;
+
+		}
 		G.cutscene( true );
 		G.camFocus( { x: c.x, y: 0, z: c.z }, { side: 1, dist: 22, height: 7 } );
 		if ( ! broken ) G.ui.toast( U().echoHint );
@@ -722,6 +730,8 @@ export async function map3( G ) {
 		aimCrack();
 
 	}
+
+	G.singCue = null;
 
 	G.cutscene( true );
 	G.openIce();
@@ -764,6 +774,15 @@ export async function map3( G ) {
 	await coast();
 	await finale();
 	await dawn();
+
+	// 노래할 자리에서 너무 멀리서 불렀을 때 (자주 띄우지 않게)
+	function closer() {
+
+		if ( G.time - ( G.lastCloser ?? - 99 ) < 4 ) return;
+		G.lastCloser = G.time;
+		G.ui.toast( lang().ui.toast.singCloser );
+
+	}
 
 	function dist( p ) {
 
@@ -853,9 +872,15 @@ export async function map3( G ) {
 		aimShip();
 		while ( ships.some( ( w ) => ! w.woke ) ) {
 
+			G.singCue = { spots: () => ships.filter( ( x ) => ! x.woke ), r: 48, key: 'prompt.singShip' };
 			await G.untilEvent( 'sing' );
 			const w = ships.find( ( x ) => ! x.woke && dist( x ) < 48 );
-			if ( ! w ) continue;
+			if ( ! w ) {
+
+				closer();
+				continue;
+
+			}
 			// 배에 남은 기억의 파편: 짧은 소리는 숏탭, 길게 이어지는 소리는 롱탭으로 이어 붙인다
 			G.cutscene( true );
 			G.camFocus( { x: w.x, y: 0, z: w.z }, { side: 1, dist: 70, height: 16 } );
@@ -874,6 +899,8 @@ export async function map3( G ) {
 			aimShip();
 
 		}
+
+		G.singCue = null;
 
 		G.cutscene( true );
 		await approach( nine );
@@ -958,9 +985,15 @@ export async function map3( G ) {
 		aimStone();
 		while ( stones.some( ( st ) => ! st.done ) ) {
 
+			G.singCue = { spots: () => stones.filter( ( x ) => ! x.done ), r: 18, key: 'prompt.singStone' };
 			await G.untilEvent( 'sing' );
 			const st = stones.find( ( x ) => ! x.done && dist( x ) < 18 );
-			if ( ! st ) continue;
+			if ( ! st ) {
+
+				closer();
+				continue;
+
+			}
 			G.cutscene( true );
 			G.camFocus( { x: st.x, y: 0, z: st.z }, { side: 1, dist: 24, height: 7 } );
 			st.setGlow( 0.8 );
@@ -977,6 +1010,8 @@ export async function map3( G ) {
 			aimStone();
 
 		}
+
+		G.singCue = null;
 
 		// 등대에 불이 들어온다
 		G.cutscene( true );

@@ -211,6 +211,7 @@ export class UI {
 		if ( ! html ) {
 
 			p.classList.add( 'hidden' );
+			document.body.classList.remove( 'sing-cue' );
 			this.lastPrompt = null;
 			return;
 
@@ -220,6 +221,10 @@ export class UI {
 
 			p.innerHTML = this.dev( html );
 			this.lastPrompt = html;
+			// 노래([E] · ♪)를 하라는 안내는 크게, 금빛으로. 폰은 ♪ 버튼도 반짝인다
+			const sing = html.includes( '<kbd>E</kbd>' );
+			p.classList.toggle( 'sing', sing );
+			document.body.classList.toggle( 'sing-cue', sing );
 
 		}
 

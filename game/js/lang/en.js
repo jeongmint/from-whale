@@ -219,6 +219,7 @@ export default {
 			stella: 'Another 52Hz'
 		},
 		toast: {
+			singCloser: 'Get a little closer and sing — follow the arrow',
 			spotted: '! The Alliance spotted you — Shift to flee, Space to jump!',
 			spottedLight: '! The Alliance spotted you — grab a shard of light and flee!',
 			dash: 'Luke\'s light — a burst of speed!',
@@ -252,7 +253,11 @@ export default {
 			recharge: '<kbd>E</kbd> Sing beside the kelp — refill hearts',
 			compass: '<kbd>E</kbd> Sing beside the kelp — fix the compass',
 			jump: '<kbd>Space</kbd> Jump now!',
-			tears: '<kbd>E</kbd> Finn\'s tears — rain away the dizziness'
+			tears: '<kbd>E</kbd> Finn\'s tears — rain away the dizziness',
+			singFirst: '<kbd>E</kbd> Sing — your own 52Hz',
+			singCrack: '<kbd>E</kbd> Sing here — to No.12 under the ice',
+			singShip: '<kbd>E</kbd> Sing here — to the sunken ship',
+			singStone: '<kbd>E</kbd> Sing here — to the song stone'
 		},
 		kelpReader: { luke: 'Kelp · read by Luke', finn: 'Kelp · read by Finn', none: 'Kelp' },
 		bottleReact: { luke: 'Hmph. Nothing special. ...Go find the next one.', finn: '...Every one of these was somebody\'s song.' },

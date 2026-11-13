@@ -219,6 +219,7 @@ export default {
 			stella: 'もうひとつの52Hz'
 		},
 		toast: {
+			singCloser: 'もう少し近づいて歌ってみよう — 矢印の方へ',
 			spotted: '! 連合軍に見つかった — Shiftで逃げるか、Spaceでジャンプ!',
 			spottedLight: '! 連合軍に見つかった — 光のかけらを食べて逃げろ!',
 			dash: 'ルークの光 — しばらくすごく速くなる!',
@@ -252,7 +253,11 @@ export default {
 			recharge: '<kbd>E</kbd> 海藻のそばで歌う — ハート回復',
 			compass: '<kbd>E</kbd> 海藻のそばで歌う — コンパスを直す',
 			jump: '<kbd>Space</kbd> 今だ、跳べ!',
-			tears: '<kbd>E</kbd> フィンの涙 — 雨で正気に戻る'
+			tears: '<kbd>E</kbd> フィンの涙 — 雨で正気に戻る',
+			singFirst: '<kbd>E</kbd> 歌う — わたしの52Hz',
+			singCrack: '<kbd>E</kbd> ここで歌う — 氷の下の12番へ',
+			singShip: '<kbd>E</kbd> ここで歌う — 沈んだ船へ',
+			singStone: '<kbd>E</kbd> ここで歌う — 歌の岩へ'
 		},
 		kelpReader: { luke: '海藻 · ルークが読んでくれた', finn: '海藻 · フィンが読んでくれた', none: '海藻' },
 		bottleReact: { luke: 'ふん。大したこと書いてねえな。…次のを探せ。', finn: '…どれも、誰かの歌だったんだね。' },

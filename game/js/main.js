@@ -4439,6 +4439,17 @@ function updateCompanions( dt ) {
 
 }
 
+// 노래해야 하는 자리 (G.singCue: 이야기가 정해 준다): 가까이 가면 '여기서 노래하기'를 크게 띄운다
+// { spots: () => [ { x, z } ], r, key } · spots가 없으면 어디서든
+function singCuePrompt() {
+
+	const c = G.singCue;
+	if ( ! c || ! G.started || G.cutsceneOn || G.ui.dialogOpen || G.ui.overlay || G.puzzle || G.fishing ) return null;
+	if ( c.spots && ! c.spots().some( ( s ) => G.distTo( s ) < c.r ) ) return null;
+	return t( c.key );
+
+}
+
 function updateBottlesAndKelp( dt ) {
 
 	// MAP 3: 노래를 마친 자리 위의 빛 조각 (먹으면 빛을 타고 다음 바다로)
@@ -4459,7 +4470,7 @@ function updateBottlesAndKelp( dt ) {
 
 	G.rideOrbs = G.rideOrbs.filter( ( s ) => ! s.taken );
 
-	if ( G.map3 ) return G.ui.prompt( null ); // MAP 3엔 맵 1의 유리병 · 미역 · 빛 조각이 없다
+	if ( G.map3 ) return G.ui.prompt( singCuePrompt() ); // MAP 3엔 맵 1의 유리병 · 미역 · 빛 조각이 없다. 노래할 자리 안내만
 
 	if ( G.diving ) return G.ui.prompt( ! G.fishing && ! G.cutsceneOn && ! G.ui.dialogOpen && nearFishSpot() ? t( 'fish.prompt' ) : null ); // MAP 2엔 맵 1의 유리병 · 미역 · 빛 조각이 없다. 낚시 자리 안내만
 
@@ -4496,7 +4507,7 @@ function updateBottlesAndKelp( dt ) {
 	if ( G.stun > 0 && G.flags.finnTears && ! G.cutsceneOn && ! G.ui.dialogOpen ) prompt = t( 'prompt.tears' );
 	if ( G.jumpCueOn ) prompt = t( 'prompt.jump' );
 
-	G.ui.prompt( prompt );
+	G.ui.prompt( prompt ?? singCuePrompt() );
 
 }
 
