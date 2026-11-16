@@ -144,6 +144,7 @@
 | 모비 딕 | 향유고래, 마지막 보스 | `data/moby/Moby.glb` |
 | 스텔라 | 노란 대왕고래, 또 하나의 52Hz, 목주름, 등의 반짝이는 육각별 문양 | `data/stella/Stella.glb` (코드로 생성: `tools/make_stella.py`) |
 | MAP 2 바다 생물 | 열대어, 해파리, 실러캔스, 게 등 (24종), 위협은 곰치 | `data/polyfork/*.glb` ([Polyfork](https://polyfork.dev) 무료 로우폴리, Meshopt 압축, 포털이 열릴 때 불러옴) |
+| MAP 3 침몰한 함대 | 가라앉은 고깃배 5척 | `data/polyfork/hanga-roa-fishing-boat.glb` ([Hanga Roa Fishing Boat](https://polyfork.dev/asset/hanga-roa-fishing-boat-f09534), Polyfork, CC BY 4.0, Draco 압축) |
 
 색 옵션 (`game/js/actors.js`의 `Whale`): `solidColor` 단색, `recolor: [ 어두운 색, 밝은 색 ]` 무늬 유지 색 변경
 

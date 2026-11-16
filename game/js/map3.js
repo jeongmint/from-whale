@@ -4,6 +4,24 @@ import * as THREE from 'three';
 import { sampleOcean, makeSurfaceDecal } from './ocean.js';
 import { Whale, steerTo, followSlot } from './actors.js';
 import { dawnColor } from './sky.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+
+// 침몰한 함대의 배: Hanga Roa Fishing Boat by Polyfork (CC BY 4.0, Draco 압축)
+const BOAT_FILE = 'data/polyfork/hanga-roa-fishing-boat.glb';
+let boatLoad = null;
+function loadBoat() {
+
+	if ( ! boatLoad ) {
+
+		const draco = new DRACOLoader().setDecoderPath( 'https://unpkg.com/three@0.148.0/examples/jsm/libs/draco/gltf/' );
+		boatLoad = new GLTFLoader().setDRACOLoader( draco ).loadAsync( ( window.FW_ASSET_BASE ?? '../' ) + BOAT_FILE ).catch( () => null );
+
+	}
+
+	return boatLoad;
+
+}
 
 // 자리 (x, z). 북쪽 = -z. 세상의 끝(150, 150 · 반지름 1150) 안쪽
 export const DAWN_PLACES = {
@@ -437,8 +455,6 @@ export class DawnSea {
 	buildFleet() {
 
 		const F = DAWN_PLACES.fleet;
-		const rust = new THREE.MeshStandardMaterial( { color: 0x5a3a2e, roughness: 0.9, metalness: 0.35, emissive: 0x140806, emissiveIntensity: 0.6, flatShading: true } );
-		const steel = new THREE.MeshStandardMaterial( { color: 0x4a5058, roughness: 0.7, metalness: 0.5, emissive: 0x0a0e14, emissiveIntensity: 0.6, flatShading: true } );
 		// [ x, z, 길이, 방향, 기울기(옆), 기울기(앞뒤), 잠긴 깊이, 종류 ]
 		const SHIPS = [
 			[ - 30, - 20, 70, 0.4, 0.42, 0.12, 4.5, 'tank' ], // 수조를 실어 나르던 배
@@ -447,79 +463,56 @@ export class DawnSea {
 			[ 95, - 70, 44, 2.6, - 0.5, 0.1, 4, 'tank' ],
 			[ - 110, 30, 50, - 2.2, 0.35, - 0.28, 5.5, 'war' ]
 		];
+		let boatMat = null;
 		this.wrecks = SHIPS.map( ( [ dx, dz, len, yaw, roll, pitch, sink, kind ], i ) => {
 
 			const g = new THREE.Group();
-			// 선체: 상자를 뱃머리 쪽으로 좁히고 아래를 오므린다
-			const hull = new THREE.BoxGeometry( len, 8, 11, 8, 2, 2 );
-			const p = hull.attributes.position;
-			for ( let j = 0; j < p.count; j ++ ) {
+			// 선체: 고깃배 모델 (불러오면 끼운다). 뱃머리(+z)를 +x로 돌리고 길이를 맞춘다
+			const sc = len / 7.4;
+			loadBoat().then( ( gltf ) => {
 
-				const x = p.getX( j ), y = p.getY( j ), z = p.getZ( j );
-				const bow = THREE.MathUtils.smoothstep( x / ( len / 2 ), 0.35, 1 );
-				p.setZ( j, z * ( 1 - bow * 0.95 ) * ( y < 0 ? 0.62 : 1 ) );
-				p.setY( j, y + bow * 1.5 * ( y > 0 ? 1 : 0 ) );
+				if ( ! gltf ) return;
+				const boat = gltf.scene.clone( true );
+				boat.traverse( ( o ) => {
 
-			}
+					if ( ! o.isMesh ) return;
+					if ( ! boatMat ) {
 
-			hull.computeVertexNormals();
-			g.add( new THREE.Mesh( hull, rust ) );
-			const box = ( w, h, d, x, y, z, m = steel ) => {
+						boatMat = o.material.clone();
+						boatMat.color.set( 0x9a8a80 ); // 오래 잠겨 빛이 바랬다
+						boatMat.emissive.set( 0x140806 );
+						boatMat.emissiveIntensity = 0.6;
 
-				const b = new THREE.Mesh( new THREE.BoxGeometry( w, h, d ), m );
-				b.position.set( x, y, z );
-				g.add( b );
-				return b;
+					}
 
-			};
+					o.material = boatMat;
 
-			const cyl = ( r, h, x, y, z, rz = 0, m = steel ) => {
+				} );
+				boat.scale.setScalar( sc );
+				boat.rotation.y = Math.PI / 2;
+				boat.position.set( - 0.4 * sc, - 0.9 * sc, 0 );
+				g.add( boat );
 
-				const c = new THREE.Mesh( new THREE.CylinderGeometry( r, r, h, 8 ), m );
-				c.position.set( x, y, z );
-				c.rotation.z = rz;
-				g.add( c );
-				return c;
-
-			};
-
-			box( len * 0.22, 5, 7, - len * 0.1, 6.5, 0 );
-			box( len * 0.12, 3.5, 5, - len * 0.12, 10.5, 0 );
-			cyl( 0.35, 16, - len * 0.08, 16, 0 ); // 돛대
-			box( 0.3, 0.3, 7, - len * 0.08, 20, 0 );
-			cyl( 1.6, 6, - len * 0.25, 8, 0, 0, rust ); // 굴뚝
-			if ( kind === 'war' ) {
-
-				for ( const tx of [ len * 0.22, - len * 0.36 ] ) {
-
-					cyl( 2.4, 1.8, tx, 5, 0 );
-					cyl( 0.32, 9, tx + ( tx > 0 ? 4.5 : - 4.5 ), 5.6, 0, Math.PI / 2 );
-
-				}
-
-			} else if ( kind === 'tank' ) {
-
-				// 갑판 위의 커다란 수조 (유리는 깨졌다)
-				const glass = new THREE.MeshStandardMaterial( { color: 0x7fb8d8, roughness: 0.1, metalness: 0.2, transparent: true, opacity: 0.35, emissive: 0x0a2030, emissiveIntensity: 0.8 } );
-				box( len * 0.3, 4.5, 8, len * 0.18, 6.2, 0, glass );
-
-			} else {
-
-				box( len * 0.18, 3, 6, len * 0.2, 5.5, 0 );
-				cyl( 0.2, 7, len * 0.2, 10, 0 ); // 안테나
-
-			}
-
-			// 창: 기억이 깨어나면 따뜻하게 켜진다
+			} );
+			// 창: 기억이 깨어나면 따뜻하게 켜진다 (양쪽 뱃전의 둥근 창)
 			const winMat = new THREE.MeshBasicMaterial( { color: 0x1a1410 } );
-			for ( let k = 0; k < 5; k ++ ) box( 0.9, 0.9, 0.2, - len * 0.18 + k * 1.8, 7, 3.55, winMat );
+			const winGeo = new THREE.CircleGeometry( 0.11 * sc, 10 );
+			for ( const side of [ 1, - 1 ] ) for ( let k = 0; k < 5; k ++ ) {
+
+				const w = new THREE.Mesh( winGeo, winMat );
+				w.position.set( ( - 0.2 + ( k - 2 ) * 0.5 ) * sc, 0.45 * sc, side * 1.22 * sc );
+				if ( side < 0 ) w.rotation.y = Math.PI;
+				g.add( w );
+
+			}
+
 			const x = F.x + dx, z = F.z + dz;
 			g.position.set( x, - sink, z );
 			g.rotation.set( pitch, yaw, roll, 'YXZ' );
 			this.group.add( g );
 			// 충돌: 선체 길이를 따라 원 여러 개
 			const ax = Math.cos( yaw ), az = - Math.sin( yaw );
-			for ( let k = - len / 2 + 6; k <= len / 2 - 6; k += 8 ) this.colliders.push( { x: x + ax * k, z: z + az * k, r: 6.5 } );
+			for ( let k = - len / 2 + 6; k <= len / 2 - 6; k += 8 ) this.colliders.push( { x: x + ax * k, z: z + az * k, r: Math.max( 6.5, 1.1 * sc ) } );
 			return { group: g, x, z, len, kind, winMat, memory: i < 3 ? i : - 1, woke: false };
 
 		} );
@@ -528,7 +521,7 @@ export class DawnSea {
 		const war = this.wrecks[ 2 ];
 		this.warnLight = new THREE.Sprite( new THREE.SpriteMaterial( { color: 0xff3a3a, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false } ) );
 		this.warnLight.scale.setScalar( 3 );
-		this.warnLight.position.set( - war.len * 0.08, 24, 0 );
+		this.warnLight.position.set( - war.len * 0.05, 1.9 * war.len / 7.4, 0 );
 		war.group.add( this.warnLight );
 
 	}
